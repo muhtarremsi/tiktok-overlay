@@ -1,4 +1,4 @@
-import { TikTokLiveConnection } from 'tiktok-live-connector';
+import { TikTokLiveConnection, ControlEvent, WebcastEvent } from 'tiktok-live-connector';
 import { normalizeTiktokUsername } from '@/lib/username';
 
 export const dynamic = 'force-dynamic'; // Wichtig für Vercel
@@ -29,17 +29,18 @@ export async function GET(request: Request) {
         await tiktok.connect();
         send({ type: 'status', msg: 'Verbunden!' });
 
-        tiktok.on('chat', (data) => {
-          send({ type: 'chat', comment: data.comment, user: data.uniqueId });
+        tiktok.on(WebcastEvent.CHAT, (data) => {
+          send({ type: 'chat', comment: data.comment, user: data.user?.uniqueId ?? '' });
         });
 
-        tiktok.on('disconnected', () => {
+        tiktok.on(ControlEvent.DISCONNECTED, () => {
           send({ type: 'status', msg: 'Verbindung verloren' });
-          controller.close();  // Verbindung schließen, wenn die Verbindung unterbrochen wird
+          controller.close();
         });
 
-        tiktok.on('error', (err) => {
-          send({ type: 'status', msg: `Fehler: ${err.message || 'Unbekannter Fehler'}` });
+        tiktok.on(ControlEvent.ERROR, (err: unknown) => {
+          const msg = err instanceof Error ? err.message : 'Unbekannter Fehler';
+          send({ type: 'status', msg: `Fehler: ${msg}` });
         });
 
       } catch (err: any) {
