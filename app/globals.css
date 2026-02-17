@@ -3,20 +3,17 @@
 @tailwind utilities;
 
 :root {
-  /* Diese Variablen werden für das Dashboard genutzt */
-  --background-rgb: 11, 12, 14; /* #0B0C0E */
+  --background-rgb: 11, 12, 14;
 }
 
-/* WICHTIG FÜR OBS: 
-   Der body-Hintergrund muss transparent sein, 
-   damit nur das Video und nicht die ganze Seite zu sehen ist.
-*/
-body {
-  background-color: transparent;
+/* Der Holzhammer: Alles transparent machen, was transparent sein kann */
+html, body {
+  background: transparent !important;
+  background-color: transparent !important;
   min-height: 100vh;
 }
 
-/* Für das Dashboard-Design (nicht das Overlay) */
+/* Dashboard Hintergrund separat definieren */
 .dashboard-bg {
-  background-color: rgb(var(--background-rgb));
+  background-color: #0B0C0E;
 }
