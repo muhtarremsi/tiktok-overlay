@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { normalizeTiktokUsername } from "@/lib/username";
 
 function OverlayContent() {
   const searchParams = useSearchParams();
   
-  // DATEN AUS DEM DASHBOARD LINK
-  const username = searchParams.get("u");
+  // DATEN AUS DEM DASHBOARD LINK (Username normalisiert für API)
+  const rawUser = searchParams.get("u");
+  const username = rawUser ? normalizeTiktokUsername(rawUser) : null;
   const triggerCode = searchParams.get("c") || "777";
   const videoUrl = searchParams.get("v");
   const startTime = Number(searchParams.get("s") || 0);
@@ -61,7 +63,7 @@ function OverlayContent() {
   useEffect(() => {
     if (!username) return;
 
-    const eventSource = new EventSource(`/api/tiktok?u=${username}`);
+    const eventSource = new EventSource(`/api/tiktok?u=${encodeURIComponent(username)}`);
 
     eventSource.onmessage = (event) => {
       try {

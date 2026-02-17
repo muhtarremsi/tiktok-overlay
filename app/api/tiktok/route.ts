@@ -1,10 +1,12 @@
 import { WebcastPushConnection } from 'tiktok-live-connector';
+import { normalizeTiktokUsername } from '@/lib/username';
 
 export const dynamic = 'force-dynamic'; // Wichtig für Vercel
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get('u');
+  const raw = searchParams.get('u');
+  const username = normalizeTiktokUsername(raw);
 
   if (!username) {
     return new Response('Username is required', { status: 400 });

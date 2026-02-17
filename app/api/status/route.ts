@@ -1,11 +1,13 @@
 import { WebcastPushConnection } from 'tiktok-live-connector';
 import { NextResponse } from 'next/server';
+import { normalizeTiktokUsername } from '@/lib/username';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get('u');
+  const raw = searchParams.get('u');
+  const username = normalizeTiktokUsername(raw);
 
   if (!username) {
     return NextResponse.json({ online: false, error: 'Username is required' });
