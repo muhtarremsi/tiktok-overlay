@@ -3,8 +3,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
-  Box, Loader2, Plus, Trash2, Menu, X,
-  Settings, Globe, Play, CheckCircle
+  Type, Settings, Box, Loader2, Plus, Trash2, Menu, X,
+  Volume2, Globe, Play
 } from "lucide-react";
 
 function DashboardContent() {
@@ -12,32 +12,35 @@ function DashboardContent() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [isLive, setIsLive] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [baseUrl, setBaseUrl] = useState("");
   const [lang, setLang] = useState(searchParams.get("lang")?.toUpperCase() || "EN");
 
-  // HIER IST DIE NEUE VERSION
-  const version = "0.030032"; 
+  // NEUE VERSION
+  const version = "0.030033"; 
+  const expiryDate = "17.02.2025"; // Wie im Screenshot
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
   }, []);
 
-  // Status Check Logic
   useEffect(() => {
     if (!username || username.length < 2) { setIsLive(false); return; }
     const checkStatus = async () => {
+      setIsChecking(true);
       try {
         const res = await fetch(`/api/status?u=${username}`);
         if (res.ok) {
           const data = await res.json();
           setIsLive(!!data.online);
-        }
+        } else { setIsLive(false); }
       } catch (e) { setIsLive(false); } 
+      finally { setIsChecking(false); }
     };
-    const interval = setInterval(checkStatus, 5000);
-    return () => clearInterval(interval);
+    const timeoutId = setTimeout(checkStatus, 1000);
+    return () => clearTimeout(timeoutId);
   }, [username]);
 
   const updateLang = (newLang: string) => {
@@ -49,59 +52,79 @@ function DashboardContent() {
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px]">
       {sidebarOpen && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
       
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transition-transform lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex flex-col h-full p-5 font-sans uppercase font-bold italic">
+      {/* SIDEBAR - EXACT REPLICA OF IMAGE_248C42 */}
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transition-transform lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} flex flex-col`}>
+        <div className="p-5 flex flex-col h-full font-sans uppercase font-bold italic">
+          {/* LOGO */}
           <div className="flex items-center justify-between mb-8 text-white tracking-tight not-italic">
             <h1 className="text-base flex items-center gap-2 font-black"><Box className="w-4 h-4 text-white" /> ARC TOOLS</h1>
             <button className="lg:hidden" onClick={() => setSidebarOpen(false)}><X size={18} /></button>
           </div>
           
-          <div className="mb-6 space-y-4 not-italic">
+          {/* USER INFO BLOCK */}
+          <div className="mb-8 space-y-4 not-italic">
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
-              <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none focus:border-zinc-600 transition-all lowercase" />
+              <input type="text" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none focus:border-zinc-600 transition-all lowercase" />
               <div className="absolute inset-y-0 right-3 flex items-center justify-center w-5">
-                 <div className={`w-2 h-2 rounded-full transition-all duration-500 ${isLive ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-zinc-800'}`}></div>
+                 {isChecking ? <Loader2 size={12} className="animate-spin text-zinc-600" /> : <div className={`w-2 h-2 rounded-full transition-all duration-500 ${isLive ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-zinc-800'}`}></div>}
               </div>
             </div>
+            
+            {/* INFO CARD (Version, License, Ablauf) */}
             <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500">
-              <div className="flex justify-between items-center text-[10px]">
-                <span>VERSION</span>
-                {/* HIER MUSS 0.030032 STEHEN */}
-                <span className="text-green-400 font-mono tracking-tighter text-sm">{version}</span>
-              </div>
+              <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono tracking-tighter">{version}</span></div>
               <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
+              <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>ABLAUF</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
             </div>
           </div>
 
-          <nav className="flex-1 space-y-1">
-            <SidebarItem icon={<Play size={16} />} label="Trigger List" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
-            <SidebarItem icon={<Settings size={16} />} label="Settings" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
+          {/* MAIN NAV */}
+          <nav className="space-y-1">
+            <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
+            <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
           </nav>
+
+          {/* SPACER TO PUSH SETTINGS DOWN */}
+          <div className="flex-1"></div>
+
+          {/* BOTTOM NAV (Settings & Language) */}
+          <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
+             <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
+             
+             {/* LANGUAGE SELECTOR (Simple Style) */}
+             <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 hover:text-white cursor-pointer transition-colors group relative">
+                <div className="flex items-center gap-3"><Globe size={16} /><span className="text-[11px] font-bold tracking-widest uppercase">LANGUAGE</span></div>
+                <span className="text-[10px] font-mono font-bold text-zinc-600 group-hover:text-white">{lang}</span>
+             </div>
+          </div>
         </div>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="flex-1 bg-[#09090b] flex flex-col min-w-0 font-bold uppercase">
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 font-bold uppercase tracking-widest text-[10px]">
           <div className="flex items-center gap-4">
             <button className="lg:hidden text-white" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
             <div className="flex items-center gap-1.5"><span className="text-zinc-700">App /</span> <span className="text-white">{activeView}</span></div>
           </div>
-          {isLive && <span className="text-green-500 flex items-center gap-2 font-black italic tracking-[2px]">LIVE</span>}
+          {isLive && <span className="text-green-500 flex items-center gap-2 font-black italic tracking-[2px]"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_#22c55e]" /> LIVE</span>}
         </header>
         <div className="flex-1 overflow-y-auto">
-          {activeView === "ttv" ? <ModuleTTV username={username} baseUrl={baseUrl} isLive={isLive} /> : <div className="p-10 text-zinc-500">Settings Area</div>}
+          {activeView === "ttv" ? <ModuleTTV username={username} baseUrl={baseUrl} isLive={isLive} /> : <div className="p-10 text-zinc-600 font-black italic">Settings Module Ready</div>}
         </div>
       </main>
     </div>
   );
 }
 
+// DAS NEUE MULTI-TRIGGER MODUL (ABER IM ALTEN DESIGN)
 function ModuleTTV({ username, baseUrl, isLive }: any) {
-  // Trigger Liste State
+  // Liste mit einem Demo-Eintrag
   const [triggers, setTriggers] = useState<any[]>([
     { id: 1, code: "777", url: "https://cdn.discordapp.com/attachments/1462540433463709815/1472988001838563361/Meme_Okay_.mp4", start: 0, end: 10 }
   ]);
+
   const [newCode, setNewCode] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [newStart, setNewStart] = useState("0");
@@ -124,15 +147,15 @@ function ModuleTTV({ username, baseUrl, isLive }: any) {
   return (
     <div className="p-6 lg:p-10 max-w-6xl mx-auto space-y-10 uppercase italic font-sans font-bold">
       <div className="flex justify-between items-center font-black">
-        <h2 className="text-xl lg:text-2xl text-white tracking-tight italic">Multi-Trigger System</h2>
-        <div className="px-4 py-1.5 rounded-lg border border-green-500/20 bg-green-500/5 text-green-500 text-[10px]">NEW LIST SYSTEM ACTIVE</div>
+        <h2 className="text-xl lg:text-2xl text-white tracking-tight italic">TTV Setup</h2>
+        <div className={`px-4 py-1.5 rounded-lg border text-[10px] ${isLive ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-zinc-700 border-zinc-800'}`}>CONNECTOR: {isLive ? 'ACTIVE' : 'IDLE'}</div>
       </div>
       
-      {/* ADD NEW SECTION */}
+      {/* ADD TRIGGER BOX */}
       <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 space-y-6 shadow-lg">
-        <h3 className="text-white text-xs font-black flex items-center gap-2 not-italic"><Plus size={14} /> ADD NEW TRIGGER</h3>
+        <h3 className="text-white text-xs font-black flex items-center gap-2 not-italic"><Plus size={14} /> NEW TRIGGER</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500 font-bold" />
+          <input type="text" placeholder="Trigger Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500 font-bold" />
           <input type="text" placeholder="Video URL (.mp4)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500 font-mono" />
         </div>
         <div className="flex gap-4">
@@ -142,10 +165,10 @@ function ModuleTTV({ username, baseUrl, isLive }: any) {
         </div>
       </div>
 
-      {/* LIST SECTION */}
+      {/* TRIGGER LIST */}
       <div className="space-y-3">
         {triggers.map((t, i) => (
-          <div key={t.id} className="flex items-center gap-4 bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl">
+          <div key={t.id} className="flex items-center gap-4 bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl hover:border-zinc-600 transition-colors">
             <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center font-mono text-zinc-500 text-[10px]">{i + 1}</div>
             <div className="flex-1">
               <div className="flex items-center gap-3"><span className="text-green-400 font-black text-sm">{t.code}</span> <span className="text-zinc-600 text-[9px] font-mono not-italic">({t.start}s - {t.end}s)</span></div>
@@ -156,7 +179,7 @@ function ModuleTTV({ username, baseUrl, isLive }: any) {
         ))}
       </div>
 
-      {/* LINK SECTION */}
+      {/* OBS LINK BOX */}
       <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-4 not-italic font-bold shadow-xl">
         <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">OBS Master Link</label>
         <div className="flex flex-col lg:flex-row gap-2 font-mono text-[10px]"><div className="flex-1 text-zinc-600 truncate bg-black px-4 py-4 rounded-xl border border-white/5 uppercase tracking-tighter">{link}</div><button onClick={() => navigator.clipboard.writeText(link)} className="bg-white text-black px-12 py-4 lg:py-0 rounded-xl font-black uppercase text-xs hover:bg-zinc-200">Copy</button></div>
@@ -166,7 +189,7 @@ function ModuleTTV({ username, baseUrl, isLive }: any) {
 }
 
 function SidebarItem({ icon, label, active, onClick }: any) {
-  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-normal ${active ? "bg-[#0c0c0e] text-white font-bold border border-white/5 shadow-xl" : "text-zinc-500 hover:text-white"}`}><span>{icon}</span>{label}</button>;
+  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold ${active ? "bg-[#0c0c0e] text-white border border-white/5 shadow-xl" : "text-zinc-500 hover:text-white"}`}><span>{icon}</span>{label}</button>;
 }
 
 export default function Dashboard() { return <Suspense fallback={<div>Loading...</div>}><DashboardContent /></Suspense>; }
