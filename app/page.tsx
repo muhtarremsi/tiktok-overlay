@@ -12,16 +12,21 @@ function DashboardContent() {
   const [username, setUsername] = useState("");
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [isConnected, setIsConnected] = useState(false); // Neuer Status für das grüne Licht
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030048";
+  const version = "0.030049";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
     const userFromUrl = searchParams.get("u");
     const viewFromUrl = searchParams.get("view");
+    const connectedParam = searchParams.get("connected");
     
-    if (userFromUrl) setUsername(userFromUrl);
+    if (userFromUrl) {
+      setUsername(userFromUrl);
+      setIsConnected(true); // Wenn ein User aus der URL kommt, leuchtet es grün
+    }
     if (viewFromUrl) setActiveView(viewFromUrl);
   }, [searchParams]);
 
@@ -47,7 +52,20 @@ function DashboardContent() {
         <div className="mb-8 space-y-4 not-italic">
           <div className="relative">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
-            <input type="text" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none transition-all lowercase" />
+            <input 
+              type="text" 
+              placeholder="username" 
+              value={username} 
+              onChange={(e) => {
+                setUsername(e.target.value.toLowerCase());
+                setIsConnected(false); // Manuelles Tippen setzt den "Login-Status" zurück
+              }} 
+              className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none transition-all lowercase" 
+            />
+            {/* DAS GRÜNE LICHT */}
+            <div className={`absolute inset-y-0 right-3 flex items-center`}>
+              <div className={`w-2 h-2 rounded-full shadow-[0_0_8px] ${isConnected ? "bg-green-500 shadow-green-500/50" : "bg-zinc-800 shadow-transparent"}`}></div>
+            </div>
           </div>
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
@@ -84,7 +102,7 @@ function DashboardContent() {
             <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold text-center">
               <h2 className="text-2xl text-white">General Settings</h2>
               <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-8 shadow-xl not-italic">
-                {username ? (
+                {isConnected ? (
                   <div className="text-green-500 font-bold flex flex-col items-center gap-2">
                     <CheckCircle2 size={32} />
                     <span className="uppercase text-xs tracking-widest">Connected: {username}</span>
