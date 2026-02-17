@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { 
   LayoutDashboard, Type, Settings, LogOut, Copy, Check, Volume2, 
-  Monitor, Box, Loader2, ShieldCheck, Calendar, Key, Zap, Menu, X
+  Monitor, Box, Loader2, ShieldCheck, Calendar, Key, Zap, Menu, X,
+  Users, Star, Smile
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -37,13 +38,14 @@ export default function Dashboard() {
   const renderContent = () => {
     switch (activeView) {
       case "ttv": return <ModuleTTV username={username} />;
+      case "fanclub": return <ModuleFanClub username={username} isLive={isLive} />;
       case "settings": return <ModuleSettings expiry={expiryDate} version={version} />;
       default: return <ModuleTTV username={username} />;
     }
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans">
+    <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[14px]">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -66,24 +68,17 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* VERBESSERTE PRO-BOX: GROSS & LESBAR */}
             <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-4 space-y-3.5 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck size={14} className="text-blue-500" /> VERSION
-                </span>
-                <span className="text-sm text-zinc-200 font-mono font-bold tracking-tight">{version}</span>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2"><ShieldCheck size={14} className="text-blue-500" /> VERSION</span>
+                <span className="text-sm text-zinc-200 font-mono font-bold">{version}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <Key size={14} className="text-blue-500" /> LICENSE
-                </span>
-                <span className="text-sm text-blue-500 font-black tracking-tighter">{licenseType}</span>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2"><Key size={14} className="text-blue-500" /> LICENSE</span>
+                <span className="text-sm text-blue-500 font-black">{licenseType}</span>
               </div>
               <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
-                  <Calendar size={14} /> ABLAUFDATUM
-                </span>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2"><Calendar size={14} /> ABLAUFDATUM</span>
                 <span className="text-sm text-zinc-200 font-bold">{expiryDate}</span>
               </div>
             </div>
@@ -94,8 +89,8 @@ export default function Dashboard() {
               <h3 className="px-3 text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Module</h3>
               <div className="space-y-1.5">
                 <SidebarItem icon={<Type size={18} />} label="TTV - Text to Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
+                <SidebarItem icon={<Users size={18} />} label="Fan Club Manager" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
                 <SidebarItem icon={<Volume2 size={18} />} label="Sound Alerts" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
-                <SidebarItem icon={<LayoutDashboard size={18} />} label="Widget Editor" active={activeView === "widgets"} onClick={() => {setActiveView("widgets"); setSidebarOpen(false);}} />
               </div>
             </div>
           </nav>
@@ -106,14 +101,78 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-30">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 text-[12px]">
             <button className="lg:hidden text-white" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
-            <div className="text-xs font-medium uppercase tracking-widest text-zinc-500">App / <span className="text-white">{activeView}</span></div>
+            <div className="font-medium uppercase tracking-widest text-zinc-500">App / <span className="text-white">{activeView}</span></div>
           </div>
           {isLive && <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] text-green-500 font-bold tracking-widest">LIVE</span>}
         </header>
         <div className="flex-1 overflow-y-auto">{renderContent()}</div>
       </main>
+    </div>
+  );
+}
+
+function ModuleFanClub({ username, isLive }: { username: string, isLive: boolean }) {
+  // Beispiel-Daten (In einer echten App kämen diese über eine Socket-Verbindung)
+  const members = [
+    { name: "User_Alpha", level: 15, joined: "2 Tage" },
+    { name: "TikTok_King", level: 32, joined: "1 Monat" },
+    { name: "Stream_Fan", level: 5, joined: "Heute" }
+  ];
+
+  const stickers = [
+    { id: 1, name: "Hyped", url: "🔥" },
+    { id: 2, name: "Love", url: "❤️" },
+    { id: 3, name: "GG", url: "🏆" }
+  ];
+
+  return (
+    <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
+      <div>
+        <h2 className="text-2xl font-semibold text-white mb-2 tracking-tight">Fan Club Manager</h2>
+        <p className="text-zinc-500 text-sm">Verwalte deine exklusiven Club-Mitglieder und Sticker.</p>
+      </div>
+
+      {!username ? (
+        <div className="bg-zinc-900/20 border border-zinc-800 p-10 rounded-xl text-center text-zinc-500 italic">
+          Bitte gib oben deinen TikTok-Namen ein, um Club-Daten zu laden.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* MITGLIEDER LISTE */}
+          <div className="lg:col-span-2 space-y-4">
+            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Top Mitglieder</h3>
+            <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden text-[13px]">
+              {members.map((m, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-zinc-400">{m.name[0]}</div>
+                    <span className="font-medium text-zinc-200">{m.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 font-bold">LVL {m.level}</span>
+                    <span className="text-zinc-600 text-[11px]">{m.joined}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* STICKER BEREICH */}
+          <div className="space-y-4">
+            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Smile size={14} className="text-purple-500" /> Club Sticker</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {stickers.map((s) => (
+                <div key={s.id} className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl text-center group hover:border-purple-500/50 transition-all">
+                  <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{s.url}</div>
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase">{s.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -133,20 +192,16 @@ function ModuleTTV({ username }: { username: string }) {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
-      <div>
-        <h2 className="text-2xl font-semibold text-white mb-2 tracking-tight">Konfiguration</h2>
-        <p className="text-zinc-500 text-sm">Verwalte deine automatischen Video-Reaktionen.</p>
-      </div>
+      <h2 className="text-2xl font-semibold text-white tracking-tight">Konfiguration</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-8">
-          <InputGroup label="Trigger" desc="Der Chat-Code zum Auslösen"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
-          <InputGroup label="Lautstärke" desc={`${volume}% Verstärkung`}><input type="range" min="0" max="500" value={volume} onChange={(e) => setVolume(e.target.value)} className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white" /></InputGroup>
+          <InputGroup label="Trigger" desc="Chat-Code"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
+          <InputGroup label="Lautstärke" desc={`${volume}% Verstärkung`}><input type="range" min="0" max="500" value={volume} onChange={(e) => setVolume(e.target.value)} className="w-full accent-white" /></InputGroup>
         </div>
-        <InputGroup label="Video URL" desc="Direkter Link (.mp4)"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[120px] font-mono text-xs leading-relaxed" placeholder="https://..." /></InputGroup>
+        <InputGroup label="Video URL" desc=".mp4 Link"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[120px] font-mono text-xs" /></InputGroup>
       </div>
       <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-8">
-        <label className="text-[10px] font-bold text-zinc-500 mb-4 block uppercase tracking-widest">OBS Browser Source URL</label>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 bg-black border border-zinc-800 rounded px-5 py-3 text-zinc-400 font-mono text-xs truncate select-all">{generatedLink}</div>
           <button onClick={() => {navigator.clipboard.writeText(generatedLink); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-6 rounded font-bold text-xs uppercase hover:bg-zinc-200 transition-all flex items-center gap-2">
             {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Kopiert" : "Copy Link"}
@@ -164,5 +219,5 @@ function InputGroup({ label, desc, children }: any) {
   return <div className="flex flex-col gap-2.5"><label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{label}</label>{children}<p className="text-[11px] text-zinc-600 font-medium italic">{desc}</p></div>;
 }
 function ModuleSettings({ expiry, version }: any) {
-  return <div className="p-10"><div className="bg-zinc-900/50 p-8 rounded-lg border border-zinc-800 max-w-lg"><h3 className="text-white font-medium mb-4 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> Account Status</h3><p className="text-zinc-400 text-sm">PRO Lizenz aktiv bis: {expiry}</p><p className="text-zinc-600 text-[10px] mt-2 font-mono tracking-tighter uppercase">Build: {version}</p></div></div>;
+  return <div className="p-10"><div className="bg-zinc-900/50 p-8 rounded-lg border border-zinc-800 max-w-lg"><h3 className="text-white font-medium mb-4 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> Account Status</h3><p className="text-zinc-400 text-sm font-bold">Gültig bis: {expiry}</p><p className="text-zinc-600 text-[10px] mt-2 font-mono uppercase">Build: {version}</p></div></div>;
 }
