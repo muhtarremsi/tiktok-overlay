@@ -29,11 +29,12 @@ export async function GET(request: Request) {
         });
 
         tiktok.on('disconnected', () => {
-           send({ type: 'status', msg: 'Verbindung verloren' });
+          send({ type: 'status', msg: 'Verbindung verloren' });
+          controller.close();  // Verbindung schließen, wenn die Verbindung unterbrochen wird
         });
 
-        tiktok.on('error', () => {
-           // Fehler ignorieren, um Stream offen zu halten
+        tiktok.on('error', (err) => {
+          send({ type: 'status', msg: `Fehler: ${err.message || 'Unbekannter Fehler'}` });
         });
 
       } catch (err: any) {
