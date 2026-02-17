@@ -7,28 +7,23 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('u');
 
-  if (!username) {
-    return NextResponse.json({ online: false, msg: "Kein Name" });
-  }
+  if (!username) return NextResponse.json({ online: false });
 
   try {
-    // Wir versuchen eine Verbindung aufzubauen
     const tiktok = new WebcastPushConnection(username);
-    
-    // Connect versucht die Room-Info zu holen
     const state = await tiktok.connect();
-
-    // Wenn wir hier sind, ist er live! Wir trennen sofort wieder.
+    
+    // Wir holen uns die Raum-Details für den Fan-Club
+    const roomInfo = state.roomInfo;
     tiktok.disconnect();
 
     return NextResponse.json({ 
       online: true, 
-      roomId: state.roomId,
-      viewers: state.roomInfo?.viewerCount || 0
+      viewers: roomInfo?.viewerCount || 0,
+      likes: roomInfo?.likeCount || 0,
+      title: roomInfo?.title || ""
     });
-
   } catch (err) {
-    // Wenn connect() fehlschlägt, ist der User meistens offline
     return NextResponse.json({ online: false });
   }
 }

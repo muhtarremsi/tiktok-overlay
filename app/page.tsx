@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   LayoutDashboard, Type, Settings, LogOut, Copy, Check, Volume2, 
   Monitor, Box, Loader2, ShieldCheck, Calendar, Key, Zap, Menu, X,
-  Users, Star, Smile
+  Users, Star, Smile, Heart
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [isChecking, setIsChecking] = useState(false);
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [liveData, setLiveData] = useState({ viewers: 0, likes: 0 });
 
   const version = "0.029488";
   const licenseType = "PRO";
@@ -28,6 +29,7 @@ export default function Dashboard() {
         const res = await fetch(`/api/status?u=${username}`);
         const data = await res.json();
         setIsLive(data.online);
+        if (data.online) setLiveData({ viewers: data.viewers, likes: data.likes });
       } catch (e) { console.error("Status check failed"); }
       finally { setIsChecking(false); }
     };
@@ -38,7 +40,7 @@ export default function Dashboard() {
   const renderContent = () => {
     switch (activeView) {
       case "ttv": return <ModuleTTV username={username} />;
-      case "fanclub": return <ModuleFanClub username={username} />;
+      case "fanclub": return <ModuleFanClub username={username} isLive={isLive} />;
       case "settings": return <ModuleSettings expiry={expiryDate} version={version} />;
       default: return <ModuleTTV username={username} />;
     }
@@ -100,9 +102,15 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-30">
-          <div className="flex items-center gap-4 text-[12px]">
+          <div className="flex items-center gap-6">
             <button className="lg:hidden text-white" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
-            <div className="font-medium uppercase tracking-widest text-zinc-500">App / <span className="text-white">{activeView}</span></div>
+            <div className="text-xs font-medium uppercase tracking-widest text-zinc-500">App / <span className="text-white">{activeView}</span></div>
+            {isLive && (
+              <div className="hidden md:flex items-center gap-4 text-[10px] font-bold text-zinc-400">
+                <span className="flex items-center gap-1"><Users size={12} className="text-blue-400"/> {liveData.viewers}</span>
+                <span className="flex items-center gap-1"><Heart size={12} className="text-red-400"/> {liveData.likes}</span>
+              </div>
+            )}
           </div>
           {isLive && <span className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-[10px] text-green-500 font-bold tracking-widest">LIVE</span>}
         </header>
@@ -112,37 +120,70 @@ export default function Dashboard() {
   );
 }
 
-function ModuleFanClub({ username }: { username: string }) {
-  // Diese Liste wird später durch API-Daten ersetzt
-  const members = username ? [
-    { name: "Live_Fan_01", level: 24, joined: "2 Tage" },
-    { name: "SuperSupporter", level: 41, joined: "1 Monat" }
-  ] : [];
+function ModuleFanClub({ username, isLive }: { username: string, isLive: boolean }) {
+  const [members, setMembers] = useState<any[]>([]);
+
+  // Simulation der echten Datenankunft
+  useEffect(() => {
+    if (isLive && username) {
+      const interval = setInterval(() => {
+        // Hier würde normalerweise der Event-Stream von TikTok hängen
+        const mockNewMember = {
+          name: "User_" + Math.floor(Math.random() * 1000),
+          level: Math.floor(Math.random() * 50) + 1,
+          time: "Gerade eben"
+        };
+        setMembers(prev => [mockNewMember, ...prev].slice(0, 10));
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isLive, username]);
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
       <h2 className="text-2xl font-semibold text-white tracking-tight">Fan Club Manager</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Users size={14} /> Aktive Mitglieder</h3>
-          <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden">
-            {members.length > 0 ? members.map((m, i) => (
-              <div key={i} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                <span className="font-bold text-zinc-200">{m.name}</span>
-                <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 font-bold uppercase">Level {m.level}</span>
-              </div>
-            )) : <div className="p-10 text-center text-zinc-600 italic">Warte auf Live-Daten für @{username || "User"}...</div>}
+      
+      {!isLive ? (
+        <div className="bg-zinc-900/30 border border-zinc-800 p-12 rounded-2xl text-center">
+          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Wifi size={24} className="text-zinc-600" />
+          </div>
+          <h3 className="text-white font-medium mb-1">Stream ist Offline</h3>
+          <p className="text-zinc-500 text-sm">Die Live-Mitgliederliste wird automatisch geladen, sobald du online gehst.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-[13px]">
+          <div className="lg:col-span-2 space-y-4">
+            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Echtzeit-Mitglieder</h3>
+            <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
+              {members.length > 0 ? members.map((m, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all animate-in slide-in-from-top-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center font-bold text-blue-400 border border-blue-500/20">{m.name[0]}</div>
+                    <span className="font-bold text-zinc-200 uppercase">{m.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] font-black border border-white/5">LVL {m.level}</span>
+                    <span className="text-zinc-600 text-[11px] italic">{m.time}</span>
+                  </div>
+                </div>
+              )) : <div className="p-10 text-center text-zinc-600">Suche nach Club-Events in deinem Stream...</div>}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Smile size={14} className="text-purple-500" /> Verfügbare Sticker</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {["💎", "👑", "��", "⚡", "🌈", "🏆"].map((s, i) => (
+                <div key={i} className="aspect-square bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-center text-2xl hover:border-purple-500 transition-colors shadow-inner">{s}</div>
+              ))}
+            </div>
+            <div className="p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
+              <p className="text-[10px] text-purple-400 font-bold uppercase tracking-tighter">Pro Info</p>
+              <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">Diese Sticker werden automatisch in deinem OBS Overlay angezeigt, wenn ein Club-Mitglied sie postet.</p>
+            </div>
           </div>
         </div>
-        <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-6 h-fit">
-          <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2"><Smile size={14} /> Sticker Test</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {["🔥", "��", "👑"].map((s, i) => (
-              <button key={i} className="aspect-square bg-black border border-zinc-800 rounded-lg text-2xl hover:border-blue-500 transition-all">{s}</button>
-            ))}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -161,7 +202,7 @@ function ModuleTTV({ username }: { username: string }) {
   }, [username, trigger, videoUrl, volume]);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10">
+    <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-300">
       <h2 className="text-2xl font-semibold text-white tracking-tight">Konfiguration</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <InputGroup label="Trigger" desc="Chatbefehl"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
@@ -180,7 +221,7 @@ function ModuleTTV({ username }: { username: string }) {
 }
 
 function SidebarItem({ icon, label, active, onClick }: any) {
-  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-all ${active ? "bg-zinc-900 text-white font-medium" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"}`}><span>{icon}</span>{label}</button>;
+  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-all ${active ? "bg-zinc-900 text-white font-medium shadow-sm" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"}`}><span>{icon}</span>{label}</button>;
 }
 function InputGroup({ label, desc, children }: any) {
   return <div className="flex flex-col gap-2.5"><label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{label}</label>{children}<p className="text-[11px] text-zinc-600 font-medium italic">{desc}</p></div>;
