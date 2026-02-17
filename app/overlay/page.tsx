@@ -12,7 +12,6 @@ function OverlayContent() {
   const username = searchParams.get('u');
   const configParam = searchParams.get('config');
 
-  // 1. Trigger-Liste laden
   useEffect(() => {
     if (configParam) {
       try {
@@ -22,74 +21,56 @@ function OverlayContent() {
     }
   }, [configParam]);
 
-  // 2. Stream verbinden
   useEffect(() => {
     if (!username) return;
     let eventSource: EventSource | null = null;
-    let reconnectTimeout: NodeJS.Timeout;
 
     const connect = () => {
       eventSource = new EventSource(`/api/stream?u=${username}`);
-      
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
           if (data.event === 'chat') {
-            const comment = data.comment.trim().toLowerCase();
-            // Multi-Trigger Check: Passt der Kommentar zu irgendeinem Code?
-            const match = triggers.find(t => t.code.toLowerCase() === comment);
+            const match = triggers.find(t => t.code.toLowerCase() === data.comment.trim().toLowerCase());
             if (match) playTrigger(match);
           }
         } catch (err) {}
       };
-
       eventSource.onerror = () => {
         eventSource?.close();
-        reconnectTimeout = setTimeout(connect, 3000);
+        setTimeout(connect, 3000);
       };
     };
 
     connect();
-    return () => { eventSource?.close(); clearTimeout(reconnectTimeout); };
+    return () => eventSource?.close();
   }, [username, triggers]);
 
-  // 3. Video abspielen
   const playTrigger = (trigger: any) => {
-    if (activeVideo) return; // Warten bis aktuelles Video fertig ist
-
+    if (activeVideo) return;
     setActiveVideo(trigger);
-
     setTimeout(() => {
       if (videoRef.current) {
         videoRef.current.currentTime = trigger.start || 0;
-        videoRef.current.volume = 1.0;
         videoRef.current.play().catch(() => {});
-
         const duration = ((trigger.end || 10) - (trigger.start || 0)) * 1000;
-        setTimeout(() => {
-          setActiveVideo(null);
-        }, duration);
+        setTimeout(() => setActiveVideo(null), duration);
       }
     }, 50);
   };
 
   return (
     <>
-      <style jsx global>{`html, body { background: transparent !important; }`}</style>
-      <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent overflow-hidden">
+      <style jsx global>{`
+        html, body { background: transparent !important; margin: 0; padding: 0; overflow: hidden; }
+      `}</style>
+      <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent">
         {activeVideo && (
-          <video
-            ref={videoRef}
-            src={activeVideo.url}
-            className="w-full h-full object-cover"
-            playsInline
-          />
+          <video ref={videoRef} src={activeVideo.url} className="w-full h-full object-cover" playsInline />
         )}
       </div>
     </>
   );
 }
 
-export default function OverlayPage() {
-  return <Suspense fallback={null}><OverlayContent /></Suspense>;
-}
+export default function OverlayPage() { return <Suspense fallback={null}><OverlayContent /></Suspense>; }
