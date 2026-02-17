@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Box, Plus, Trash2, X, Menu,
-  Volume2, Globe, LogIn, CheckCircle2
+  Volume2, Globe, LogIn, CheckCircle2, Wifi
 } from "lucide-react";
 
 function DashboardContent() {
@@ -12,27 +12,36 @@ function DashboardContent() {
   const [username, setUsername] = useState("");
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
-  const [isConnected, setIsConnected] = useState(false); // Neuer Status für das grüne Licht
+  const [isConnected, setIsConnected] = useState(false);
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030049";
+  const version = "0.030050";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
     const userFromUrl = searchParams.get("u");
     const viewFromUrl = searchParams.get("view");
-    const connectedParam = searchParams.get("connected");
     
+    // Check: Wenn User UND connected=true in der URL sind (vom Login kommend)
+    // ODER wenn nur ein User in der URL steht (für direkten Link)
     if (userFromUrl) {
       setUsername(userFromUrl);
-      setIsConnected(true); // Wenn ein User aus der URL kommt, leuchtet es grün
+      setIsConnected(true); 
     }
+    
     if (viewFromUrl) setActiveView(viewFromUrl);
   }, [searchParams]);
 
   const navigateTo = (view: string) => {
     setActiveView(view);
     setSidebarOpen(false);
+  };
+
+  const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value.toLowerCase());
+    // WICHTIG: Wenn man tippt, ist man "nicht mehr verifiziert connected", 
+    // bis man enter drückt oder es so lässt. Wir lassen es hier mal auf false springen.
+    setIsConnected(false); 
   };
 
   return (
@@ -50,23 +59,36 @@ function DashboardContent() {
         </div>
         
         <div className="mb-8 space-y-4 not-italic">
-          <div className="relative">
+          <div className="relative group">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
+            
+            {/* INPUT FIELD MIT STATUS FARBEN */}
             <input 
               type="text" 
               placeholder="username" 
               value={username} 
-              onChange={(e) => {
-                setUsername(e.target.value.toLowerCase());
-                setIsConnected(false); // Manuelles Tippen setzt den "Login-Status" zurück
-              }} 
-              className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none transition-all lowercase" 
+              onChange={handleManualInput} 
+              className={`
+                w-full bg-[#0c0c0e] text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none transition-all lowercase border
+                ${isConnected 
+                  ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" 
+                  : "border-zinc-800 text-zinc-200 focus:border-zinc-600"}
+              `} 
             />
-            {/* DAS GRÜNE LICHT */}
-            <div className={`absolute inset-y-0 right-3 flex items-center`}>
-              <div className={`w-2 h-2 rounded-full shadow-[0_0_8px] ${isConnected ? "bg-green-500 shadow-green-500/50" : "bg-zinc-800 shadow-transparent"}`}></div>
+            
+            {/* DER STATUS INDIKATOR RECHTS */}
+            <div className="absolute inset-y-0 right-3 flex items-center justify-center pointer-events-none">
+              {isConnected ? (
+                <div className="relative flex items-center justify-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full z-10"></div>
+                  <div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                </div>
+              ) : (
+                <div className="w-2 h-2 bg-zinc-800 rounded-full border border-zinc-700"></div>
+              )}
             </div>
           </div>
+
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
@@ -101,9 +123,9 @@ function DashboardContent() {
           {activeView === "settings" ? (
             <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold text-center">
               <h2 className="text-2xl text-white">General Settings</h2>
-              <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-8 shadow-xl not-italic">
+              <div className={`bg-[#0c0c0e] border rounded-2xl p-8 shadow-xl not-italic transition-all ${isConnected ? "border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.05)]" : "border-zinc-800"}`}>
                 {isConnected ? (
-                  <div className="text-green-500 font-bold flex flex-col items-center gap-2">
+                  <div className="text-green-500 font-bold flex flex-col items-center gap-2 animate-in fade-in zoom-in duration-300">
                     <CheckCircle2 size={32} />
                     <span className="uppercase text-xs tracking-widest">Connected: {username}</span>
                   </div>
