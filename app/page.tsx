@@ -44,23 +44,21 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans">
-      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* SIDEBAR - Desktop fest, Mobile Slide-in */}
       <aside className={`fixed inset-y-0 left-0 w-72 bg-black border-r border-white/10 z-50 transition-transform duration-300 lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full">
           <div className="p-6 border-b border-white/5">
-            <div className="flex items-center justify-between mb-6 text-white">
+            <div className="flex items-center justify-between mb-6 text-white text-nowrap">
               <h1 className="font-bold text-lg tracking-tight flex items-center gap-2">
                 <Box className="w-5 h-5 text-white" /> ARC<span className="text-zinc-500">TOOLS</span>
               </h1>
               <button className="lg:hidden" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
             </div>
             
-            <div className="relative mb-5">
+            <div className="relative mb-6">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-500 text-sm">@</div>
               <input type="text" placeholder="TikTok User" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-200 text-sm rounded-md py-2.5 pl-7 pr-10 focus:outline-none focus:border-zinc-600 transition-all" />
               <div className="absolute inset-y-0 right-3 flex items-center">
@@ -68,18 +66,25 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-lg p-3.5 space-y-3">
-              <div className="flex items-center justify-between font-mono tracking-tighter">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase flex items-center gap-1.5"><ShieldCheck size={11} className="text-blue-400" /> VERSION</span>
-                <span className="text-[10px] text-zinc-300">{version}</span>
+            {/* VERBESSERTE PRO-BOX: GROSS & LESBAR */}
+            <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-4 space-y-3.5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-blue-500" /> VERSION
+                </span>
+                <span className="text-sm text-zinc-200 font-mono font-bold tracking-tight">{version}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase flex items-center gap-1.5"><Key size={11} className="text-blue-400" /> LICENSE</span>
-                <span className="text-[10px] text-blue-400 font-bold">{licenseType}</span>
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <Key size={14} className="text-blue-500" /> LICENSE
+                </span>
+                <span className="text-sm text-blue-500 font-black tracking-tighter">{licenseType}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase flex items-center gap-1.5"><Calendar size={11} /> ABLAUFDATUM</span>
-                <span className="text-[10px] text-zinc-300">{expiryDate}</span>
+              <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-2">
+                  <Calendar size={14} /> ABLAUFDATUM
+                </span>
+                <span className="text-sm text-zinc-200 font-bold">{expiryDate}</span>
               </div>
             </div>
           </div>
@@ -99,7 +104,6 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-4">
@@ -135,13 +139,13 @@ function ModuleTTV({ username }: { username: string }) {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-8">
-          <InputGroup label="Trigger" desc="Der Chat-Code zum Auslösen"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field" /></InputGroup>
-          <InputGroup label="Audio" desc={`${volume}% Verstärkung`}><input type="range" min="0" max="500" value={volume} onChange={(e) => setVolume(e.target.value)} className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white" /></InputGroup>
+          <InputGroup label="Trigger" desc="Der Chat-Code zum Auslösen"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
+          <InputGroup label="Lautstärke" desc={`${volume}% Verstärkung`}><input type="range" min="0" max="500" value={volume} onChange={(e) => setVolume(e.target.value)} className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white" /></InputGroup>
         </div>
         <InputGroup label="Video URL" desc="Direkter Link (.mp4)"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[120px] font-mono text-xs leading-relaxed" placeholder="https://..." /></InputGroup>
       </div>
       <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-8">
-        <label className="text-[10px] font-bold text-zinc-500 mb-4 block uppercase tracking-widest">OBS Browser Source Link</label>
+        <label className="text-[10px] font-bold text-zinc-500 mb-4 block uppercase tracking-widest">OBS Browser Source URL</label>
         <div className="flex gap-3">
           <div className="flex-1 bg-black border border-zinc-800 rounded px-5 py-3 text-zinc-400 font-mono text-xs truncate select-all">{generatedLink}</div>
           <button onClick={() => {navigator.clipboard.writeText(generatedLink); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-6 rounded font-bold text-xs uppercase hover:bg-zinc-200 transition-all flex items-center gap-2">
