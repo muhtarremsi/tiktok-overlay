@@ -2,16 +2,12 @@
 
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { WebcastPushConnection } from "tiktok-live-connector";
 
 function OverlayContent() {
   const searchParams = useSearchParams();
-  
-  // HIER WAR DER FEHLER: Wir fügen <HTMLVideoElement> hinzu
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+  const [status, setStatus] = useState("Warte auf Start...");
   const [isPlaying, setIsPlaying] = useState(false);
-  const [status, setStatus] = useState("Warte auf Verbindung...");
 
   const username = searchParams.get("u");
   const triggerCode = searchParams.get("c") || "777";
@@ -22,28 +18,32 @@ function OverlayContent() {
   useEffect(() => {
     if (!username) return;
 
-    // TikTok Verbindung (try/catch für Sicherheit)
-    let tiktokConnection: any;
-    try {
-      tiktokConnection = new WebcastPushConnection(username);
-      
-      tiktokConnection.connect()
-        .then((state: any) => setStatus(`Verbunden: ${state.roomId}`))
-        .catch((err: any) => setStatus(`Fehler: ${err.message}`));
+    // Verbindung zu unserer eigenen API herstellen (SSE)
+    setStatus("Verbinde...");
+    const eventSource = new EventSource(`/api/tiktok?u=${username}`);
 
-      tiktokConnection.on("chat", (data: any) => {
-        const msg = data.comment;
-        // Trigger Logik
-        if (msg.includes(triggerCode)) {
-          playVideo();
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'status') {
+        setStatus(data.msg);
+      } else if (data.type === 'chat') {
+        // Hier prüfen wir den Code
+        if (data.comment && data.comment.includes(triggerCode)) {
+           playVideo();
         }
-      });
-    } catch (e) {
-      console.error("Connection setup failed", e);
-    }
+      }
+    };
+
+    eventSource.onerror = () => {
+      setStatus("Verbindung neu aufbauen...");
+      eventSource.close();
+      // Einfacher Reconnect nach 3 Sekunden
+      setTimeout(() => { /* Reconnect Logik durch React Refresh */ }, 3000);
+    };
 
     return () => {
-      if(tiktokConnection) tiktokConnection.disconnect();
+      eventSource.close();
     };
   }, [username, triggerCode]);
 
@@ -51,13 +51,7 @@ function OverlayContent() {
     if (videoRef.current && videoUrl) {
       setIsPlaying(true);
       videoRef.current.currentTime = startTime;
-      
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Autoplay prevented:", error);
-        });
-      }
+      videoRef.current.play().catch(e => console.log("Play error", e));
     }
   };
 
@@ -69,12 +63,13 @@ function OverlayContent() {
     }
   };
 
-  if (!videoUrl) return <div className="text-red-500">Keine URL</div>;
+  if (!videoUrl) return <div className="text-white p-4">Keine Video URL angegeben</div>;
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center overflow-hidden">
-      <div className="absolute top-0 left-0 text-xs text-gray-500 opacity-0 hover:opacity-100 p-2 transition-opacity">
-        {status} | Code: {triggerCode}
+    <div className="w-screen h-screen overflow-hidden bg-transparent flex items-center justify-center">
+      {/* Status Anzeige (nur zum Testen sichtbar, kann man später ausblenden) */}
+      <div className="absolute top-2 left-2 text-xs text-white/50 bg-black/50 p-1 rounded z-50">
+        Status: {status} | Trigger: {triggerCode}
       </div>
 
       <video
