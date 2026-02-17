@@ -1,72 +1,40 @@
-import { TikTokLiveConnection } from 'tiktok-live-connector';
-import { NextResponse } from 'next/server';
-import { normalizeTiktokUsername } from '@/lib/username';
+import { NextRequest, NextResponse } from 'next/server';
+import { WebcastPushConnection } from 'tiktok-live-connector';
 
 export const dynamic = 'force-dynamic';
 
-function tryConnect(
-  username: string,
-  options: { fetchRoomInfoOnConnect: boolean; connectWithUniqueId: boolean; signApiKey?: string | null }
-): Promise<{ ok: true; roomInfo: any } | { ok: false; error: string }> {
-  return new Promise((resolve) => {
-    const conn = new TikTokLiveConnection(username, {
-      fetchRoomInfoOnConnect: options.fetchRoomInfoOnConnect,
-      connectWithUniqueId: options.connectWithUniqueId,
-      ...(options.signApiKey ? { signApiKey: options.signApiKey } : {}),
-    });
-    conn
-      .connect()
-      .then((state) => {
-        const roomInfo = state?.roomInfo;
-        conn.disconnect();
-        resolve({ ok: true, roomInfo });
-      })
-      .catch((err: unknown) => {
-        const msg = err instanceof Error ? err.message : String(err);
-        resolve({ ok: false, error: msg });
-      });
-  });
-}
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const raw = searchParams.get('u');
-  const username = normalizeTiktokUsername(raw);
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const username = searchParams.get('u');
 
   if (!username) {
-    return NextResponse.json({ online: false, error: 'Username is required' });
+    return NextResponse.json({ online: false, error: "Missing username" }, { status: 400 });
   }
 
-  const signApiKey = process.env.TIKTOK_SIGN_API_KEY || null;
+  // Erstelle eine Instanz des Connectors
+  const tiktokLiveConnection = new WebcastPushConnection(username);
 
-  // 1. Versuch: connectWithUniqueId (Room-ID über API – oft zuverlässiger)
-  let result = await tryConnect(username, {
-    fetchRoomInfoOnConnect: true,
-    connectWithUniqueId: true,
-    signApiKey,
-  });
+  try {
+    // Versuche eine Verbindung aufzubauen
+    const state = await tiktokLiveConnection.connect();
+    
+    // Wenn wir hier ankommen, war die Verbindung erfolgreich -> Streamer ist ONLINE
+    const isOnline = state.isConnected;
+    const roomId = state.roomId;
 
-  // 2. Versuch: ohne connectWithUniqueId (Scraping), falls der erste fehlschlägt
-  if (!result.ok) {
-    result = await tryConnect(username, {
-      fetchRoomInfoOnConnect: true,
-      connectWithUniqueId: false,
-      signApiKey,
+    // Sofort wieder trennen, wir wollten nur den Status wissen
+    tiktokLiveConnection.disconnect();
+
+    return NextResponse.json({ 
+      online: isOnline, 
+      roomId: roomId 
+    });
+
+  } catch (err) {
+    // Wenn connect() fehlschlägt, ist der Streamer meistens OFFLINE
+    // oder der Username existiert nicht.
+    return NextResponse.json({ 
+      online: false 
     });
   }
-
-  if (result.ok) {
-    const roomInfo = result.roomInfo;
-    return NextResponse.json({
-      online: true,
-      viewers: roomInfo?.viewerCount ?? 0,
-      likes: roomInfo?.likeCount ?? 0,
-      title: roomInfo?.title ?? '',
-    });
-  }
-
-  return NextResponse.json({
-    online: false,
-    error: result.error || 'Verbindung fehlgeschlagen',
-  });
 }

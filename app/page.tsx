@@ -24,25 +24,45 @@ function DashboardContent() {
   const [baseUrl, setBaseUrl] = useState("");
   const [lang, setLang] = useState(searchParams.get("lang")?.toUpperCase() || "EN");
 
-  const version = "0.030017";
+  const version = "0.030018";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
   }, []);
 
+  // Status Check Effect
   useEffect(() => {
-    if (!username || username.length < 3) { setIsLive(false); return; }
+    // Nur prüfen, wenn Username lang genug ist
+    if (!username || username.length < 2) { 
+      setIsLive(false); 
+      return; 
+    }
+
     const checkStatus = async () => {
       setIsChecking(true);
       try {
         const res = await fetch(`/api/status?u=${username}`);
-        const data = await res.json();
-        setIsLive(!!data.online);
-      } catch (e) { setIsLive(false); }
-      finally { setIsChecking(false); }
+        if (res.ok) {
+          const data = await res.json();
+          setIsLive(!!data.online);
+        } else {
+          setIsLive(false);
+        }
+      } catch (e) { 
+        console.error("Status check failed", e);
+        setIsLive(false); 
+      } finally { 
+        setIsChecking(false); 
+      }
     };
-    checkStatus();
+
+    // Debounce: Warten bis der User aufgehört hat zu tippen (500ms)
+    const timeoutId = setTimeout(() => {
+      checkStatus();
+    }, 800);
+
+    return () => clearTimeout(timeoutId);
   }, [username]);
 
   const updateLang = (newLang: string) => {
@@ -64,9 +84,19 @@ function DashboardContent() {
           <div className="mb-6 space-y-4 not-italic">
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
-              <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 focus:outline-none focus:border-zinc-600 transition-all lowercase" />
-              <div className="absolute inset-y-0 right-3 flex items-center">
-                 {isChecking ? <Loader2 size={12} className="animate-spin text-zinc-600" /> : <div className={`w-2 h-2 rounded-full transition-all duration-500 ${isLive ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-zinc-800'}`}></div>}
+              <input 
+                type="text" 
+                placeholder="Username" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value.toLowerCase())} 
+                className="w-full bg-[#0c0c0e] border border-zinc-800 text-zinc-200 text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none focus:border-zinc-600 transition-all lowercase" 
+              />
+              <div className="absolute inset-y-0 right-3 flex items-center justify-center w-5">
+                 {isChecking ? (
+                   <Loader2 size={12} className="animate-spin text-zinc-600" /> 
+                 ) : (
+                   <div className={`w-2 h-2 rounded-full transition-all duration-500 ${isLive ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-zinc-800'}`}></div>
+                 )}
               </div>
             </div>
             <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500">
@@ -129,7 +159,11 @@ function ModuleTTV({ username, baseUrl, isLive }: any) {
             <InputGroup label="Start (s)"><input type="number" value={start} onChange={(e) => setStart(e.target.value)} className="w-full bg-[#0c0c0e] border border-zinc-800 rounded-lg p-3 text-white focus:border-zinc-600 outline-none not-italic font-bold" /></InputGroup>
             <InputGroup label="Ende (s)"><input type="number" value={end} onChange={(e) => setEnd(e.target.value)} className="w-full bg-[#0c0c0e] border border-zinc-800 rounded-lg p-3 text-white focus:border-zinc-600 outline-none not-italic font-bold" /></InputGroup>
           </div>
-          <div className="space-y-4 font-bold"><label className="text-[10px] text-zinc-500 italic uppercase tracking-widest font-black">Audio Boost: {vol}%</label><input type="range" min="0" max="500" value={vol} onChange={(e) => setVol(parseInt(e.target.value))} className="w-full accent-white h-1.5 cursor-pointer" /><div className="flex justify-between text-[8px] text-zinc-700 font-mono italic not-italic"><span>0%</span><span>500%</span></div></div>
+          <div className="space-y-4 font-bold">
+            <label className="text-[10px] text-zinc-500 italic uppercase tracking-widest font-black">Audio Boost: {vol}%</label>
+            <input type="range" min="0" max="500" value={vol} onChange={(e) => setVol(parseInt(e.target.value))} className="w-full accent-white h-1.5 cursor-pointer" />
+            <div className="flex justify-between text-[8px] text-zinc-700 font-mono not-italic"><span>0%</span><span>500%</span></div>
+          </div>
         </div>
         <div className="space-y-3"><label className="text-[10px] text-zinc-500 italic uppercase tracking-widest font-black">Video URL (.MP4)</label><textarea value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="w-full bg-[#0c0c0e] border border-zinc-800 rounded-lg p-4 text-zinc-400 font-mono text-[10px] min-h-[160px] focus:border-zinc-600 outline-none not-italic" /></div>
       </div>
