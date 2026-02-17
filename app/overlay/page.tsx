@@ -6,8 +6,6 @@ import { useSearchParams } from 'next/navigation';
 function OverlayContent() {
   const searchParams = useSearchParams();
   const [showVideo, setShowVideo] = useState(false);
-  // Status für interne Logik behalten, aber nicht mehr anzeigen
-  const [, setStatus] = useState("Wait..."); 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const username = searchParams.get('u') || '';
@@ -24,18 +22,12 @@ function OverlayContent() {
     let reconnectTimeout: NodeJS.Timeout;
 
     const connect = () => {
-      setStatus("Connecting...");
       eventSource = new EventSource(`/api/stream?u=${username}`);
-
-      eventSource.onopen = () => setStatus("Listening");
 
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.event === 'ping') return;
-
           if (data.event === 'chat') {
-            // Trigger-Check (Groß-/Kleinschreibung egal)
             if (data.comment.trim().toLowerCase() === trigger.toLowerCase()) {
               triggerVideo();
             }
@@ -46,9 +38,7 @@ function OverlayContent() {
       };
 
       eventSource.onerror = () => {
-        setStatus("Reconnecting...");
         eventSource?.close();
-        // Schneller Reconnect Versuch
         reconnectTimeout = setTimeout(connect, 1000);
       };
     };
@@ -70,13 +60,9 @@ function OverlayContent() {
       videoRef.current.currentTime = startTime;
       videoRef.current.volume = Math.min(volume / 100, 1);
       
-      // Versuche sofort abzuspielen. In OBS klappt das immer.
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Browser blockiert es vielleicht, aber OBS nicht.
-          console.log("Autoplay blocked by browser policy (OBS is fine):", error);
-        });
+        playPromise.catch(() => {});
       }
 
       const duration = (endTime - startTime) * 1000;
@@ -91,23 +77,26 @@ function OverlayContent() {
   };
 
   return (
-    // w-full h-full sorgt dafür, dass der Container den ganzen Platz nimmt
-    <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent overflow-hidden">
-      
-      {videoUrl && (
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          // WICHTIG: 'w-full h-full object-cover' entfernt die schwarzen Ränder
-          // indem es das Video über den gesamten Bereich streckt.
-          className={`w-full h-full object-cover transition-opacity duration-300 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
-          playsInline
-          // 'muted' hilft manchmal bei Autoplay-Problemen, aber wir wollen Sound.
-          // Falls es in OBS Probleme gibt, entferne das Kommentarzeichen vor 'muted'.
-          // muted={false} 
-        />
-      )}
-    </div>
+    <>
+      {/* WICHTIG: Dieser Style-Block überschreibt das globale Schwarz der App */}
+      <style jsx global>{`
+        html, body {
+          background-color: transparent !important;
+          background: transparent !important;
+        }
+      `}</style>
+
+      <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent overflow-hidden">
+        {videoUrl && (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+            playsInline
+          />
+        )}
+      </div>
+    </>
   );
 }
 
