@@ -6,7 +6,10 @@ import { WebcastPushConnection } from "tiktok-live-connector";
 
 function OverlayContent() {
   const searchParams = useSearchParams();
-  const videoRef = useRef(null);
+  
+  // HIER WAR DER FEHLER: Wir fügen <HTMLVideoElement> hinzu
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [status, setStatus] = useState("Warte auf Verbindung...");
 
@@ -19,28 +22,28 @@ function OverlayContent() {
   useEffect(() => {
     if (!username) return;
 
-    // TikTok Verbindung
-    const tiktokConnection = new WebcastPushConnection(username);
+    // TikTok Verbindung (try/catch für Sicherheit)
+    let tiktokConnection: any;
+    try {
+      tiktokConnection = new WebcastPushConnection(username);
+      
+      tiktokConnection.connect()
+        .then((state: any) => setStatus(`Verbunden: ${state.roomId}`))
+        .catch((err: any) => setStatus(`Fehler: ${err.message}`));
 
-    tiktokConnection
-      .connect()
-      .then((state) => {
-        setStatus(`Verbunden: ${state.roomId}`);
-      })
-      .catch((err) => {
-        setStatus(`Fehler: ${err.message}`);
+      tiktokConnection.on("chat", (data: any) => {
+        const msg = data.comment;
+        // Trigger Logik
+        if (msg.includes(triggerCode)) {
+          playVideo();
+        }
       });
-
-    tiktokConnection.on("chat", (data) => {
-      const msg = data.comment;
-      // Trigger Logik
-      if ((data.isModerator || data.userRole === "user") && msg.includes(triggerCode)) {
-        playVideo();
-      }
-    });
+    } catch (e) {
+      console.error("Connection setup failed", e);
+    }
 
     return () => {
-      tiktokConnection.disconnect();
+      if(tiktokConnection) tiktokConnection.disconnect();
     };
   }, [username, triggerCode]);
 
@@ -69,7 +72,7 @@ function OverlayContent() {
   if (!videoUrl) return <div className="text-red-500">Keine URL</div>;
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center">
+    <div className="w-screen h-screen flex flex-col items-center justify-center overflow-hidden">
       <div className="absolute top-0 left-0 text-xs text-gray-500 opacity-0 hover:opacity-100 p-2 transition-opacity">
         {status} | Code: {triggerCode}
       </div>
@@ -78,7 +81,7 @@ function OverlayContent() {
         ref={videoRef}
         src={videoUrl}
         className={`transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0"}`}
-        style={{ maxHeight: "80vh", maxWidth: "80vw" }}
+        style={{ maxHeight: "100vh", maxWidth: "100vw" }}
         onTimeUpdate={handleTimeUpdate}
       />
     </div>
