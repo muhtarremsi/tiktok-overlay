@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { 
   LayoutDashboard, Type, Settings, LogOut, Copy, Check, Volume2, 
   Monitor, Box, Loader2, ShieldCheck, Calendar, Key, Zap, Menu, X,
-  Users, Star, Smile, Heart
+  Users, Star, Smile, Heart, Music
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -91,7 +91,7 @@ export default function Dashboard() {
               <h3 className="px-3 text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Module</h3>
               <div className="space-y-1.5">
                 <SidebarItem icon={<Type size={18} />} label="TTV - Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
-                <SidebarItem icon={<Users size={18} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
+                <SidebarItem icon={<Users size={18} />} label="Fan Club Manager" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
               </div>
             </div>
           </nav>
@@ -106,9 +106,9 @@ export default function Dashboard() {
             <button className="lg:hidden text-white" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
             <div className="text-xs font-medium uppercase tracking-widest text-zinc-500">App / <span className="text-white">{activeView}</span></div>
             {isLive && (
-              <div className="hidden md:flex items-center gap-4 text-[10px] font-bold text-zinc-400">
-                <span className="flex items-center gap-1"><Users size={12} className="text-blue-400"/> {liveData.viewers}</span>
-                <span className="flex items-center gap-1"><Heart size={12} className="text-red-400"/> {liveData.likes}</span>
+              <div className="hidden md:flex items-center gap-4 text-[10px] font-bold text-zinc-400 font-mono">
+                <span className="flex items-center gap-1.5 bg-zinc-900/50 px-2 py-1 rounded border border-white/5"><Users size={12} className="text-blue-400"/> {liveData.viewers}</span>
+                <span className="flex items-center gap-1.5 bg-zinc-900/50 px-2 py-1 rounded border border-white/5"><Heart size={12} className="text-red-400"/> {liveData.likes}</span>
               </div>
             )}
           </div>
@@ -121,69 +121,89 @@ export default function Dashboard() {
 }
 
 function ModuleFanClub({ username, isLive }: { username: string, isLive: boolean }) {
-  const [members, setMembers] = useState<any[]>([]);
+  const [selectedSticker, setSelectedSticker] = useState("🔥");
+  const [stickerSounds, setStickerSounds] = useState<any>({
+    "🔥": "", "💎": "", "👑": ""
+  });
+  const [copied, setCopied] = useState(false);
 
-  // Simulation der echten Datenankunft
-  useEffect(() => {
-    if (isLive && username) {
-      const interval = setInterval(() => {
-        // Hier würde normalerweise der Event-Stream von TikTok hängen
-        const mockNewMember = {
-          name: "User_" + Math.floor(Math.random() * 1000),
-          level: Math.floor(Math.random() * 50) + 1,
-          time: "Gerade eben"
-        };
-        setMembers(prev => [mockNewMember, ...prev].slice(0, 10));
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [isLive, username]);
+  const updateSound = (sticker: string, url: string) => {
+    setStickerSounds({...stickerSounds, [sticker]: url});
+  };
+
+  const getStickerLink = () => {
+    const baseUrl = window.location.origin + "/overlay/sticker";
+    const params = new URLSearchParams({ 
+      u: username, 
+      s: selectedSticker, 
+      v: stickerSounds[selectedSticker] || "" 
+    });
+    return `${baseUrl}?${params.toString()}`;
+  };
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-semibold text-white tracking-tight">Fan Club Manager</h2>
-      
-      {!isLive ? (
-        <div className="bg-zinc-900/30 border border-zinc-800 p-12 rounded-2xl text-center">
-          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Wifi size={24} className="text-zinc-600" />
-          </div>
-          <h3 className="text-white font-medium mb-1">Stream ist Offline</h3>
-          <p className="text-zinc-500 text-sm">Die Live-Mitgliederliste wird automatisch geladen, sobald du online gehst.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-[13px]">
-          <div className="lg:col-span-2 space-y-4">
-            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Echtzeit-Mitglieder</h3>
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
-              {members.length > 0 ? members.map((m, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all animate-in slide-in-from-top-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center font-bold text-blue-400 border border-blue-500/20">{m.name[0]}</div>
-                    <span className="font-bold text-zinc-200 uppercase">{m.name}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] font-black border border-white/5">LVL {m.level}</span>
-                    <span className="text-zinc-600 text-[11px] italic">{m.time}</span>
-                  </div>
-                </div>
-              )) : <div className="p-10 text-center text-zinc-600">Suche nach Club-Events in deinem Stream...</div>}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Smile size={14} className="text-purple-500" /> Verfügbare Sticker</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {["💎", "👑", "��", "⚡", "🌈", "🏆"].map((s, i) => (
-                <div key={i} className="aspect-square bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-center text-2xl hover:border-purple-500 transition-colors shadow-inner">{s}</div>
-              ))}
-            </div>
-            <div className="p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
-              <p className="text-[10px] text-purple-400 font-bold uppercase tracking-tighter">Pro Info</p>
-              <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">Diese Sticker werden automatisch in deinem OBS Overlay angezeigt, wenn ein Club-Mitglied sie postet.</p>
-            </div>
+      <div>
+        <h2 className="text-2xl font-semibold text-white mb-2 tracking-tight font-black uppercase italic">Fan Club Sticker Sounds</h2>
+        <p className="text-zinc-500 text-sm">Wähle einen Sticker aus und verknüpfe ihn mit einer Audio-Datei.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* STICKER SELECTION */}
+        <div className="space-y-4">
+          <h3 className="text-[11px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Smile size={14} className="text-purple-500" /> Sticker wählen</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {Object.keys(stickerSounds).map((s) => (
+              <button 
+                key={s} 
+                onClick={() => setSelectedSticker(s)}
+                className={`aspect-square rounded-xl text-3xl flex items-center justify-center transition-all border-2 ${selectedSticker === s ? "bg-purple-500/10 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)]" : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"}`}
+              >
+                {s}
+              </button>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* SOUND CONFIGURATION */}
+        <div className="lg:col-span-2 space-y-6 bg-zinc-900/30 border border-zinc-800 p-6 rounded-2xl">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="text-4xl bg-black w-16 h-16 flex items-center justify-center rounded-2xl border border-white/5 shadow-inner">{selectedSticker}</div>
+            <div>
+              <h4 className="font-bold text-white text-lg">Konfiguration für {selectedSticker}</h4>
+              <p className="text-zinc-500 text-[11px] uppercase font-bold tracking-tighter">Wird bei Fan-Club Mitgliedern ausgelöst</p>
+            </div>
+          </div>
+
+          <InputGroup label="Sound URL (.mp3 / .wav)" desc="Direkter Link zur Audio-Datei">
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                placeholder="https://..." 
+                value={stickerSounds[selectedSticker]}
+                onChange={(e) => updateSound(selectedSticker, e.target.value)}
+                className="input-field font-mono text-xs"
+              />
+            </div>
+          </InputGroup>
+
+          <div className="pt-4 border-t border-white/5">
+            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 block">Sticker OBS Link</label>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-black border border-zinc-800 rounded px-4 py-3 text-zinc-500 font-mono text-[10px] truncate uppercase italic">
+                {stickerSounds[selectedSticker] ? getStickerLink() : "Bitte Sound-URL eingeben..."}
+              </div>
+              <button 
+                onClick={() => { navigator.clipboard.writeText(getStickerLink()); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                disabled={!stickerSounds[selectedSticker]}
+                className="bg-white text-black px-4 rounded font-black text-[10px] uppercase hover:bg-zinc-200 transition-all disabled:opacity-30 flex items-center gap-2"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Kopiert" : "Copy Link"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -202,17 +222,17 @@ function ModuleTTV({ username }: { username: string }) {
   }, [username, trigger, videoUrl, volume]);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-300">
-      <h2 className="text-2xl font-semibold text-white tracking-tight">Konfiguration</h2>
+    <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
+      <h2 className="text-2xl font-black text-white tracking-tight uppercase italic">TTV Konfiguration</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <InputGroup label="Trigger" desc="Chatbefehl"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
-        <InputGroup label="Video URL" desc=".mp4 Link"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[120px] font-mono text-xs" /></InputGroup>
+        <InputGroup label="Trigger Code" desc="Chatbefehl zum Abspielen"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-black text-blue-400" /></InputGroup>
+        <InputGroup label="Video URL (.mp4)" desc="Direktlink zur Video-Datei"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[120px] font-mono text-xs" /></InputGroup>
       </div>
       <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-8">
         <div className="flex gap-3">
           <div className="flex-1 bg-black border border-zinc-800 rounded px-5 py-3 text-zinc-400 font-mono text-xs truncate select-all">{generatedLink}</div>
-          <button onClick={() => {navigator.clipboard.writeText(generatedLink); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-6 rounded font-bold text-xs uppercase hover:bg-zinc-200 transition-all">
-            {copied ? "Kopiert" : "Copy Link"}
+          <button onClick={() => {navigator.clipboard.writeText(generatedLink); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-6 rounded font-bold text-xs uppercase hover:bg-zinc-200 transition-all flex items-center gap-2">
+            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Kopiert" : "Copy Link"}
           </button>
         </div>
       </div>
@@ -221,11 +241,11 @@ function ModuleTTV({ username }: { username: string }) {
 }
 
 function SidebarItem({ icon, label, active, onClick }: any) {
-  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-all ${active ? "bg-zinc-900 text-white font-medium shadow-sm" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"}`}><span>{icon}</span>{label}</button>;
+  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-all ${active ? "bg-zinc-900 text-white font-black" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"}`}><span>{icon}</span>{label}</button>;
 }
 function InputGroup({ label, desc, children }: any) {
-  return <div className="flex flex-col gap-2.5"><label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{label}</label>{children}<p className="text-[11px] text-zinc-600 font-medium italic">{desc}</p></div>;
+  return <div className="flex flex-col gap-2.5"><label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{label}</label>{children}<p className="text-[10px] text-zinc-600 font-bold italic uppercase tracking-tighter">{desc}</p></div>;
 }
 function ModuleSettings({ expiry, version }: any) {
-  return <div className="p-10"><div className="bg-zinc-900/50 p-8 rounded-lg border border-zinc-800 max-w-lg font-bold"><p>Gültig bis: {expiry}</p><p className="text-zinc-500 text-[10px] mt-2 font-mono uppercase">Build: {version}</p></div></div>;
+  return <div className="p-10"><div className="bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800 max-w-lg font-black uppercase italic shadow-2xl"><p className="text-blue-500">Gültig bis: {expiry}</p><p className="text-zinc-600 text-[10px] mt-2 font-mono not-italic">Build: {version}</p></div></div>;
 }
