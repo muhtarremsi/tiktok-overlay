@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
-  Type, Settings, Box, Loader2, Plus, Trash2, X, Menu,
+  Type, Settings, Box, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2
 } from "lucide-react";
 
@@ -11,9 +11,9 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [activeView, setActiveView] = useState("ttv");
-  const [sidebarOpen, setSidebarOpen] = useState(false); // State für Mobile Menu
+  const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030045";
+  const version = "0.030046";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -22,7 +22,6 @@ function DashboardContent() {
     if (userFromUrl) setUsername(userFromUrl);
   }, [searchParams]);
 
-  // Schließt die Sidebar, wenn eine Ansicht gewählt wurde (nur Mobile)
   const navigateTo = (view: string) => {
     setActiveView(view);
     setSidebarOpen(false);
@@ -31,7 +30,7 @@ function DashboardContent() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px]">
       
-      {/* MOBILE OVERLAY (Dunkler Hintergrund beim Öffnen) */}
+      {/* MOBILE OVERLAY */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm"
@@ -39,23 +38,23 @@ function DashboardContent() {
         />
       )}
 
-      {/* SIDEBAR (Desktop links, Mobile schiebt von rechts rein) */}
+      {/* SIDEBAR (Jetzt mit Links-Ausrichtung für Mobile) */}
       <aside className={`
-        fixed inset-y-0 right-0 w-64 bg-black border-l border-white/10 z-50 
+        fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 
         transform transition-transform duration-300 ease-in-out lg:relative 
-        lg:translate-x-0 lg:border-l-0 lg:border-r flex flex-col p-5 font-sans 
+        lg:translate-x-0 flex flex-col p-5 font-sans 
         uppercase font-bold italic
-        ${sidebarOpen ? "translate-x-0" : "translate-x-full"}
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
-        {/* CLOSE BUTTON (Nur Mobile) */}
+        {/* CLOSE BUTTON (Rechts oben in der Sidebar für Mobile) */}
         <button 
-          className="lg:hidden absolute top-5 left-5 text-zinc-500 hover:text-white"
+          className="lg:hidden absolute top-5 right-5 text-zinc-500 hover:text-white"
           onClick={() => setSidebarOpen(false)}
         >
           <X size={20} />
         </button>
 
-        <div className="flex items-center mb-8 mt-10 lg:mt-0 text-white not-italic font-black tracking-tight">
+        <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight">
           <h1 className="text-base flex items-center gap-2"><Box className="w-4 h-4" /> ARC TOOLS</h1>
         </div>
         
@@ -96,28 +95,30 @@ function DashboardContent() {
       {/* MAIN CONTENT */}
       <main className="flex-1 bg-[#09090b] flex flex-col min-w-0 font-bold uppercase">
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 tracking-widest text-[10px]">
-          <div className="flex items-center">
-            <span className="text-zinc-700">App /</span> <span className="ml-1 text-white">{activeView}</span>
-          </div>
-          
-          {/* HAMBURGER BUTTON (Nur Mobile Sichtbar) */}
+          {/* HAMBURGER BUTTON (Jetzt Links) */}
           <button 
             className="lg:hidden p-2 text-white bg-zinc-900 rounded-lg border border-white/10"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={18} />
           </button>
+
+          <div className="flex items-center">
+            <span className="text-zinc-700">App /</span> <span className="ml-1 text-white">{activeView}</span>
+          </div>
+          
+          <div className="w-8 lg:hidden"></div> {/* Spacer für Zentrierung */}
         </header>
 
         <div className="flex-1 overflow-y-auto">
           {activeView === "settings" ? (
-            <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold">
+            <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold text-center">
               <h2 className="text-2xl text-white">General Settings</h2>
-              <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 shadow-xl not-italic text-center">
+              <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-8 shadow-xl not-italic">
                 {username ? (
                   <div className="text-green-500 font-bold flex flex-col items-center gap-2">
                     <CheckCircle2 size={32} />
-                    <span className="uppercase text-xs tracking-widest font-black">Account: {username}</span>
+                    <span className="uppercase text-xs tracking-widest">Connected: {username}</span>
                   </div>
                 ) : (
                   <button 
@@ -150,26 +151,16 @@ function SidebarItem({ icon, label, active, onClick }: any) {
 }
 
 function ModuleTTV({ username, baseUrl }: any) {
-  // Demo Trigger
-  const [triggers] = useState([{ id: 1, code: "777", url: "https://...", start: 0, end: 10 }]);
+  const [triggers] = useState([{ id: 1, code: "777", url: "https://cdn.discordapp.com/attachments/1462540433463709815/1472988001838563361/Meme_Okay_.mp4", start: 0, end: 10 }]);
   const configString = typeof window !== 'undefined' ? btoa(JSON.stringify(triggers)) : "";
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}`;
 
   return (
     <div className="p-6 lg:p-10 max-w-6xl mx-auto space-y-10 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 space-y-6 shadow-lg">
-        <h3 className="text-white text-xs font-black flex items-center gap-2 not-italic"><Plus size={14} /> NEW TRIGGER</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" placeholder="Trigger Code" className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none" />
-          <input type="text" placeholder="Video URL" className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none font-mono" />
-        </div>
-        <button className="w-full bg-white text-black font-black py-3 rounded-lg text-xs tracking-widest uppercase">Add to List</button>
-      </div>
-
       <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-4 not-italic font-bold shadow-xl">
         <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">OBS Master Link</label>
         <div className="flex flex-col gap-2 font-mono text-[10px]">
-          <div className="flex-1 text-zinc-600 truncate bg-black px-4 py-4 rounded-xl border border-white/5 uppercase tracking-tighter overflow-hidden break-all">
+          <div className="flex-1 text-zinc-600 truncate bg-black px-4 py-4 rounded-xl border border-white/5 uppercase tracking-tighter break-all">
             {link}
           </div>
           <button 
