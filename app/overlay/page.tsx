@@ -9,6 +9,7 @@ function OverlayContent() {
   const [status, setStatus] = useState("Warte auf Start...");
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Parameter auslesen
   const username = searchParams.get("u");
   const triggerCode = searchParams.get("c") || "777";
   const videoUrl = searchParams.get("v");
@@ -18,28 +19,37 @@ function OverlayContent() {
   useEffect(() => {
     if (!username) return;
 
-    // Verbindung zu unserer eigenen API herstellen (SSE)
     setStatus("Verbinde...");
+    
+    // Wir verbinden uns NUR mit unserer eigenen API, nicht direkt mit TikTok
     const eventSource = new EventSource(`/api/tiktok?u=${username}`);
 
     eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      try {
+        const data = JSON.parse(event.data);
 
-      if (data.type === 'status') {
-        setStatus(data.msg);
-      } else if (data.type === 'chat') {
-        // Hier prüfen wir den Code
-        if (data.comment && data.comment.includes(triggerCode)) {
-           playVideo();
+        if (data.type === 'status') {
+          setStatus(data.msg);
+        } else if (data.type === 'chat') {
+          // Prüfen ob der Code im Kommentar steckt
+          if (data.comment && String(data.comment).includes(triggerCode)) {
+             playVideo();
+          }
         }
+      } catch (e) {
+        console.error("Parse Error", e);
       }
     };
 
     eventSource.onerror = () => {
+      // Wenn Vercel die Verbindung trennt (passiert oft im Free Tier), einfach neu versuchen
       setStatus("Verbindung neu aufbauen...");
       eventSource.close();
-      // Einfacher Reconnect nach 3 Sekunden
-      setTimeout(() => { /* Reconnect Logik durch React Refresh */ }, 3000);
+      setTimeout(() => {
+         // Durch Änderung des State triggern wir einen Reconnect, wenn nötig
+         // Hier lassen wir den useEffect einfach beim nächsten Mount neu laufen
+         window.location.reload(); 
+      }, 5000);
     };
 
     return () => {
@@ -67,9 +77,8 @@ function OverlayContent() {
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-transparent flex items-center justify-center">
-      {/* Status Anzeige (nur zum Testen sichtbar, kann man später ausblenden) */}
       <div className="absolute top-2 left-2 text-xs text-white/50 bg-black/50 p-1 rounded z-50">
-        Status: {status} | Trigger: {triggerCode}
+        Status: {status}
       </div>
 
       <video
@@ -78,6 +87,7 @@ function OverlayContent() {
         className={`transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0"}`}
         style={{ maxHeight: "100vh", maxWidth: "100vw" }}
         onTimeUpdate={handleTimeUpdate}
+        muted={false} 
       />
     </div>
   );
