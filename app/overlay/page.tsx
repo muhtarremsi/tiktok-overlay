@@ -6,9 +6,8 @@ import { useSearchParams } from 'next/navigation';
 function OverlayContent() {
   const searchParams = useSearchParams();
   const [showVideo, setShowVideo] = useState(false);
-  const [status, setStatus] = useState("Initializing...");
-  const [lastMsg, setLastMsg] = useState("");
-  const [interacted, setInteracted] = useState(false);
+  // Status für interne Logik behalten, aber nicht mehr anzeigen
+  const [, setStatus] = useState("Wait..."); 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const username = searchParams.get('u') || '';
@@ -22,31 +21,21 @@ function OverlayContent() {
     if (!username) return;
 
     let eventSource: EventSource | null = null;
-    let reconnectTimer: NodeJS.Timeout;
+    let reconnectTimeout: NodeJS.Timeout;
 
     const connect = () => {
-      setStatus(`Connecting to @${username}...`);
-      
-      // SSE Verbindung aufbauen
+      setStatus("Connecting...");
       eventSource = new EventSource(`/api/stream?u=${username}`);
 
-      eventSource.onopen = () => {
-        setStatus("🟢 Connected & Listening");
-      };
+      eventSource.onopen = () => setStatus("Listening");
 
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-
           if (data.event === 'ping') return;
 
-          if (data.event === 'status') {
-            setStatus(`ℹ️ ${data.msg}`);
-          }
-
           if (data.event === 'chat') {
-            setLastMsg(`${data.user}: ${data.comment}`);
-            // Trigger Prüfung (Groß/Kleinschreibung egal)
+            // Trigger-Check (Groß-/Kleinschreibung egal)
             if (data.comment.trim().toLowerCase() === trigger.toLowerCase()) {
               triggerVideo();
             }
@@ -56,10 +45,11 @@ function OverlayContent() {
         }
       };
 
-      eventSource.onerror = (err) => {
-        setStatus("🔴 Connection Lost. Reconnecting in 2s...");
+      eventSource.onerror = () => {
+        setStatus("Reconnecting...");
         eventSource?.close();
-        reconnectTimer = setTimeout(connect, 2000);
+        // Schneller Reconnect Versuch
+        reconnectTimeout = setTimeout(connect, 1000);
       };
     };
 
@@ -67,23 +57,25 @@ function OverlayContent() {
 
     return () => {
       eventSource?.close();
-      clearTimeout(reconnectTimer);
+      clearTimeout(reconnectTimeout);
     };
   }, [username, trigger]);
 
   const triggerVideo = () => {
     if (showVideo) return;
-    
+
     setShowVideo(true);
-    
+
     if (videoRef.current) {
       videoRef.current.currentTime = startTime;
       videoRef.current.volume = Math.min(volume / 100, 1);
       
+      // Versuche sofort abzuspielen. In OBS klappt das immer.
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(error => {
-          setStatus("⚠️ Autoplay blocked! Click screen.");
+          // Browser blockiert es vielleicht, aber OBS nicht.
+          console.log("Autoplay blocked by browser policy (OBS is fine):", error);
         });
       }
 
@@ -99,42 +91,30 @@ function OverlayContent() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-transparent overflow-hidden">
+    // w-full h-full sorgt dafür, dass der Container den ganzen Platz nimmt
+    <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent overflow-hidden">
       
-      {/* Click Overlay für Sound (verschwindet nach Klick) */}
-      {!interacted && (
-        <div 
-          onClick={() => setInteracted(true)}
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 cursor-pointer text-white font-bold uppercase tracking-widest text-sm"
-        >
-          Click to Enable Sound
-        </div>
-      )}
-
       {videoUrl && (
         <video
           ref={videoRef}
           src={videoUrl}
-          className={`max-w-full max-h-full transition-opacity duration-300 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+          // WICHTIG: 'w-full h-full object-cover' entfernt die schwarzen Ränder
+          // indem es das Video über den gesamten Bereich streckt.
+          className={`w-full h-full object-cover transition-opacity duration-300 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
           playsInline
+          // 'muted' hilft manchmal bei Autoplay-Problemen, aber wir wollen Sound.
+          // Falls es in OBS Probleme gibt, entferne das Kommentarzeichen vor 'muted'.
+          // muted={false} 
         />
       )}
-
-      {/* Status Bar (Debug) */}
-      <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1 pointer-events-none">
-        <div className="text-[10px] text-zinc-400 font-mono bg-black/90 px-2 py-1 rounded border border-white/10">
-          {status}
-        </div>
-        {lastMsg && (
-          <div className="text-[10px] text-green-400 font-mono bg-black/90 px-2 py-1 rounded border border-green-500/30">
-            Last: {lastMsg}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
 
 export default function OverlayPage() {
-  return <Suspense fallback={<div>Loading...</div>}><OverlayContent /></Suspense>;
+  return (
+    <Suspense fallback={null}>
+      <OverlayContent />
+    </Suspense>
+  );
 }
