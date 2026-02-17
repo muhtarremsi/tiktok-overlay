@@ -6,48 +6,40 @@ import { useSearchParams } from "next/navigation";
 function OverlayContent() {
   const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [status, setStatus] = useState("Warte auf Start...");
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Parameter auslesen
+  // Parameter
   const username = searchParams.get("u");
   const triggerCode = searchParams.get("c") || "777";
   const videoUrl = searchParams.get("v");
   const startTime = Number(searchParams.get("s") || 0);
   const endTime = Number(searchParams.get("e") || 10);
 
+  // Styles für den Rahmen (ARC Yellow)
+  const borderStyle = "border-4 border-[#FFD000] rounded-lg shadow-2xl bg-black";
+
   useEffect(() => {
     if (!username) return;
 
-    setStatus("Verbinde...");
-    
-    // Wir verbinden uns NUR mit unserer eigenen API, nicht direkt mit TikTok
+    // Verbindung aufbauen (ohne visuelles Feedback für den Zuschauer)
     const eventSource = new EventSource(`/api/tiktok?u=${username}`);
 
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-
-        if (data.type === 'status') {
-          setStatus(data.msg);
-        } else if (data.type === 'chat') {
-          // Prüfen ob der Code im Kommentar steckt
+        if (data.type === 'chat') {
           if (data.comment && String(data.comment).includes(triggerCode)) {
              playVideo();
           }
         }
       } catch (e) {
-        console.error("Parse Error", e);
+        // Fehler stillschweigend ignorieren
       }
     };
 
     eventSource.onerror = () => {
-      // Wenn Vercel die Verbindung trennt (passiert oft im Free Tier), einfach neu versuchen
-      setStatus("Verbindung neu aufbauen...");
       eventSource.close();
       setTimeout(() => {
-         // Durch Änderung des State triggern wir einen Reconnect, wenn nötig
-         // Hier lassen wir den useEffect einfach beim nächsten Mount neu laufen
          window.location.reload(); 
       }, 5000);
     };
@@ -73,29 +65,30 @@ function OverlayContent() {
     }
   };
 
-  if (!videoUrl) return <div className="text-white p-4">Keine Video URL angegeben</div>;
+  if (!videoUrl) return null;
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-transparent flex items-center justify-center">
-      <div className="absolute top-2 left-2 text-xs text-white/50 bg-black/50 p-1 rounded z-50">
-        Status: {status}
-      </div>
+      {/* KEIN Status-Text mehr hier! 
+      */}
 
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        className={`transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0"}`}
-        style={{ maxHeight: "100vh", maxWidth: "100vw" }}
-        onTimeUpdate={handleTimeUpdate}
-        muted={false} 
-      />
+      <div className={`transition-all duration-300 ${isPlaying ? "opacity-100 scale-100" : "opacity-0 scale-90"}`}>
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          className={borderStyle}
+          style={{ maxHeight: "80vh", maxWidth: "80vw" }}
+          onTimeUpdate={handleTimeUpdate}
+          muted={false} 
+        />
+      </div>
     </div>
   );
 }
 
 export default function OverlayPage() {
   return (
-    <Suspense fallback={<div>Laden...</div>}>
+    <Suspense fallback={<div></div>}>
       <OverlayContent />
     </Suspense>
   );
