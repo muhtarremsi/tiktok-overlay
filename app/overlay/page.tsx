@@ -2,14 +2,12 @@
 
 import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { WebcastPushConnection } from 'tiktok-live-connector';
 
 function OverlayContent() {
   const searchParams = useSearchParams();
   const [showVideo, setShowVideo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Parameter aus der URL laden
   const username = searchParams.get('u') || '';
   const trigger = searchParams.get('c') || '777';
   const videoUrl = searchParams.get('v') || '';
@@ -20,42 +18,33 @@ function OverlayContent() {
   useEffect(() => {
     if (!username) return;
 
-    // Verbindung zum TikTok Live Connector (Client-Side)
-    const tiktokConnection = new WebcastPushConnection(username);
-
-    tiktokConnection.connect().then(state => {
-      console.log(`Connected to roomId ${state.roomId}`);
-    }).catch(err => {
-      console.error('Connection Failed', err);
-    });
-
-    // Chat-Event Überwachung
-    tiktokConnection.on('chat', (data) => {
-      // Prüfen ob die Nachricht dem Trigger-Code entspricht
-      if (data.comment.trim() === trigger) {
-        triggerVideo();
-      }
-    });
-
-    return () => {
-      tiktokConnection.disconnect();
+    // Polling-Mechanismus als Übergangslösung, da der direkte Node-Import im Browser scheitert
+    const checkEvents = async () => {
+      try {
+        const res = await fetch(`/api/events?u=${username}&c=${trigger}`);
+        const data = await res.json();
+        if (data.triggered) {
+          triggerVideo();
+        }
+      } catch (e) { console.error("Event check failed"); }
     };
+
+    const interval = setInterval(checkEvents, 2000); // Prüft alle 2 Sek auf neue Trigger
+    return () => clearInterval(interval);
   }, [username, trigger]);
 
   const triggerVideo = () => {
+    if (showVideo) return; // Verhindert mehrfaches Triggern
     setShowVideo(true);
     if (videoRef.current) {
       videoRef.current.currentTime = startTime;
-      videoRef.current.volume = Math.min(volume / 100, 1); // Max 100% Systemvolumen, Rest via Gain-Node möglich
-      videoRef.current.play();
+      videoRef.current.volume = Math.min(volume / 100, 1);
+      videoRef.current.play().catch(e => console.error("Autoplay blocked or failed", e));
 
-      // Video nach berechneter Dauer ausblenden (Ende - Start)
       const duration = (endTime - startTime) * 1000;
       setTimeout(() => {
         setShowVideo(false);
-        if (videoRef.current) {
-          videoRef.current.pause();
-        }
+        if (videoRef.current) videoRef.current.pause();
       }, duration);
     }
   };
@@ -70,19 +59,13 @@ function OverlayContent() {
           playsInline
         />
       )}
-      
-      {/* Status-Indikator für den Setup-Check (nur im Browser sichtbar) */}
-      <div className="absolute bottom-4 right-4 text-[10px] text-zinc-800 font-mono uppercase opacity-20">
-        Connector: {username} | Trigger: {trigger}
+      <div className="absolute bottom-4 right-4 text-[10px] text-zinc-800 font-mono uppercase opacity-10">
+        Ready: {username} | Mode: API-Polling
       </div>
     </div>
   );
 }
 
 export default function OverlayPage() {
-  return (
-    <Suspense fallback={null}>
-      <OverlayContent />
-    </Suspense>
-  );
+  return <Suspense fallback={null}><OverlayContent /></Suspense>;
 }
