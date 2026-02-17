@@ -5,15 +5,28 @@ import { useSearchParams } from 'next/navigation';
 
 function OverlayContent() {
   const searchParams = useSearchParams();
-  const [showVideo, setShowVideo] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<any>(null); // Welches Video läuft gerade?
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const username = searchParams.get('u') || '';
-  const trigger = searchParams.get('c') || '777';
-  const videoUrl = searchParams.get('v') || '';
-  const volume = parseInt(searchParams.get('vol') || '100');
-  const startTime = parseInt(searchParams.get('s') || '0');
-  const endTime = parseInt(searchParams.get('e') || '10');
+  const configParam = searchParams.get('config');
+
+  // Trigger-Liste aus der URL laden
+  const [triggers, setTriggers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (configParam) {
+      try {
+        const decoded = JSON.parse(atob(configParam));
+        if (Array.isArray(decoded)) {
+          setTriggers(decoded);
+          console.log("Triggers loaded:", decoded);
+        }
+      } catch (e) {
+        console.error("Config Error", e);
+      }
+    }
+  }, [configParam]);
 
   useEffect(() => {
     if (!username) return;
@@ -28,70 +41,64 @@ function OverlayContent() {
         try {
           const data = JSON.parse(e.data);
           if (data.event === 'chat') {
-            if (data.comment.trim().toLowerCase() === trigger.toLowerCase()) {
-              triggerVideo();
+            const comment = data.comment.trim().toLowerCase();
+            
+            // Suche in der Liste nach einem Match
+            const match = triggers.find(t => t.code.toLowerCase() === comment);
+            
+            if (match) {
+              playTrigger(match);
             }
           }
-        } catch (err) {
-          console.error("Parse Error", err);
-        }
+        } catch (err) {}
       };
 
       eventSource.onerror = () => {
         eventSource?.close();
-        reconnectTimeout = setTimeout(connect, 1000);
+        reconnectTimeout = setTimeout(connect, 3000);
       };
     };
 
     connect();
-
     return () => {
       eventSource?.close();
       clearTimeout(reconnectTimeout);
     };
-  }, [username, trigger]);
+  }, [username, triggers]);
 
-  const triggerVideo = () => {
-    if (showVideo) return;
+  const playTrigger = (trigger: any) => {
+    // Wenn schon was läuft, abbrechen oder ignorieren (hier: ignorieren)
+    if (activeVideo) return;
 
-    setShowVideo(true);
+    setActiveVideo(trigger);
 
-    if (videoRef.current) {
-      videoRef.current.currentTime = startTime;
-      videoRef.current.volume = Math.min(volume / 100, 1);
-      
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {});
+    // Kurze Verzögerung damit React das Video-Element rendert
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.currentTime = trigger.start || 0;
+        videoRef.current.volume = 1.0; 
+        videoRef.current.play().catch(() => {});
+
+        const duration = ((trigger.end || 10) - (trigger.start || 0)) * 1000;
+        
+        setTimeout(() => {
+          // Video stoppen und ausblenden
+          if (videoRef.current) videoRef.current.pause();
+          setActiveVideo(null);
+        }, duration);
       }
-
-      const duration = (endTime - startTime) * 1000;
-      setTimeout(() => {
-        setShowVideo(false);
-        if (videoRef.current) {
-          videoRef.current.pause();
-          videoRef.current.currentTime = startTime;
-        }
-      }, duration);
-    }
+    }, 50);
   };
 
   return (
     <>
-      {/* WICHTIG: Dieser Style-Block überschreibt das globale Schwarz der App */}
-      <style jsx global>{`
-        html, body {
-          background-color: transparent !important;
-          background: transparent !important;
-        }
-      `}</style>
-
+      <style jsx global>{`html, body { background: transparent !important; }`}</style>
       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent overflow-hidden">
-        {videoUrl && (
+        {activeVideo && (
           <video
             ref={videoRef}
-            src={videoUrl}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+            src={activeVideo.url}
+            className="w-full h-full object-cover"
             playsInline
           />
         )}
@@ -101,9 +108,5 @@ function OverlayContent() {
 }
 
 export default function OverlayPage() {
-  return (
-    <Suspense fallback={null}>
-      <OverlayContent />
-    </Suspense>
-  );
+  return <Suspense fallback={null}><OverlayContent /></Suspense>;
 }
