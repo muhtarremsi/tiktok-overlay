@@ -86,7 +86,7 @@ export default function Dashboard() {
             
             <div className="relative mb-5">
               <div className="absolute inset-y-0 left-2.5 flex items-center text-zinc-500 text-xs">@</div>
-              <input type="text" placeholder="TIKTOK USER" value={username} onChange={(e) => setUsername(e.target.value.replace(/^@+\s*/, '').trim())} className="w-full bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs rounded py-2 pl-6 pr-8 focus:outline-none focus:border-zinc-500 font-medium uppercase" />
+              <input type="text" placeholder="tiktok user" value={username} onChange={(e) => setUsername(e.target.value.replace(/^@+\s*/, '').trim().toLowerCase())} className="w-full bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs rounded py-2 pl-6 pr-8 focus:outline-none focus:border-zinc-500 font-medium lowercase" />
               <div className="absolute inset-y-0 right-2.5 flex items-center">
                  {isChecking ? <Loader2 size={12} className="animate-spin text-zinc-600" /> : <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-zinc-800'}`}></div>}
               </div>

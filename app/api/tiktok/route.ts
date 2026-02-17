@@ -1,4 +1,4 @@
-import { WebcastPushConnection } from 'tiktok-live-connector';
+import { TikTokLiveConnection } from 'tiktok-live-connector';
 import { normalizeTiktokUsername } from '@/lib/username';
 
 export const dynamic = 'force-dynamic'; // Wichtig für Vercel
@@ -15,7 +15,10 @@ export async function GET(request: Request) {
   // Wir öffnen einen Stream zum Frontend (Server-Sent Events)
   const stream = new ReadableStream({
     async start(controller) {
-      const tiktok = new WebcastPushConnection(username);
+      const tiktok = new TikTokLiveConnection(username, {
+        fetchRoomInfoOnConnect: true,
+        connectWithUniqueId: true,
+      });
 
       const send = (data: any) => {
         const msg = `data: ${JSON.stringify(data)}\n\n`;

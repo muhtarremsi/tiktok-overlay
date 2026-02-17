@@ -1,4 +1,4 @@
-import { WebcastPushConnection } from 'tiktok-live-connector';
+import { TikTokLiveConnection } from 'tiktok-live-connector';
 import { NextResponse } from 'next/server';
 import { normalizeTiktokUsername } from '@/lib/username';
 
@@ -14,11 +14,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const tiktok = new WebcastPushConnection(username);
+    // Offizielle API (https://github.com/zerodytrash/TikTok-Live-Connector)
+    // connectWithUniqueId: Room-ID über API statt Scraping – oft zuverlässiger
+    const tiktok = new TikTokLiveConnection(username, {
+      fetchRoomInfoOnConnect: true,
+      connectWithUniqueId: true,
+    });
     const state = await tiktok.connect();
     
-    // Wir holen uns die Raum-Details für den Fan-Club
-    const roomInfo = state.roomInfo;
+    const roomInfo = state?.roomInfo;
     tiktok.disconnect();
 
     return NextResponse.json({ 
