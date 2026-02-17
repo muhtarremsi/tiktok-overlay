@@ -4,73 +4,79 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Box, Plus, Trash2, X, Menu,
-  Volume2, Globe, LogIn, CheckCircle2, Wifi, Loader2, AlertCircle
+  Volume2, Globe, LogIn, CheckCircle2, Wifi, Loader2, AlertCircle, Radio
 } from "lucide-react";
 
 function DashboardContent() {
   const searchParams = useSearchParams();
-  const [username, setUsername] = useState("");
+  
+  // ZWEI GETRENNTE USER-VARIABLEN
+  const [targetUser, setTargetUser] = useState(""); // Wen beobachten wir? (Connector)
+  const [authUser, setAuthUser] = useState("");     // Wer bin ich? (Login/OAuth)
+  
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   
-  // STATUS STATES
-  // 'idle' = nichts tun / leer
-  // 'checking' = Gelb / Läd
-  // 'success' = Grün / Verbunden
-  // 'error' = Rot / Nicht gefunden
-  const [status, setStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
+  // STATUS DES CONNECTORS (Für den targetUser)
+  const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
   
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030052";
+  const version = "0.030053";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
-    const userFromUrl = searchParams.get("u");
+    const userFromUrl = searchParams.get("u");     // Kommt vom Login
     const viewFromUrl = searchParams.get("view");
     
+    // Wenn wir vom Login kommen, setzen wir den Auth-User
+    // OPTIONAL: Wir setzen es auch als Target, aber man kann es ändern.
     if (userFromUrl) {
-      setUsername(userFromUrl);
-      checkUserStatus(userFromUrl); // Sofort prüfen bei URL-Aufruf
+      setAuthUser(userFromUrl);
+      if (!targetUser) {
+         setTargetUser(userFromUrl); // Nur als Vorschlag übernehmen, falls leer
+         checkUserStatus(userFromUrl);
+      }
     }
+    
     if (viewFromUrl) setActiveView(viewFromUrl);
   }, [searchParams]);
 
-  // ECHTE API ABFRAGE
+  // DER ECHTE LIVE-CHECK (Nur für den Target User)
   const checkUserStatus = async (userToCheck: string) => {
     if (!userToCheck || userToCheck.length < 2) {
       setStatus('idle');
       return;
     }
 
-    setStatus('checking'); // Gelb machen
+    setStatus('checking'); 
 
     try {
+      // Wir fragen die API, ob dieser User live/erreichbar ist
       const res = await fetch(`/api/status?u=${userToCheck}`);
       if (res.ok) {
-        setStatus('success'); // Grün
+        setStatus('online'); // GRÜN
       } else {
-        setStatus('error'); // Rot
+        setStatus('offline'); // ROT
       }
     } catch (e) {
-      setStatus('error');
+      setStatus('offline');
     }
   };
 
-  // Debounce-Timer für die Eingabe
+  // Debounce: Warten bis man fertig getippt hat
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (username) {
-        checkUserStatus(username);
+      if (targetUser) {
+        checkUserStatus(targetUser);
       }
-    }, 800); // Wartet 800ms nach dem Tippen bevor der Check startet
-
+    }, 800);
     return () => clearTimeout(timer);
-  }, [username]);
+  }, [targetUser]);
 
-  const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value.toLowerCase());
-    setStatus('checking'); // Während dem Tippen schon mal auf "Laden" stellen
+  const handleTargetInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTargetUser(e.target.value.toLowerCase()); // Wir zwingen Kleinschreibung für TikTok
+    setStatus('checking'); 
   };
 
   const navigateTo = (view: string) => {
@@ -92,50 +98,48 @@ function DashboardContent() {
           <h1 className="text-base flex items-center gap-2"><Box className="w-4 h-4" /> ARC TOOLS</h1>
         </div>
         
-        <div className="mb-8 space-y-4 not-italic">
+        {/* CONNECTOR BOX */}
+        <div className="mb-8 space-y-2 not-italic">
+          <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
             
-            {/* INPUT FIELD MIT LIVE STATUS FARBEN */}
+            {/* EINGABEFELD - Entscheidet über den Connector */}
             <input 
               type="text" 
               placeholder="username" 
-              value={username} 
-              onChange={handleManualInput} 
+              value={targetUser} 
+              onChange={handleTargetInput} 
               className={`
-                w-full bg-[#0c0c0e] text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none transition-all lowercase border
-                ${status === 'success' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
-                ${status === 'error' ? "border-red-500/50 text-red-400" : ""}
+                w-full bg-[#0c0c0e] text-[13px] rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
+                ${status === 'online' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
+                ${status === 'offline' ? "border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : ""}
                 ${status === 'checking' ? "border-yellow-500/50 text-yellow-100" : ""}
                 ${status === 'idle' ? "border-zinc-800 text-zinc-200" : ""}
               `} 
             />
             
-            {/* STATUS INDIKATOR RECHTS */}
+            {/* INDIKATOR */}
             <div className="absolute inset-y-0 right-3 flex items-center justify-center pointer-events-none">
               {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
-              
-              {status === 'success' && (
+              {status === 'online' && (
                 <div className="relative flex items-center justify-center">
                   <div className="w-2 h-2 bg-green-500 rounded-full z-10"></div>
                   <div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                 </div>
               )}
-              
-              {status === 'error' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
-              
+              {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
               {status === 'idle' && <div className="w-2 h-2 bg-zinc-800 rounded-full border border-zinc-700"></div>}
             </div>
           </div>
           
-          {/* Status Text Message (Optional, hilft beim Debuggen) */}
-          {status === 'error' && (
-             <div className="text-[9px] text-red-500 flex items-center gap-1 uppercase font-bold tracking-wider">
-               <AlertCircle size={10} /> Offline / Not Found
-             </div>
-          )}
+          {/* Status Text Message */}
+          <div className="h-4 flex items-center justify-end px-1">
+            {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline / Not Found</span>}
+            {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Live Connection Ready</span>}
+          </div>
 
-          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-4">
+          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
             <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>ABLAUF</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
@@ -168,22 +172,26 @@ function DashboardContent() {
         <div className="flex-1 overflow-y-auto">
           {activeView === "settings" ? (
             <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold text-center">
-              <h2 className="text-2xl text-white">General Settings</h2>
-              <div className={`bg-[#0c0c0e] border rounded-2xl p-8 shadow-xl not-italic transition-all ${status === 'success' ? "border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.05)]" : "border-zinc-800"}`}>
-                {status === 'success' ? (
-                  <div className="text-green-500 font-bold flex flex-col items-center gap-2 animate-in fade-in zoom-in duration-300">
+              <h2 className="text-2xl text-white mb-8">Account Settings</h2>
+              
+              {/* OAUTH BEREICH - Getrennt vom Connector */}
+              <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-8 shadow-xl not-italic">
+                <h3 className="text-zinc-500 text-[10px] font-black tracking-widest mb-4 uppercase">TikTok Authentication</h3>
+                {authUser ? (
+                  <div className="text-green-500 font-bold flex flex-col items-center gap-2">
                     <CheckCircle2 size={32} />
-                    <span className="uppercase text-xs tracking-widest">Connected: {username}</span>
+                    <span className="uppercase text-xs tracking-widest">Authenticated as: {authUser}</span>
+                    <button onClick={() => setAuthUser("")} className="mt-4 text-[9px] text-zinc-500 underline hover:text-white uppercase">Disconnect</button>
                   </div>
                 ) : (
                   <button onClick={() => window.location.href = "/api/auth/login"} className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-black hover:bg-zinc-200 transition-all uppercase text-xs">
-                    <LogIn size={18} /> Connect with TikTok
+                    <LogIn size={18} /> Login with TikTok
                   </button>
                 )}
               </div>
             </div>
           ) : (
-            <ModuleTTV username={username} baseUrl={baseUrl} />
+            <ModuleTTV username={targetUser} baseUrl={baseUrl} />
           )}
         </div>
       </main>
@@ -224,16 +232,6 @@ function ModuleTTV({ username, baseUrl }: any) {
           <div className="space-y-2"><label className="text-[9px] text-zinc-500 ml-1">END (S)</label><input type="number" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} className="w-full bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500" /></div>
         </div>
         <button onClick={addTrigger} className="w-full bg-white text-black font-black py-4 rounded-xl text-xs tracking-widest uppercase hover:bg-zinc-200 transition-all">Add to List</button>
-      </div>
-
-      <div className="space-y-3">
-        {triggers.map((t) => (
-          <div key={t.id} className="flex items-center gap-4 bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group hover:border-zinc-600 transition-all">
-            <span className="text-green-400 font-black text-sm">{t.code}</span>
-            <div className="flex-1 min-w-0"><p className="text-zinc-500 text-[9px] truncate opacity-50 font-mono italic">{t.url}</p><p className="text-[8px] text-zinc-600 font-mono">{t.start}s - {t.end}s</p></div>
-            <button onClick={() => setTriggers(triggers.filter(x => x.id !== t.id))} className="text-zinc-600 hover:text-red-500 p-2"><Trash2 size={16} /></button>
-          </div>
-        ))}
       </div>
 
       <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-4 not-italic font-bold shadow-xl">
