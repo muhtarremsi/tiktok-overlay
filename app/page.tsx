@@ -11,7 +11,9 @@ import {
   Volume2, 
   Play,
   Monitor,
-  Box
+  Box,
+  Loader2,
+  Wifi
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -23,8 +25,10 @@ export default function Dashboard() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
   
-  // Fake "Live Status" - simuliert Verbindung, wenn User tippt
-  const isLive = username.length > 2;
+  // LIVE CHECK STATES
+  const [isLive, setIsLive] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [viewerCount, setViewerCount] = useState(0);
 
   // Link Generator
   useEffect(() => {
@@ -35,14 +39,42 @@ export default function Dashboard() {
       if (trigger) params.append("c", trigger);
       if (videoUrl) params.append("v", videoUrl);
       if (volume !== "100") params.append("vol", volume);
-      
-      // Standardwerte für Start/Ende
       params.append("s", "0");
       params.append("e", "10");
 
       setGeneratedLink(`${baseUrl}?${params.toString()}`);
     }
   }, [username, trigger, videoUrl, volume]);
+
+  // ECHTER LIVE CHECK (Mit Verzögerung/Debounce)
+  useEffect(() => {
+    // Reset bei leerem Namen
+    if (!username || username.length < 2) {
+      setIsLive(false);
+      setIsChecking(false);
+      return;
+    }
+
+    setIsChecking(true);
+    setIsLive(false);
+
+    // Warte 1000ms nach dem letzten Tippen, bevor wir prüfen
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/status?u=${username}`);
+        const data = await res.json();
+        
+        setIsLive(data.online);
+        if (data.online) setViewerCount(data.viewers);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsChecking(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer); // Timer resetten wenn User weitertippt
+  }, [username]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedLink);
@@ -65,7 +97,7 @@ export default function Dashboard() {
             </h1>
           </div>
 
-          {/* TikTok Input im "Connect Style" */}
+          {/* TikTok Input */}
           <div className="relative group">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
               <span className="text-zinc-500 text-sm">@</span>
@@ -77,31 +109,43 @@ export default function Dashboard() {
               onChange={(e) => setUsername(e.target.value)}
               className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-200 text-sm rounded-md py-2.5 pl-7 pr-10 focus:outline-none focus:border-zinc-600 focus:bg-zinc-900 transition-all placeholder:text-zinc-600"
             />
-            {/* LIVE INDICATOR */}
+            {/* STATUS INDICATOR ICON */}
             <div className="absolute inset-y-0 right-3 flex items-center">
-              {isLive ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500 live-indicator"></span>
+              {isChecking ? (
+                <Loader2 className="w-4 h-4 text-zinc-500 animate-spin" />
+              ) : isLive ? (
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
               ) : (
-                <span className="w-2 h-2 rounded-full bg-zinc-700"></span>
+                <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
               )}
             </div>
           </div>
           
-          {/* Status Text */}
-          <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-wider font-medium">
-            <span className="text-zinc-600">Status</span>
-            <span className={isLive ? "text-green-500" : "text-zinc-600"}>
-              {isLive ? "Verbunden" : "Offline"}
-            </span>
+          {/* Status Text Details */}
+          <div className="mt-3 flex items-center justify-between text-[11px] font-medium border-t border-white/5 pt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 uppercase tracking-wider">Status</span>
+            </div>
+            
+            {isChecking ? (
+              <span className="text-zinc-500">Prüfe...</span>
+            ) : isLive ? (
+              <span className="text-green-500 flex items-center gap-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+                <Wifi size={10} /> ONLINE ({viewerCount})
+              </span>
+            ) : (
+              <span className="text-zinc-600">OFFLINE</span>
+            )}
           </div>
         </div>
 
         {/* NAVIGATION */}
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-8">
           
-          {/* Section: MODULE */}
+          {/* MODULE */}
           <div>
             <h3 className="px-3 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
               Module
@@ -117,7 +161,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Section: SYSTEM */}
+          {/* SYSTEM */}
           <div>
             <h3 className="px-3 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
               System
@@ -130,24 +174,19 @@ export default function Dashboard() {
 
         </nav>
 
-        {/* FOOTER / SETTINGS */}
+        {/* FOOTER */}
         <div className="p-4 border-t border-white/5 space-y-1">
           <SidebarItem icon={<Settings size={18} />} label="Einstellungen" />
           <SidebarItem icon={<LogOut size={18} />} label="Logout" />
-          
-          <div className="mt-4 pt-4 px-3">
-             <div className="text-[10px] text-zinc-700">
-               v2.4.0 • Pro Trial
-             </div>
+          <div className="mt-4 pt-4 px-3 text-[10px] text-zinc-700">
+             v2.4.1 • Pro Trial
           </div>
         </div>
       </aside>
 
-
       {/* --- MAIN CONTENT --- */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
         
-        {/* Top Bar */}
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-8">
           <div className="flex items-center gap-2 text-sm text-zinc-400">
             <span>Module</span>
@@ -159,28 +198,18 @@ export default function Dashboard() {
           </button>
         </header>
 
-        {/* Content Scroll Area */}
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-4xl mx-auto space-y-10">
-
-            {/* Intro Header */}
             <div>
               <h2 className="text-2xl font-semibold text-white mb-2">Konfiguration</h2>
               <p className="text-zinc-500 text-sm max-w-xl">
-                Bestimme hier, welches Video abgespielt wird, wenn der Trigger im Chat erkannt wird. 
-                Die Lautstärke kann über 100% verstärkt werden.
+                Bestimme hier, welches Video abgespielt wird, wenn der Trigger im Chat erkannt wird.
               </p>
             </div>
 
-            {/* Config Form Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              
-              {/* Left Column */}
               <div className="space-y-6">
-                <InputGroup 
-                  label="Trigger Code" 
-                  desc="Der Befehl im Chat (z.B. 777)"
-                >
+                <InputGroup label="Trigger Code" desc="Der Befehl im Chat (z.B. 777)">
                   <input 
                     type="text" 
                     value={trigger}
@@ -189,33 +218,19 @@ export default function Dashboard() {
                   />
                 </InputGroup>
 
-                <InputGroup 
-                  label="Audio Boost" 
-                  desc={`Lautstärke: ${volume}%`}
-                >
+                <InputGroup label="Audio Boost" desc={`Lautstärke: ${volume}%`}>
                    <input 
                     type="range" 
-                    min="0" 
-                    max="500" 
-                    step="10"
+                    min="0" max="500" step="10"
                     value={volume}
                     onChange={(e) => setVolume(e.target.value)}
                     className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white" 
                   />
-                  <div className="flex justify-between text-xs text-zinc-600 mt-2">
-                    <span>Mute</span>
-                    <span>100%</span>
-                    <span>500%</span>
-                  </div>
                 </InputGroup>
               </div>
 
-              {/* Right Column */}
               <div className="space-y-6">
-                 <InputGroup 
-                  label="Video URL" 
-                  desc="Direkter Link zur .mp4 Datei"
-                >
+                 <InputGroup label="Video URL" desc="Direkter Link zur .mp4 Datei">
                   <textarea 
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
@@ -226,7 +241,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Output Section */}
             <div className="bg-zinc-900/30 border border-dashed border-zinc-800 rounded-xl p-6 mt-8">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
@@ -256,19 +270,13 @@ export default function Dashboard() {
                   {copied ? "Kopiert!" : "Kopieren"}
                 </button>
               </div>
-              <p className="text-zinc-600 text-[11px] mt-3">
-                Diesen Link in OBS als "Browser Source" einfügen. Haken bei "Audio via OBS" setzen.
-              </p>
             </div>
-
           </div>
         </div>
       </main>
     </div>
   );
 }
-
-// --- HELPER COMPONENTS ---
 
 function SidebarItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
   return (
