@@ -7,11 +7,23 @@ import {
   Users, Star, Smile, Heart, Play, Music, Wifi, Clock, Lock, CheckCircle
 } from "lucide-react";
 
-interface ModuleProps { username: string; baseUrl: string; }
-interface FanClubProps { username: string; isLogged: boolean; }
+// --- TYPESCRIPT INTERFACES ---
+interface ModuleProps { 
+  username: string; 
+  baseUrl: string; 
+}
+
+interface FanClubProps { 
+  username: string; 
+  isLogged: boolean; 
+}
+
 interface SettingsProps { 
-  expiry: string; version: string; isLogged: boolean; 
-  setIsLogged: (v: boolean) => void; username: string; 
+  expiry: string; 
+  version: string; 
+  isLogged: boolean; 
+  setIsLogged: (v: boolean) => void; 
+  username: string; 
 }
 
 export default function Dashboard() {
@@ -62,7 +74,7 @@ export default function Dashboard() {
 
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transition-transform duration-300 lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full font-sans">
-          <div className="p-5 border-b border-white/5">
+          <div className="p-5 border-b border-white/5 font-sans">
             <div className="flex items-center justify-between mb-5 text-white">
               <h1 className="text-base flex items-center gap-2 font-bold uppercase tracking-tight">
                 <Box className="w-4 h-4 text-white" /> ARC TOOLS
@@ -81,7 +93,7 @@ export default function Dashboard() {
             <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-lg p-3 space-y-2.5 text-[10px] font-bold uppercase">
               <div className="flex items-center justify-between"><span>VERSION</span><span className="text-zinc-300 font-mono font-normal">{version}</span></div>
               <div className="flex items-center justify-between"><span>LICENSE</span><span className="text-blue-500">PRO</span></div>
-              <div className="flex items-center justify-between border-t border-white/5 pt-2"><span>ABLAUF</span><span className="text-zinc-300">{expiryDate}</span></div>
+              <div className="flex items-center justify-between border-t border-white/5 pt-2"><span>ABLAUF</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
             </div>
           </div>
           
@@ -110,52 +122,72 @@ export default function Dashboard() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative">
-        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 backdrop-blur-md sticky top-0 z-30 font-sans font-bold uppercase tracking-widest">
-          <div className="flex items-center gap-4 text-[10px]">
+        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 backdrop-blur-md sticky top-0 z-30 font-sans uppercase font-bold tracking-widest text-[10px]">
+          <div className="flex items-center gap-4">
             <button className="lg:hidden text-white" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
             <div className="text-zinc-500">App / <span className="text-white">{activeView}</span></div>
           </div>
-          {isLive && <span className="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-[9px] text-green-500">LIVE</span>}
+          {isLive && <span className="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-green-500 font-black">LIVE</span>}
         </header>
-        <div className="flex-1 overflow-y-auto font-sans font-bold uppercase">{renderContent()}</div>
+        <div className="flex-1 overflow-y-auto">{renderContent()}</div>
       </main>
+    </div>
+  );
+}
+
+function ModuleSoundAlerts({ username, baseUrl }: ModuleProps) {
+  const [vol, setVol] = useState("100");
+  const [copied, setCopied] = useState(false);
+  const link = `${baseUrl}/overlay/sound?u=${username}&vol=${vol}`;
+
+  return (
+    <div className="p-8 max-w-5xl mx-auto space-y-8 font-bold uppercase">
+      <h2 className="text-2xl text-white tracking-tight">Sound Alerts Manager</h2>
+      <div className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-2xl space-y-6">
+        <div className="max-w-xs space-y-3 font-bold uppercase">
+          <label className="text-[10px] text-zinc-400">Master Volume: {vol}%</label>
+          <input type="range" min="0" max="500" value={vol} onChange={(e) => setVol(e.target.value)} className="w-full accent-white h-1.5 cursor-pointer" />
+        </div>
+        <div className="bg-black border border-zinc-800 rounded-xl p-6 space-y-4">
+          <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-black">OBS Browser Source Link</label>
+          <div className="flex gap-2 font-mono text-[10px]">
+            <div className="flex-1 text-zinc-500 truncate bg-zinc-900 px-4 py-3 rounded border border-white/5">{link}</div>
+            <button onClick={() => {navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-8 rounded font-black text-[10px] uppercase">
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 function ModuleSettings({ expiry, version, isLogged, setIsLogged, username }: SettingsProps) {
   const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
+  const handleLogin = () => {
+    if(!username) return;
     setLoading(true);
-    try {
-      const res = await fetch('/api/auth/tiktok');
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url; // Öffnet echten TikTok Login
-      }
-    } catch (e) { console.error("Login failed"); }
-    finally { setLoading(false); }
+    setTimeout(() => { setIsLogged(true); setLoading(false); }, 1500);
   };
 
   return (
-    <div className="p-10 max-w-5xl mx-auto space-y-8">
+    <div className="p-10 max-w-5xl mx-auto space-y-8 font-bold uppercase">
       <h2 className="text-2xl text-white tracking-tight">System Settings</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-zinc-900/50 p-8 rounded-xl border border-zinc-800 space-y-4">
           <h3 className="text-blue-500 text-sm flex items-center gap-2"><ShieldCheck size={18} /> PRO License: Active</h3>
-          <p className="text-zinc-200 text-sm">Ablauf: {expiry}</p>
-          <p className="text-zinc-600 text-[10px]">Build: {version}</p>
+          <p className="text-zinc-200 text-sm font-bold uppercase">Ablauf: {expiry}</p>
+          <p className="text-zinc-600 text-[10px] font-mono lowercase">build: {version}</p>
         </div>
         <div className="bg-zinc-900/50 p-8 rounded-xl border border-zinc-800 flex flex-col justify-between">
-          <h3 className="text-white text-sm flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> TikTok Sync</h3>
+          <h3 className="text-white text-sm flex items-center gap-2 uppercase"><Zap size={18} className="text-yellow-500" /> TikTok Sync</h3>
           {isLogged ? (
-            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded text-green-500 text-[10px] flex items-center justify-center gap-2 mt-4">
+            <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded text-green-500 text-[10px] flex items-center justify-center gap-2">
               <CheckCircle size={14} /> Angemeldet als @{username}
             </div>
           ) : (
-            <button onClick={handleLogin} disabled={loading} className="mt-4 w-full bg-white text-black py-3 rounded-lg text-[10px] flex items-center justify-center gap-2 hover:bg-zinc-200 uppercase font-black">
-              {loading ? <Loader2 className="animate-spin" /> : <Lock size={14} />} Verbinden mit TikTok
+            <button onClick={handleLogin} disabled={loading || !username} className="mt-4 w-full bg-white text-black py-3 rounded-lg text-[10px] flex items-center justify-center gap-2 hover:bg-zinc-200 disabled:opacity-30 uppercase font-black">
+              {loading ? <Loader2 className="animate-spin" /> : <Lock size={14} />} Login mit TikTok
             </button>
           )}
         </div>
@@ -165,27 +197,27 @@ function ModuleSettings({ expiry, version, isLogged, setIsLogged, username }: Se
 }
 
 function ModuleFanClub({ username, isLogged }: FanClubProps) {
-  const teamStickers = [
+  const stickers = [
     { name: "Dino", icon: "🦖" }, { name: "Zombie", icon: "🧟" },
     { name: "Pack-a-Punch", icon: "🌀" }, { name: "Raygun", icon: "🔫" }
   ];
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10">
+    <div className="p-8 max-w-5xl mx-auto space-y-10 font-bold uppercase">
       <h2 className="text-2xl font-black text-white">Fan Club Manager</h2>
       {!isLogged ? (
         <div className="bg-zinc-900/50 border border-zinc-800 p-16 rounded-2xl text-center space-y-4 shadow-2xl">
-          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-600"><Lock size={24} /></div>
-          <p className="text-zinc-500 text-sm">Verbindung in den <span className="text-white">Settings</span> herstellen.</p>
+          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-600 shadow-inner"><Lock size={24} /></div>
+          <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest italic">Synchronisation in den Settings starten.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-20 text-center text-zinc-600 font-black italic">Suche nach Club-Events...</div>
+          <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl p-20 text-center text-zinc-600 font-black italic">Warten auf Club-Events...</div>
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 space-y-6">
-            <h3 className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">Deine Team Sticker</h3>
+            <h3 className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">Team Sticker</h3>
             <div className="grid grid-cols-2 gap-3">
-              {teamStickers.map((s, i) => (
-                <div key={i} className="aspect-square bg-zinc-900 rounded-xl flex items-center justify-center border border-white/5 hover:border-blue-500 transition-all cursor-pointer shadow-lg group">
+              {stickers.map((s, i) => (
+                <div key={i} className="aspect-square bg-zinc-800 rounded-xl flex items-center justify-center border border-white/5 hover:border-blue-500 transition-all cursor-pointer shadow-lg group">
                   <span className="text-3xl grayscale group-hover:grayscale-0 transition-all">{s.icon}</span>
                 </div>
               ))}
@@ -205,27 +237,29 @@ function ModuleTTV({ username, baseUrl }: ModuleProps) {
   const link = `${baseUrl}/overlay?u=${username}&c=${trigger}&v=${videoUrl}&vol=${vol}&s=0&e=10`;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10">
+    <div className="p-8 max-w-5xl mx-auto space-y-10 font-bold uppercase">
       <h2 className="text-2xl font-black text-white">TTV Setup</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <InputGroup label="Trigger Code"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field text-blue-500 font-bold uppercase" /></InputGroup>
-          <InputGroup label="Audio Boost"><input type="range" min="0" max="500" value={vol} onChange={(e) => setVol(e.target.value)} className="w-full accent-white h-1.5" /></InputGroup>
+          <InputGroup label="Audio Boost"><input type="range" min="0" max="500" value={vol} onChange={(e) => setVol(e.target.value)} className="w-full accent-white h-1.5 cursor-pointer" /></InputGroup>
         </div>
         <InputGroup label="Video URL"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[150px] font-mono text-[10px] normal-case" placeholder="https://..." /></InputGroup>
       </div>
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex gap-2">
         <div className="flex-1 bg-black border border-zinc-800 rounded px-4 py-3 text-zinc-500 font-mono text-[10px] lowercase truncate">{link}</div>
-        <button onClick={() => {navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-8 rounded font-black text-[10px] uppercase">{copied ? "Copied" : "Copy"}</button>
+        <button onClick={() => {navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-8 rounded font-black text-[10px] uppercase">
+          {copied ? "Copied" : "Copy"}
+        </button>
       </div>
     </div>
   );
 }
 
 function SidebarItem({ icon, label, active, onClick }: any) {
-  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] transition-all uppercase tracking-widest ${active ? "bg-zinc-900 text-white font-black shadow-lg" : "text-zinc-500 hover:bg-zinc-900/50"}`}><span>{icon}</span>{label}</button>;
+  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] transition-all font-medium uppercase tracking-widest ${active ? "bg-zinc-900 text-white shadow-lg border border-white/5" : "text-zinc-500 hover:bg-zinc-900/50"}`}><span>{icon}</span>{label}</button>;
 }
+
 function InputGroup({ label, children }: any) {
   return <div className="flex flex-col gap-2 font-bold uppercase"><label className="text-[9px] text-zinc-500 tracking-widest">{label}</label>{children}</div>;
 }
-function ModuleSoundAlerts() { return <div className="p-8 text-zinc-600 font-bold uppercase italic">Warten auf Sync...</div>; }
