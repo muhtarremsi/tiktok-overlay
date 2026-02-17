@@ -38,7 +38,7 @@ export default function Dashboard() {
   const renderContent = () => {
     switch (activeView) {
       case "ttv": return <ModuleTTV username={username} />;
-      case "fanclub": return <ModuleFanClub username={username} isLive={isLive} />;
+      case "fanclub": return <ModuleFanClub username={username} />;
       case "settings": return <ModuleSettings expiry={expiryDate} version={version} />;
       default: return <ModuleTTV username={username} />;
     }
@@ -88,9 +88,8 @@ export default function Dashboard() {
             <div>
               <h3 className="px-3 text-[11px] font-semibold text-zinc-600 uppercase tracking-widest mb-3">Module</h3>
               <div className="space-y-1.5">
-                <SidebarItem icon={<Type size={18} />} label="TTV - Text to Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
-                <SidebarItem icon={<Users size={18} />} label="Fan Club Manager" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
-                <SidebarItem icon={<Volume2 size={18} />} label="Sound Alerts" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
+                <SidebarItem icon={<Type size={18} />} label="TTV - Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
+                <SidebarItem icon={<Users size={18} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
               </div>
             </div>
           </nav>
@@ -113,66 +112,37 @@ export default function Dashboard() {
   );
 }
 
-function ModuleFanClub({ username, isLive }: { username: string, isLive: boolean }) {
-  // Beispiel-Daten (In einer echten App kämen diese über eine Socket-Verbindung)
-  const members = [
-    { name: "User_Alpha", level: 15, joined: "2 Tage" },
-    { name: "TikTok_King", level: 32, joined: "1 Monat" },
-    { name: "Stream_Fan", level: 5, joined: "Heute" }
-  ];
-
-  const stickers = [
-    { id: 1, name: "Hyped", url: "🔥" },
-    { id: 2, name: "Love", url: "❤️" },
-    { id: 3, name: "GG", url: "🏆" }
-  ];
+function ModuleFanClub({ username }: { username: string }) {
+  // Diese Liste wird später durch API-Daten ersetzt
+  const members = username ? [
+    { name: "Live_Fan_01", level: 24, joined: "2 Tage" },
+    { name: "SuperSupporter", level: 41, joined: "1 Monat" }
+  ] : [];
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
-      <div>
-        <h2 className="text-2xl font-semibold text-white mb-2 tracking-tight">Fan Club Manager</h2>
-        <p className="text-zinc-500 text-sm">Verwalte deine exklusiven Club-Mitglieder und Sticker.</p>
+      <h2 className="text-2xl font-semibold text-white tracking-tight">Fan Club Manager</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Users size={14} /> Aktive Mitglieder</h3>
+          <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden">
+            {members.length > 0 ? members.map((m, i) => (
+              <div key={i} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                <span className="font-bold text-zinc-200">{m.name}</span>
+                <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 font-bold uppercase">Level {m.level}</span>
+              </div>
+            )) : <div className="p-10 text-center text-zinc-600 italic">Warte auf Live-Daten für @{username || "User"}...</div>}
+          </div>
+        </div>
+        <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-6 h-fit">
+          <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-4 flex items-center gap-2"><Smile size={14} /> Sticker Test</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {["🔥", "��", "👑"].map((s, i) => (
+              <button key={i} className="aspect-square bg-black border border-zinc-800 rounded-lg text-2xl hover:border-blue-500 transition-all">{s}</button>
+            ))}
+          </div>
+        </div>
       </div>
-
-      {!username ? (
-        <div className="bg-zinc-900/20 border border-zinc-800 p-10 rounded-xl text-center text-zinc-500 italic">
-          Bitte gib oben deinen TikTok-Namen ein, um Club-Daten zu laden.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* MITGLIEDER LISTE */}
-          <div className="lg:col-span-2 space-y-4">
-            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Top Mitglieder</h3>
-            <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl overflow-hidden text-[13px]">
-              {members.map((m, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-zinc-400">{m.name[0]}</div>
-                    <span className="font-medium text-zinc-200">{m.name}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 font-bold">LVL {m.level}</span>
-                    <span className="text-zinc-600 text-[11px]">{m.joined}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* STICKER BEREICH */}
-          <div className="space-y-4">
-            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2"><Smile size={14} className="text-purple-500" /> Club Sticker</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {stickers.map((s) => (
-                <div key={s.id} className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl text-center group hover:border-purple-500/50 transition-all">
-                  <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{s.url}</div>
-                  <div className="text-[10px] font-bold text-zinc-500 uppercase">{s.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -191,20 +161,17 @@ function ModuleTTV({ username }: { username: string }) {
   }, [username, trigger, videoUrl, volume]);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
+    <div className="p-8 max-w-5xl mx-auto space-y-10">
       <h2 className="text-2xl font-semibold text-white tracking-tight">Konfiguration</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-8">
-          <InputGroup label="Trigger" desc="Chat-Code"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
-          <InputGroup label="Lautstärke" desc={`${volume}% Verstärkung`}><input type="range" min="0" max="500" value={volume} onChange={(e) => setVolume(e.target.value)} className="w-full accent-white" /></InputGroup>
-        </div>
+        <InputGroup label="Trigger" desc="Chatbefehl"><input type="text" value={trigger} onChange={(e) => setTrigger(e.target.value)} className="input-field font-bold" /></InputGroup>
         <InputGroup label="Video URL" desc=".mp4 Link"><textarea value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="input-field min-h-[120px] font-mono text-xs" /></InputGroup>
       </div>
       <div className="bg-zinc-900/30 border border-zinc-800 rounded-xl p-8">
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex gap-3">
           <div className="flex-1 bg-black border border-zinc-800 rounded px-5 py-3 text-zinc-400 font-mono text-xs truncate select-all">{generatedLink}</div>
-          <button onClick={() => {navigator.clipboard.writeText(generatedLink); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-6 rounded font-bold text-xs uppercase hover:bg-zinc-200 transition-all flex items-center gap-2">
-            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Kopiert" : "Copy Link"}
+          <button onClick={() => {navigator.clipboard.writeText(generatedLink); setCopied(true); setTimeout(() => setCopied(false), 2000);}} className="bg-white text-black px-6 rounded font-bold text-xs uppercase hover:bg-zinc-200 transition-all">
+            {copied ? "Kopiert" : "Copy Link"}
           </button>
         </div>
       </div>
@@ -219,5 +186,5 @@ function InputGroup({ label, desc, children }: any) {
   return <div className="flex flex-col gap-2.5"><label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{label}</label>{children}<p className="text-[11px] text-zinc-600 font-medium italic">{desc}</p></div>;
 }
 function ModuleSettings({ expiry, version }: any) {
-  return <div className="p-10"><div className="bg-zinc-900/50 p-8 rounded-lg border border-zinc-800 max-w-lg"><h3 className="text-white font-medium mb-4 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> Account Status</h3><p className="text-zinc-400 text-sm font-bold">Gültig bis: {expiry}</p><p className="text-zinc-600 text-[10px] mt-2 font-mono uppercase">Build: {version}</p></div></div>;
+  return <div className="p-10"><div className="bg-zinc-900/50 p-8 rounded-lg border border-zinc-800 max-w-lg font-bold"><p>Gültig bis: {expiry}</p><p className="text-zinc-500 text-[10px] mt-2 font-mono uppercase">Build: {version}</p></div></div>;
 }
