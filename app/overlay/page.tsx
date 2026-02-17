@@ -18,54 +18,83 @@ function OverlayContent() {
   useEffect(() => {
     if (!username) return;
 
-    // Polling-Mechanismus als Übergangslösung, da der direkte Node-Import im Browser scheitert
-    const checkEvents = async () => {
-      try {
-        const res = await fetch(`/api/events?u=${username}&c=${trigger}`);
-        const data = await res.json();
-        if (data.triggered) {
+    console.log("Verbinde zu TikTok Stream für:", username);
+    
+    // Verbindung zur neuen Stream-API aufbauen
+    const eventSource = new EventSource(`/api/stream?u=${username}`);
+
+    eventSource.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+
+      // Nur auf Chat-Events reagieren
+      if (data.event === 'chat') {
+        console.log("Chat:", data.comment);
+        
+        // Prüfen, ob der Kommentar den Trigger enthält
+        if (data.comment.trim() === trigger) {
           triggerVideo();
         }
-      } catch (e) { console.error("Event check failed"); }
+      }
     };
 
-    const interval = setInterval(checkEvents, 2000); // Prüft alle 2 Sek auf neue Trigger
-    return () => clearInterval(interval);
+    eventSource.onerror = (err) => {
+      console.error("Stream Fehler:", err);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, [username, trigger]);
 
   const triggerVideo = () => {
-    if (showVideo) return; // Verhindert mehrfaches Triggern
+    // Verhindern, dass es doppelt triggert, während es schon läuft
+    if (showVideo) return; 
+
     setShowVideo(true);
+    
     if (videoRef.current) {
       videoRef.current.currentTime = startTime;
       videoRef.current.volume = Math.min(volume / 100, 1);
-      videoRef.current.play().catch(e => console.error("Autoplay blocked or failed", e));
+      
+      videoRef.current.play().catch(e => {
+        console.error("Autoplay verhindert:", e);
+      });
 
+      // Video nach eingestellter Zeit wieder ausblenden
       const duration = (endTime - startTime) * 1000;
       setTimeout(() => {
         setShowVideo(false);
-        if (videoRef.current) videoRef.current.pause();
+        if (videoRef.current) {
+          videoRef.current.pause();
+          videoRef.current.currentTime = startTime; // Reset
+        }
       }, duration);
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-transparent">
+    <div className="fixed inset-0 flex items-center justify-center bg-transparent overflow-hidden">
       {videoUrl && (
         <video
           ref={videoRef}
           src={videoUrl}
-          className={`max-w-full max-h-full transition-opacity duration-500 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
+          className={`max-w-full max-h-full transition-opacity duration-300 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
           playsInline
         />
       )}
-      <div className="absolute bottom-4 right-4 text-[10px] text-zinc-800 font-mono uppercase opacity-10">
-        Ready: {username} | Mode: API-Polling
+      {/* Debug Info: Nur sichtbar, wenn man genau hinschaut */}
+      <div className="absolute bottom-2 right-2 text-[10px] text-black/20 font-mono">
+        Listening: {trigger}
       </div>
     </div>
   );
 }
 
 export default function OverlayPage() {
-  return <Suspense fallback={null}><OverlayContent /></Suspense>;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OverlayContent />
+    </Suspense>
+  );
 }
