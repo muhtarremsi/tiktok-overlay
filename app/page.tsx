@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Box, Plus, Trash2, X, Menu,
-  Volume2, Globe, LogIn, CheckCircle2, Wifi
+  Volume2, Globe, LogIn, CheckCircle2, Wifi, Loader2, AlertCircle
 } from "lucide-react";
 
 function DashboardContent() {
@@ -12,10 +12,16 @@ function DashboardContent() {
   const [username, setUsername] = useState("");
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
-  // FIX: isConnected ist jetzt true, sobald ein Username da ist
-  const [isConnected, setIsConnected] = useState(false);
+  
+  // STATUS STATES
+  // 'idle' = nichts tun / leer
+  // 'checking' = Gelb / Läd
+  // 'success' = Grün / Verbunden
+  // 'error' = Rot / Nicht gefunden
+  const [status, setStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
+  
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030051";
+  const version = "0.030052";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -25,22 +31,51 @@ function DashboardContent() {
     
     if (userFromUrl) {
       setUsername(userFromUrl);
-      setIsConnected(true); 
+      checkUserStatus(userFromUrl); // Sofort prüfen bei URL-Aufruf
     }
-    
     if (viewFromUrl) setActiveView(viewFromUrl);
   }, [searchParams]);
+
+  // ECHTE API ABFRAGE
+  const checkUserStatus = async (userToCheck: string) => {
+    if (!userToCheck || userToCheck.length < 2) {
+      setStatus('idle');
+      return;
+    }
+
+    setStatus('checking'); // Gelb machen
+
+    try {
+      const res = await fetch(`/api/status?u=${userToCheck}`);
+      if (res.ok) {
+        setStatus('success'); // Grün
+      } else {
+        setStatus('error'); // Rot
+      }
+    } catch (e) {
+      setStatus('error');
+    }
+  };
+
+  // Debounce-Timer für die Eingabe
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (username) {
+        checkUserStatus(username);
+      }
+    }, 800); // Wartet 800ms nach dem Tippen bevor der Check startet
+
+    return () => clearTimeout(timer);
+  }, [username]);
+
+  const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value.toLowerCase());
+    setStatus('checking'); // Während dem Tippen schon mal auf "Laden" stellen
+  };
 
   const navigateTo = (view: string) => {
     setActiveView(view);
     setSidebarOpen(false);
-  };
-
-  // FIX: Manuelles Tippen aktiviert sofort den "Connected" Status
-  const handleManualInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.toLowerCase();
-    setUsername(val);
-    setIsConnected(val.length > 2); // Ab 3 Zeichen wird es grün
   };
 
   return (
@@ -61,7 +96,7 @@ function DashboardContent() {
           <div className="relative group">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
             
-            {/* INPUT FIELD - Leuchtet grün sobald Text drin ist */}
+            {/* INPUT FIELD MIT LIVE STATUS FARBEN */}
             <input 
               type="text" 
               placeholder="username" 
@@ -69,26 +104,38 @@ function DashboardContent() {
               onChange={handleManualInput} 
               className={`
                 w-full bg-[#0c0c0e] text-[13px] rounded-lg py-2.5 pl-8 pr-10 focus:outline-none transition-all lowercase border
-                ${isConnected 
-                  ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" 
-                  : "border-zinc-800 text-zinc-200 focus:border-zinc-600"}
+                ${status === 'success' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
+                ${status === 'error' ? "border-red-500/50 text-red-400" : ""}
+                ${status === 'checking' ? "border-yellow-500/50 text-yellow-100" : ""}
+                ${status === 'idle' ? "border-zinc-800 text-zinc-200" : ""}
               `} 
             />
             
-            {/* STATUS LICHT - Leuchtet grün sobald Text drin ist */}
+            {/* STATUS INDIKATOR RECHTS */}
             <div className="absolute inset-y-0 right-3 flex items-center justify-center pointer-events-none">
-              {isConnected ? (
+              {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
+              
+              {status === 'success' && (
                 <div className="relative flex items-center justify-center">
                   <div className="w-2 h-2 bg-green-500 rounded-full z-10"></div>
                   <div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
                 </div>
-              ) : (
-                <div className="w-2 h-2 bg-zinc-800 rounded-full border border-zinc-700"></div>
               )}
+              
+              {status === 'error' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
+              
+              {status === 'idle' && <div className="w-2 h-2 bg-zinc-800 rounded-full border border-zinc-700"></div>}
             </div>
           </div>
+          
+          {/* Status Text Message (Optional, hilft beim Debuggen) */}
+          {status === 'error' && (
+             <div className="text-[9px] text-red-500 flex items-center gap-1 uppercase font-bold tracking-wider">
+               <AlertCircle size={10} /> Offline / Not Found
+             </div>
+          )}
 
-          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500">
+          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-4">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
             <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>ABLAUF</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
@@ -122,8 +169,8 @@ function DashboardContent() {
           {activeView === "settings" ? (
             <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold text-center">
               <h2 className="text-2xl text-white">General Settings</h2>
-              <div className={`bg-[#0c0c0e] border rounded-2xl p-8 shadow-xl not-italic transition-all ${isConnected ? "border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.05)]" : "border-zinc-800"}`}>
-                {isConnected ? (
+              <div className={`bg-[#0c0c0e] border rounded-2xl p-8 shadow-xl not-italic transition-all ${status === 'success' ? "border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.05)]" : "border-zinc-800"}`}>
+                {status === 'success' ? (
                   <div className="text-green-500 font-bold flex flex-col items-center gap-2 animate-in fade-in zoom-in duration-300">
                     <CheckCircle2 size={32} />
                     <span className="uppercase text-xs tracking-widest">Connected: {username}</span>
