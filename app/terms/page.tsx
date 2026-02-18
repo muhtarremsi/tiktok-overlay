@@ -25,7 +25,7 @@ export default function Terms() {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 uppercase italic font-bold">
       
-      {/* FIXED HEADER WITH BLUR & FADE EFFECT */}
+      {/* FIXED HEADER */}
       <div className="fixed top-0 left-0 w-full z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl transition-all duration-300">
         <div className="max-w-4xl mx-auto px-8 md:px-20 py-8 space-y-6">
           <a href="/" className="inline-flex items-center gap-2 text-zinc-500 hover:text-green-500 transition-colors text-xs tracking-widest not-italic">
@@ -39,11 +39,10 @@ export default function Terms() {
             </div>
           </div>
         </div>
-        {/* Gradient Fade at Bottom of Header */}
         <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-[#09090b]/20 pointer-events-none"></div>
       </div>
 
-      {/* SCROLLABLE CONTENT AREA (With Padding-Top to clear Header) */}
+      {/* CONTENT */}
       <div className="max-w-4xl mx-auto px-8 md:px-20 pt-64 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
         <section>
           <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">01.</span> Scope of Service</h2>
@@ -76,11 +75,10 @@ export default function Terms() {
         </section>
         
         <div className="pt-10 border-t border-zinc-800 text-center text-zinc-600">
-          © 2026 SEKERBABA TOOLS. ALL RIGHTS RESERVED.
+          © 2026 SEKERBABA. ALL RIGHTS RESERVED.
         </div>
       </div>
 
-      {/* SCROLL UP BUTTON */}
       <button 
         onClick={scrollToTop} 
         className={`fixed bottom-8 right-8 bg-green-500 text-black p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-300 z-50 ${showScroll ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}
