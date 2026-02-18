@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import AuthModal from "@/components/AuthModal";
 
 function SekerLogo({ className }: { className?: string }) {
   return (
@@ -15,16 +16,18 @@ function SekerLogo({ className }: { className?: string }) {
 
 export default function Home() {
   const router = useRouter();
-  const [isLaunching, setIsLaunching] = useState(false);
-  const [loadingText, setLoadingText] = useState("INITIALIZING");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const handleLaunchClick = () => {
-    setIsLaunching(true);
-    setTimeout(() => setLoadingText("CHECKING ACCESS..."), 600);
-    setTimeout(() => setLoadingText("REDIRECTING..."), 1200);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1500);
+  // Check if session exists (simple client side check to skip modal if already logged in)
+  const handleOpenDashboard = () => {
+    // Einfacher Check: Haben wir den Cookie? (Nicht sicher, aber schnell)
+    const hasSession = document.cookie.includes("seker_admin_session=true");
+    
+    if (hasSession) {
+        router.push("/dashboard");
+    } else {
+        setShowAuthModal(true);
+    }
   };
 
   return (
@@ -46,7 +49,7 @@ export default function Home() {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030112 Global Cookie
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030113 Modal Auth
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
@@ -59,14 +62,10 @@ export default function Home() {
 
           <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
             <button 
-              onClick={handleLaunchClick} 
-              disabled={isLaunching}
-              className={`relative bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] text-xs md:text-sm overflow-hidden group ${isLaunching ? "cursor-wait scale-95 opacity-90" : "hover:scale-105"}`}
+              onClick={handleOpenDashboard} 
+              className="relative bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] text-xs md:text-sm hover:scale-105 hover:bg-green-400"
             >
-              <div className={`absolute inset-0 bg-white/20 transition-all duration-[1500ms] ease-out ${isLaunching ? "w-full" : "w-0"}`} />
-              <span className="relative z-10 flex items-center gap-3">
-                {isLaunching ? <><Loader2 className="animate-spin w-4 h-4" /> {loadingText}</> : "Open Dashboard"}
-              </span>
+              Open Dashboard
             </button>
 
             <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
@@ -85,6 +84,8 @@ export default function Home() {
           &copy; 2026 SEKERBABA. ALL RIGHTS RESERVED.
         </p>
       </div>
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 }
