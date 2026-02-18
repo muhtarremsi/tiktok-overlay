@@ -63,25 +63,22 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
       </div>
 
-      {/* NAVBAR: DARK SMOKED GLASS (Solid & Clean) */}
-      <nav className="fixed top-0 w-full z-50 h-14 md:h-24 transition-all duration-300 border-b border-white/10 bg-black/80 backdrop-blur-xl shadow-2xl">
-        <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex items-center justify-between font-black italic tracking-tighter text-xl">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.location.reload()}>
-            <SekerLogo className="text-green-500 w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]" /> 
-            <span className="text-xl md:text-2xl tracking-[-0.05em] text-white drop-shadow-md">SEKERBABA</span>
-          </div>
-          {/* Mobile button: compact size */}
-          <button onClick={onLaunch} className="bg-white text-black px-4 py-1 md:px-8 md:py-3 rounded-full text-[9px] md:text-xs uppercase font-black tracking-widest hover:bg-zinc-200 hover:scale-105 transition-all shadow-lg hover:shadow-white/20">
-            Launch App
-          </button>
-        </div>
-      </nav>
+      {/* NAVBAR REMOVED */}
 
-      <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-24 md:pt-32">
+      <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030093 Dark-Glass
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030094 Clean
           </div>
+          
+          {/* Logo added above title since Navbar is gone */}
+          <div className="flex justify-center mb-4">
+             <div className="flex items-center gap-3">
+                <SekerLogo className="text-green-500 w-10 h-10 drop-shadow-[0_0_20px_rgba(34,197,94,0.6)]" />
+                <span className="text-3xl font-black italic tracking-tighter text-white">SEKERBABA</span>
+             </div>
+          </div>
+
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
           </h1>
@@ -89,7 +86,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
             Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
           <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
-            <button onClick={onLaunch} className="bg-green-500 text-black px-6 py-3 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-xs md:text-sm">
+            <button onClick={onLaunch} className="bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-xs md:text-sm">
               Open Dashboard
             </button>
             <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
@@ -124,7 +121,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030093";
+  const version = "0.030094";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
