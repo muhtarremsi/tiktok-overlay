@@ -2,10 +2,11 @@
 
 import { useFormState } from "react-dom";
 import { login } from "@/app/actions/auth";
-import { Loader2, Lock } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Lock, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+// Wir brauchen Script, um reCAPTCHA zu laden
+import Script from "next/script";
 
-// --- CUSTOM LOGO COMPONENT ---
 function SekerLogo({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.44 36.04" className={className} fill="currentColor">
@@ -18,11 +19,43 @@ export default function LoginPage() {
   // @ts-ignore
   const [state, formAction] = useFormState(login, null);
   const [pending, setPending] = useState(false);
+  const [token, setToken] = useState("");
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  // Funktion, um Token zu holen
+  const handleReCaptcha = () => {
+    if (!(window as any).grecaptcha) {
+      console.error("reCAPTCHA not loaded");
+      return;
+    }
+    (window as any).grecaptcha.ready(() => {
+      (window as any).grecaptcha.execute(siteKey, { action: 'login' }).then((newToken: string) => {
+        setToken(newToken);
+      });
+    });
+  };
+
+  // Sobald das Skript geladen ist, holen wir schonmal einen Token (oder beim Hover über Submit)
+  useEffect(() => {
+    const interval = setInterval(() => {
+        if((window as any).grecaptcha) {
+            handleReCaptcha();
+            clearInterval(interval);
+        }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans overflow-hidden relative flex flex-col items-center justify-center">
+      
+      {/* Google reCAPTCHA v3 Script laden */}
+      <Script
+        src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+        strategy="afterInteractive"
+      />
 
-      {/* BACKGROUND VIDEO */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
         <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover opacity-40 scale-110 blur-sm">
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
@@ -30,16 +63,25 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
       </div>
 
-      {/* LOGIN CARD */}
       <div className="relative z-20 w-full max-w-md px-6">
         <div className="bg-black/60 backdrop-blur-2xl border border-white/10 p-10 rounded-3xl shadow-2xl flex flex-col items-center gap-6">
-
+          
           <div className="flex flex-col items-center gap-4 mb-2">
             <SekerLogo className="w-12 h-12 text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
             <h1 className="text-2xl font-black italic tracking-tighter text-white">ACCESS CONTROL</h1>
           </div>
 
-          <form action={(formData) => { setPending(true); formAction(formData); }} className="w-full space-y-4">
+          <form action={(formData) => { 
+              // Token aktualisieren kurz vor dem Senden für maximale Frische
+              handleReCaptcha(); 
+              setPending(true); 
+              formAction(formData); 
+            }} 
+            className="w-full space-y-4"
+          >
+            {/* Hidden Field für den Token */}
+            <input type="hidden" name="recaptchaToken" value={token} />
+
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 pl-1">Identifier</label>
               <input 
@@ -50,7 +92,7 @@ export default function LoginPage() {
                 className="w-full bg-[#0c0c0e] border border-zinc-800 text-white text-xs p-4 rounded-xl focus:outline-none focus:border-green-500 transition-colors"
               />
             </div>
-
+            
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 pl-1">Passkey</label>
               <input 
@@ -71,15 +113,16 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={pending}
+              onMouseEnter={handleReCaptcha} // Token refreshen bei Hover
               className="w-full bg-green-500 text-black py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(34,197,94,0.4)] mt-4 flex justify-center items-center gap-2"
             >
               {pending ? <Loader2 className="animate-spin w-4 h-4" /> : <><Lock size={14} /> Authenticate</>}
             </button>
           </form>
 
-          <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
-            Restricted Area • Auth Required
-          </p>
+          <div className="flex items-center gap-2 text-[8px] text-zinc-600 font-bold uppercase tracking-widest mt-2">
+            <ShieldCheck size={10} className="text-green-500" /> Protected by reCAPTCHA v3
+          </div>
         </div>
       </div>
     </div>
