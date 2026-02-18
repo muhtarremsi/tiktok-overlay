@@ -31,10 +31,27 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE (SEKERBABA BRANDING) ---
+// --- LANDING PAGE (MIT VIDEO HINTERGRUND) ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-x-hidden">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative">
+      
+      {/* VIDEO BACKGROUND */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute top-0 left-0 w-full h-full object-cover opacity-30 grayscale hover:grayscale-0 transition-all duration-[2000ms]"
+        >
+          {/* HIER DEINEN VIDEO LINK EINFÜGEN (MP4) */}
+          <source src="https://cdn.pixabay.com/video/2019/04/20/22908-331674488_large.mp4" type="video/mp4" />
+        </video>
+        {/* Overlay Verlauf damit Text lesbar bleibt */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-transparent to-[#09090b] z-10"></div>
+      </div>
+
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-xl">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
@@ -46,24 +63,21 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         </div>
       </nav>
 
-      <div className="relative pt-40 pb-20 px-6 text-center">
-        {/* Glow Background */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
-        
+      <div className="relative pt-40 pb-20 px-6 text-center z-20">
         <div className="max-w-5xl mx-auto space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030064 Stable
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030065 Video-Bg
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-none uppercase">
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-none uppercase drop-shadow-2xl">
             INTERACTIVE <br /> OVERLAYS
           </h1>
           
-          <p className="text-zinc-500 max-w-2xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
+          <p className="text-zinc-400 max-w-2xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md">
             Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
 
           <div className="pt-8">
-            <button onClick={onLaunch} className="bg-green-500 text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_40px_rgba(34,197,94,0.3)]">
+            <button onClick={onLaunch} className="bg-green-500 text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_40px_rgba(34,197,94,0.4)]">
               Open Dashboard
             </button>
           </div>
@@ -87,10 +101,9 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030064";
+  const version = "0.030065";
   const expiryDate = "17.02.2025";
 
-  // Rebranding: Keys auf 'seker_' geändert
   useEffect(() => {
     setBaseUrl(window.location.origin);
     const savedTTV = localStorage.getItem("seker_ttv");
@@ -335,7 +348,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">HARDWARE & QUALITY</h3>
         <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8">
           
-          {/* SLIDER */}
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-end">
               <div className="space-y-1">
@@ -351,7 +363,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
             </div>
           </div>
 
-          {/* HARDWARE TEST */}
           <div className="pt-6 border-t border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-zinc-900 rounded-xl"><Cpu size={18} className="text-blue-500" /></div>
