@@ -3,10 +3,24 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
-  Type, Settings, Box, Plus, Trash2, X, Menu,
+  Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
-  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Activity
+  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2
 } from "lucide-react";
+
+// --- CUSTOM LOGO COMPONENT ---
+function SekerLogo({ className }: { className?: string }) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 34.44 36.04" 
+      className={className} 
+      fill="currentColor"
+    >
+      <path d="M27.26,2.42c2.04,2.03,2.91,4.78,2.41,7.64-.21,1.23-.77,2.43-1.45,3.47.77.44,1.52.93,2.2,1.51,8.1,6.96,3.1,20.52-7.35,20.99h-12.16c-5.82-.32-10.53-5.18-10.92-10.95v-4.43s.03-.04.03-.04h7.25c.46-.05.8-.04,1.2-.3.95-.65,1.02-2.07.11-2.78-.47-.37-.9-.32-1.45-.43-3.42-.69-6.24-3.35-6.94-6.79C-.86,5.12,2.71.47,7.91,0h13.89c2.07.12,4,.97,5.46,2.42ZM16.65,17.21v-5.5l.1-.05c1.54-.06,3.15.09,4.68,0,1.43-.08,2.63-1.12,2.92-2.52.37-1.81-.95-3.62-2.79-3.77h-13.28c-3.6.42-3.89,5.47-.26,6.25,1.29.28,2.19.45,3.35,1.14,5.77,3.44,3.86,12.13-2.71,13.23-.96.16-1.86,0-2.76.1-.05,0-.08,0-.11.05.82,2.36,3,4.1,5.51,4.27h11.67c4.61-.34,7.24-5.47,5.17-9.55-1.06-2.1-3.2-3.4-5.54-3.58l-5.91-.02s-.06-.05-.06-.06Z"/>
+    </svg>
+  );
+}
 
 // --- HAUPT-CONTROLLER ---
 export default function Home() {
@@ -31,7 +45,7 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE (MOBILE TEXT FIX + VIDEO STRETCH) ---
+// --- LANDING PAGE ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
@@ -47,14 +61,13 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         >
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
-        {/* Overlay Verlauf für bessere Lesbarkeit */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/40 to-[#09090b] z-10"></div>
       </div>
 
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-xl">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-            <Box className="text-green-500" /> SEKERBABA
+            <SekerLogo className="text-green-500 w-6 h-6" /> SEKERBABA
           </div>
           <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold relative z-50">
             Launch App
@@ -65,10 +78,9 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030067 Mobile-Fix
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030068 Logo-Update
           </div>
           
-          {/* MOBILE TEXT FIX: text-5xl statt text-8xl auf Mobile, break-words für Umbruch */}
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
           </h1>
@@ -102,7 +114,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030067";
+  const version = "0.030068";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -152,7 +164,7 @@ function DashboardContent() {
 
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => window.location.href = "/"}>
-          <Box className="w-4 h-4 mr-2 text-green-500" /> SEKERBABA
+          <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
         </div>
         
         <div className="mb-8 space-y-2 not-italic">
