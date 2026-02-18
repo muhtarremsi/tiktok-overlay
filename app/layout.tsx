@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import CookieBanner from "@/components/CookieBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SEKERBABA | Interactive TikTok Overlays",
-  description: "Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.",
-  icons: {
-    icon: "/icon.svg",
-  },
+  title: "SEKERBABA | Interactive Overlays",
+  description: "Boost your TikTok Live with custom video triggers.",
 };
 
 export default function RootLayout({
@@ -19,7 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {children}
+        <CookieBanner />
+      </body>
     </html>
   );
 }

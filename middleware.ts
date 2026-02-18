@@ -5,17 +5,20 @@ export function middleware(request: NextRequest) {
   const hasSession = request.cookies.has('seker_admin_session');
   const path = request.nextUrl.pathname;
 
-  // Wir schützen NUR den Pfad "/dashboard"
-  const isProtectedPath = path.startsWith('/dashboard');
-
-  // 1. Wenn User ins Dashboard will, aber nicht eingeloggt ist -> Login
-  if (isProtectedPath && !hasSession) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // 1. SCHUTZ: Dashboard Zugriff NUR mit Session
+  if (path.startsWith('/dashboard')) {
+    if (!hasSession) {
+      // Kein Keks? Ab zum Login!
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
-  // 2. Wenn User schon eingeloggt ist und auf /login geht -> Ab ins Dashboard
-  if (hasSession && path === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // 2. KOMFORT: Wer eingeloggt ist, braucht kein Login/Landing mehr sehen
+  if (path === '/' || path === '/login') {
+    if (hasSession) {
+      // Schon eingeloggt? Ab ins Dashboard!
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   return NextResponse.next();
@@ -23,8 +26,13 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Die Middleware hört auf alles, damit wir flexibel bleiben,
-    // aber die Logik oben entscheidet, was blockiert wird.
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }
