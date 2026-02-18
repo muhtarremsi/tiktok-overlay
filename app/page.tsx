@@ -31,10 +31,10 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE (MIT DEINEM VIDEO) ---
+// --- LANDING PAGE (MOBILE TEXT FIX + VIDEO STRETCH) ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
       {/* VIDEO BACKGROUND */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
@@ -43,13 +43,12 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           loop 
           muted 
           playsInline 
-          className="absolute top-0 left-0 w-full h-full object-cover opacity-30 grayscale hover:grayscale-0 transition-all duration-[2000ms]"
+          className="absolute top-0 left-0 w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-[2000ms]"
         >
-          {/* DEIN DISCORD VIDEO LINK */}
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
-        {/* Overlay Verlauf */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
+        {/* Overlay Verlauf für bessere Lesbarkeit */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/40 to-[#09090b] z-10"></div>
       </div>
 
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
@@ -57,27 +56,29 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
             <Box className="text-green-500" /> SEKERBABA
           </div>
-          <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
+          <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold relative z-50">
             Launch App
           </button>
         </div>
       </nav>
 
-      <div className="relative pt-40 pb-20 px-6 text-center z-20">
-        <div className="max-w-5xl mx-auto space-y-8">
+      <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-20">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030066 Custom-Video
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030067 Mobile-Fix
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-none uppercase drop-shadow-2xl">
+          
+          {/* MOBILE TEXT FIX: text-5xl statt text-8xl auf Mobile, break-words für Umbruch */}
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
           </h1>
           
-          <p className="text-zinc-400 max-w-2xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md">
+          <p className="text-zinc-300 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md px-2">
             Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
 
-          <div className="pt-8">
-            <button onClick={onLaunch} className="bg-green-500 text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_40px_rgba(34,197,94,0.4)]">
+          <div className="pt-6 md:pt-8 w-full px-4">
+            <button onClick={onLaunch} className="w-full sm:w-auto bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-sm">
               Open Dashboard
             </button>
           </div>
@@ -101,7 +102,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030066";
+  const version = "0.030067";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -332,8 +333,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
 
   return (
     <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-10 uppercase italic font-bold">
-      
-      {/* 1. AUTH KATEGORIEN */}
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">AUTHENTICATION CHANNELS</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -343,11 +342,9 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
         </div>
       </section>
 
-      {/* 2. PERFORMANCE & HARDWARE */}
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">HARDWARE & QUALITY</h3>
         <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8">
-          
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-end">
               <div className="space-y-1">
@@ -362,7 +359,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
               <span>QUALITY (BEST)</span>
             </div>
           </div>
-
           <div className="pt-6 border-t border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-zinc-900 rounded-xl"><Cpu size={18} className="text-blue-500" /></div>
@@ -375,11 +371,9 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
               {testing ? <Loader2 size={14} className="animate-spin mx-auto"/> : (testResult ? "RE-TEST" : "RUN TEST")}
             </button>
           </div>
-
         </div>
       </section>
 
-      {/* 3. ABO INFO */}
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">LICENSE STATUS</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -389,7 +383,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
           <InfoCard label="STATUS" value="ACTIVE" color="text-green-500" />
         </div>
       </section>
-
     </div>
   );
 }
