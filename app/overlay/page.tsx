@@ -11,21 +11,17 @@ function OverlayContent() {
 
   const username = searchParams.get('u');
   const configParam = searchParams.get('config');
-  const overlayType = searchParams.get('type') || 'video'; // 'video' oder 'audio'
+  const overlayType = searchParams.get('type') || 'video';
 
-  // Konfiguration laden
   useEffect(() => {
     if (configParam) {
       try {
         const decoded = JSON.parse(atob(configParam));
         if (Array.isArray(decoded)) setTriggers(decoded);
-      } catch (e) {
-        console.error("Config Error:", e);
-      }
+      } catch (e) {}
     }
   }, [configParam]);
 
-  // Verbindung zum Stream
   useEffect(() => {
     if (!username) return;
     
@@ -33,28 +29,30 @@ function OverlayContent() {
     let retryTimeout: NodeJS.Timeout;
 
     const connect = () => {
-      // Wir nutzen eine Timestamp, um Caching zu verhindern
+      // Timestamp verhindert Caching-Probleme
       eventSource = new EventSource(`/api/stream?u=${username}&t=${Date.now()}`);
       
       eventSource.onmessage = (e) => {
         try {
+          if (!e.data) return;
           const data = JSON.parse(e.data);
           
-          // BUGFIX: Wir ignorieren ALLES außer 'chat'
-          // Keine Likes, keine Joins, keine Gifts (außer wir bauen das später explizit ein)
-          if (data.event === 'chat' && data.comment) {
-            const cleanComment = data.comment.trim().toLowerCase();
-            
-            // Exakte Suche nach dem Code
-            const match = triggers.find(t => t.code.toLowerCase() === cleanComment);
-            
-            if (match) {
-              playTrigger(match);
-            }
+          // HARDCORE FILTER: 
+          // 1. Es muss ein Chat-Event sein
+          // 2. Es muss ein Kommentar dabei sein
+          if (data.event !== 'chat' || !data.comment) {
+            return; // Sofort abbrechen bei Follows, Likes, Shares etc.
           }
-        } catch (err) {
-          // Ignorieren von Parsing Fehlern
-        }
+
+          const cleanComment = data.comment.trim().toLowerCase();
+          
+          // Exakter Abgleich (kein "enthält", sondern "ist gleich")
+          const match = triggers.find(t => t.code.toLowerCase() === cleanComment);
+          
+          if (match) {
+            playTrigger(match);
+          }
+        } catch (err) {}
       };
 
       eventSource.onerror = () => {
@@ -72,27 +70,19 @@ function OverlayContent() {
   }, [username, triggers]);
 
   const playTrigger = (trigger: any) => {
-    // Wenn schon was läuft, abbrechen (oder Queue bauen, aber hier simple: blockieren)
     if (activeMedia) return;
 
     setActiveMedia(trigger);
 
-    // Kleiner Timeout, damit das DOM Element gerendert wird
     setTimeout(() => {
       const el = mediaRef.current;
       if (el) {
         el.currentTime = trigger.start || 0;
-        el.volume = 1.0; // Lautstärke voll
-        
-        el.play().catch(e => console.error("Play Error:", e));
+        el.volume = 1.0;
+        el.play().catch(() => {});
 
-        // Stoppen nach definierter Zeit oder Standard 10s
         const duration = ((trigger.end || 10) - (trigger.start || 0)) * 1000;
-        
-        // Sicherheits-Timeout falls das Video kürzer ist
-        setTimeout(() => {
-          setActiveMedia(null);
-        }, duration);
+        setTimeout(() => setActiveMedia(null), duration);
       }
     }, 50);
   };
@@ -106,16 +96,9 @@ function OverlayContent() {
       <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-transparent">
         {activeMedia && (
           overlayType === 'audio' ? (
-            // AUDIO PLAYER (Unsichtbar oder Minimal)
             <audio ref={mediaRef as any} src={activeMedia.url} />
           ) : (
-            // VIDEO PLAYER
-            <video 
-              ref={mediaRef as any} 
-              src={activeMedia.url} 
-              className="w-full h-full object-cover" 
-              playsInline 
-            />
+            <video ref={mediaRef as any} src={activeMedia.url} className="w-full h-full object-cover" playsInline />
           )
         )}
       </div>
@@ -123,6 +106,4 @@ function OverlayContent() {
   );
 }
 
-export default function OverlayPage() {
-  return <Suspense fallback={null}><OverlayContent /></Suspense>;
-}
+export default function OverlayPage() { return <Suspense fallback={null}><OverlayContent /></Suspense>; }

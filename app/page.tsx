@@ -20,7 +20,7 @@ function DashboardContent() {
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
   
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030057";
+  const version = "0.030058";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {

@@ -23,28 +23,26 @@ export async function GET(request: Request) {
         }
       };
 
-      // WICHTIG: Wir hören NUR auf 'chat'
+      // WICHTIG: Sicherheits-Reset
+      tiktok.removeAllListeners();
+
+      // NUR Chat erlauben. Keine Likes, keine Follows, keine Gifts.
       tiktok.on('chat', (data) => {
         send({ 
           event: 'chat', 
-          comment: data.comment, 
-          nickname: data.nickname 
+          comment: data.comment,
+          // Wir senden bewusst keine anderen Daten mit, um Verwirrung zu vermeiden
         });
       });
 
-      // ALLES ANDERE IST AUSKOMMENTIERT / GELÖSCHT
-      // tiktok.on('like', ...) -> WEG DAMIT!
-      // tiktok.on('gift', ...) -> WEG DAMIT!
-
-      tiktok.on('disconnected', () => {
-         // Optional: Reconnect Logik oder Client schließen lassen
-      });
+      // Fehlerbehandlung
+      tiktok.on('error', () => {}); // Fehler stillschweigend ignorieren
+      tiktok.on('disconnected', () => {}); 
 
       try {
         await tiktok.connect();
-      } catch (err: any) {
-        console.error("Stream Connection Error:", err);
-        send({ event: 'error', message: 'Stream offline or not found' });
+      } catch (err) {
+        send({ event: 'error', message: 'Offline' });
         controller.close();
       }
 
@@ -57,7 +55,7 @@ export async function GET(request: Request) {
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
     },
   });
