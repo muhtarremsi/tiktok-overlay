@@ -49,7 +49,14 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-        <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover opacity-60 transition-all duration-[2000ms]">
+        {/* VIDEO UPDATE: Opacity 60% & No Grayscale */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute top-0 left-0 w-full h-full object-cover opacity-60 transition-all duration-[2000ms]"
+        >
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
@@ -69,7 +76,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030079 Mobile-UI
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030082 Opacity-60
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
@@ -78,12 +85,9 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
             Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
           <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
-            
-            {/* MOBILE BUTTON FIX: Removed w-full, smaller text/padding on mobile */}
             <button onClick={onLaunch} className="bg-green-500 text-black px-6 py-3 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-xs md:text-sm">
               Open Dashboard
             </button>
-
             <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
                <a href="/privacy" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Privacy Policy</a>
                <span className="text-zinc-800">•</span>
@@ -116,7 +120,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030079";
+  const version = "0.030082";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -200,19 +204,16 @@ function DashboardContent() {
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
-        {/* MOBILE HEADER - CLEAN & LOGO RIGHT */}
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
           <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}>
             <Menu size={24} />
           </button>
-          
           <div className="lg:hidden flex items-center gap-2 font-black italic">
              <SekerLogo className="w-5 h-5 text-green-500" /> SEKERBABA
           </div>
           <div className="hidden md:block" />
         </header>
 
-        {/* BREADCRUMB BAR - NOW ABOVE MODULE CONTENT */}
         <div className="px-6 pt-6 pb-2">
            <div className="text-[10px] uppercase font-black tracking-widest text-zinc-600 flex items-center gap-2">
               <span>APP</span> <span className="text-zinc-800">/</span> <span className="text-white text-xs">{activeView}</span>
