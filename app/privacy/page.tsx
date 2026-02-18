@@ -8,22 +8,16 @@ function SekerLogo({ className }: { className?: string }) {
 }
 
 export default function Privacy() {
-  const [isVisible, setIsVisible] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 50);
-
     const checkScroll = () => {
       if (window.scrollY > 200) setShowScroll(true);
       else setShowScroll(false);
     };
     window.addEventListener('scroll', checkScroll);
-    return () => {
-      window.removeEventListener('scroll', checkScroll);
-      clearTimeout(timer);
-    };
+    return () => window.removeEventListener('scroll', checkScroll);
   }, []);
 
   const scrollToTop = (e: React.MouseEvent) => {
@@ -31,29 +25,22 @@ export default function Privacy() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleExit = () => {
-    setIsVisible(false);
-    setTimeout(() => {
-      router.push('/');
-    }, 500);
-  };
-
   const handlePageClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('section') || target.closest('button') || target.closest('a')) return;
-    handleExit();
+    router.push('/');
   };
 
   return (
     <div 
       onClick={handlePageClick}
-      className={`min-h-screen bg-black text-white font-sans p-8 md:p-20 selection:bg-green-500/30 uppercase italic font-bold cursor-pointer transition-opacity duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      className="min-h-screen bg-[#09090b] text-white font-sans p-8 md:p-20 selection:bg-green-500/30 uppercase italic font-bold cursor-pointer"
     >
       
-      {/* FIXED HEADER - IDENTISCH ZU TERMS */}
-      <div className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-xl border-b border-white/10 shadow-2xl h-32 flex flex-col justify-center transition-all">
+      {/* FIXED HEADER */}
+      <div className="fixed top-0 left-0 w-full z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl h-32 flex flex-col justify-center">
         <div className="max-w-4xl mx-auto w-full px-8 md:px-20 space-y-4">
-          <button onClick={handleExit} className="inline-flex items-center gap-2 text-zinc-500 hover:text-green-500 transition-colors text-xs tracking-widest not-italic bg-transparent border-none cursor-pointer outline-none">
+          <button onClick={() => router.push('/')} className="inline-flex items-center gap-2 text-zinc-500 hover:text-green-500 transition-colors text-xs tracking-widest not-italic bg-transparent border-none cursor-pointer outline-none">
             <ArrowLeft size={16} /> BACK TO DASHBOARD
           </button>
           <div className="flex items-center gap-4 not-italic">
@@ -64,10 +51,10 @@ export default function Privacy() {
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-black/40 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-[#09090b]/20 pointer-events-none"></div>
       </div>
 
-      {/* CONTENT - PT-44 (IDENTISCH) */}
+      {/* CONTENT */}
       <div className="max-w-4xl mx-auto px-8 md:px-20 pt-44 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
         <section>
           <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">01.</span> Data Processing</h2>
@@ -101,7 +88,7 @@ export default function Privacy() {
 
       <button 
         onClick={scrollToTop} 
-        className={`fixed bottom-8 right-8 bg-green-500 text-black p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-500 z-50 ${showScroll ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}
+        className={`fixed bottom-8 right-8 bg-green-500 text-black p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-300 z-50 ${showScroll ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}
       >
         <ArrowUp size={20} strokeWidth={3} />
       </button>
