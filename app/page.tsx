@@ -10,18 +10,16 @@ import {
 function DashboardContent() {
   const searchParams = useSearchParams();
   
-  // ZWEI GETRENNTE USER-VARIABLEN
   const [targetUser, setTargetUser] = useState(""); 
   const [authUser, setAuthUser] = useState("");     
   
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   
-  // STATUS DES CONNECTORS
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
   
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030054";
+  const version = "0.030056";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -60,16 +58,26 @@ function DashboardContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      // FIX: Wenn leer, dann nicht checken, sondern resetten
       if (targetUser) {
         checkUserStatus(targetUser);
+      } else {
+        setStatus('idle');
       }
     }, 800);
     return () => clearTimeout(timer);
   }, [targetUser]);
 
   const handleTargetInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTargetUser(e.target.value.toLowerCase());
-    setStatus('checking'); 
+    const val = e.target.value.toLowerCase();
+    setTargetUser(val);
+    
+    // FIX: Sofort auf 'idle' setzen, wenn leer, sonst 'checking'
+    if (val === "") {
+      setStatus('idle');
+    } else {
+      setStatus('checking'); 
+    }
   };
 
   const navigateTo = (view: string) => {
@@ -94,20 +102,24 @@ function DashboardContent() {
         <div className="mb-8 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-xs">@</div>
+            {/* ÄNDERUNG 1: Schriftgröße vom @ auf text-[10px] verkleinert */}
+            <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
+            
+            {/* ÄNDERUNG 2: Schriftgröße vom Input auf text-[11px] verkleinert */}
             <input 
               type="text" 
               placeholder="username" 
               value={targetUser} 
               onChange={handleTargetInput} 
               className={`
-                w-full bg-[#0c0c0e] text-sm rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
+                w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
                 ${status === 'online' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
                 ${status === 'offline' ? "border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : ""}
                 ${status === 'checking' ? "border-yellow-500/50 text-yellow-100" : ""}
                 ${status === 'idle' ? "border-zinc-800 text-zinc-200" : ""}
               `} 
             />
+            
             <div className="absolute inset-y-0 right-3 flex items-center justify-center pointer-events-none">
               {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
               {status === 'online' && (
@@ -190,7 +202,6 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   return <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold ${active ? "bg-[#0c0c0e] text-white border border-white/5 shadow-xl" : "text-zinc-500 hover:text-white"}`}><span>{icon}</span>{label}</button>;
 }
 
-// --- TTV MODUL (VIDEOS) ---
 function ModuleTTV({ username, baseUrl }: any) {
   const [triggers, setTriggers] = useState<any[]>([{ id: 1, code: "777", url: "https://cdn.discordapp.com/attachments/1462540433463709815/1472988001838563361/Meme_Okay_.mp4", start: 0, end: 10 }]);
   const [newCode, setNewCode] = useState("");
@@ -222,7 +233,6 @@ function ModuleTTV({ username, baseUrl }: any) {
         <button onClick={addTrigger} className="w-full bg-white text-black font-black py-4 rounded-xl text-xs tracking-widest uppercase hover:bg-zinc-200 transition-all">Add to List</button>
       </div>
 
-      {/* TTV LISTE RESTORED */}
       <div className="space-y-3">
         {triggers.map((t) => (
           <div key={t.id} className="flex items-center gap-4 bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group hover:border-zinc-600 transition-all">
@@ -245,7 +255,6 @@ function ModuleTTV({ username, baseUrl }: any) {
   );
 }
 
-// --- SOUNDS MODUL (NEU & SEPARAT) ---
 function ModuleSounds({ username, baseUrl }: any) {
   const [sounds, setSounds] = useState<any[]>([{ id: 1, code: "!horn", url: "https://www.myinstants.com/media/sounds/air-horn-club-sample_1.mp3" }]);
   const [newCode, setNewCode] = useState("");
