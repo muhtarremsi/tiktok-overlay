@@ -39,7 +39,8 @@ function DashboardContent() {
   }, [searchParams]);
 
   const checkUserStatus = async (userToCheck: string) => {
-    if (!userToCheck || userToCheck.length < 2) {
+    // FIX: Erst ab 3 Zeichen prüfen
+    if (!userToCheck || userToCheck.length < 3) {
       setStatus('idle');
       return;
     }
@@ -58,8 +59,8 @@ function DashboardContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // FIX: Wenn leer, dann nicht checken, sondern resetten
-      if (targetUser) {
+      // FIX: Wenn leer oder zu kurz, dann Reset auf 'idle'
+      if (targetUser && targetUser.length >= 3) {
         checkUserStatus(targetUser);
       } else {
         setStatus('idle');
@@ -72,8 +73,8 @@ function DashboardContent() {
     const val = e.target.value.toLowerCase();
     setTargetUser(val);
     
-    // FIX: Sofort auf 'idle' setzen, wenn leer, sonst 'checking'
-    if (val === "") {
+    // FIX: Wenn leer, SOFORT auf 'idle' setzen, sonst bleibt es gelb
+    if (val.length === 0) {
       setStatus('idle');
     } else {
       setStatus('checking'); 
@@ -102,10 +103,10 @@ function DashboardContent() {
         <div className="mb-8 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
           <div className="relative group">
-            {/* ÄNDERUNG 1: Schriftgröße vom @ auf text-[10px] verkleinert */}
+            {/* Font Größe auf 10px reduziert */}
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
             
-            {/* ÄNDERUNG 2: Schriftgröße vom Input auf text-[11px] verkleinert */}
+            {/* Input Font Größe auf 11px reduziert */}
             <input 
               type="text" 
               placeholder="username" 
