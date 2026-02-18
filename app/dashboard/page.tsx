@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { logout } from "@/app/actions/auth";
 import { 
@@ -9,6 +9,7 @@ import {
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut
 } from "lucide-react";
 
+// --- LOGO COMPONENT ---
 function SekerLogo({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.44 36.04" className={className} fill="currentColor">
@@ -17,7 +18,16 @@ function SekerLogo({ className }: { className?: string }) {
   );
 }
 
-export default function DashboardContent() {
+// --- HAUPT EXPORT MIT SUSPENSE WRAPPER (WICHTIG FÜR BUILD!) ---
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="bg-black h-screen w-full flex items-center justify-center text-white"><Loader2 className="animate-spin text-green-500 w-10 h-10" /></div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const searchParams = useSearchParams();
   const [targetUser, setTargetUser] = useState(""); 
   const [authUser, setAuthUser] = useState("");     
@@ -300,6 +310,19 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
           <InfoCard label="PLAN" value="PRO LIFETIME" color="text-blue-500" />
           <InfoCard label="EXPIRES" value={expiry} />
           <InfoCard label="STATUS" value="ACTIVE" color="text-green-500" />
+        </div>
+        <div className="pt-8 border-t border-white/5">
+           <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1 mb-4">OPEN SOURCE CREDITS</h3>
+           <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                 <Code2 size={18} className="text-purple-500" />
+                 <div>
+                    <p className="text-xs font-black text-white">TikTok-Live-Connector</p>
+                    <p className="text-[9px] text-zinc-500 font-bold">Powered by zerodytrash (MIT License)</p>
+                 </div>
+              </div>
+              <a href="https://github.com/zerodytrash/TikTok-Live-Connector" target="_blank" rel="noopener noreferrer" className="text-[9px] text-zinc-400 hover:text-white underline">View Source</a>
+           </div>
         </div>
       </section>
     </div>
