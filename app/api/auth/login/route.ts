@@ -4,8 +4,12 @@ export async function GET() {
   const clientKey = process.env.TIKTOK_CLIENT_KEY;
   const redirectUri = process.env.NEXT_PUBLIC_TIKTOK_REDIRECT_URI;
 
-  if (!clientKey || !redirectUri) {
-    return NextResponse.json({ error: "TikTok Config fehlt in den Umgebungsvariablen" }, { status: 500 });
+  // Debug-Hilfe: Wir geben jetzt spezifischer aus, was fehlt
+  if (!clientKey) {
+    return NextResponse.json({ error: "TIKTOK_CLIENT_KEY fehlt" }, { status: 500 });
+  }
+  if (!redirectUri) {
+    return NextResponse.json({ error: "NEXT_PUBLIC_TIKTOK_REDIRECT_URI fehlt" }, { status: 500 });
   }
 
   const state = Math.random().toString(36).substring(7);
