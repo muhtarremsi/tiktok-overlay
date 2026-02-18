@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import AuthModal from "@/components/AuthModal";
-import { checkSession } from "@/app/actions/auth"; // Import der Check Funktion
+import { checkSession } from "@/app/actions/auth";
 
 function SekerLogo({ className }: { className?: string }) {
   return (
@@ -20,9 +20,7 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleOpenDashboard = async () => {
-    // Serverseitiger Check!
     const isLoggedIn = await checkSession();
-    
     if (isLoggedIn) {
         router.push("/dashboard");
     } else {
@@ -49,7 +47,7 @@ export default function Home() {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030114 Smooth
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030119 Mobile Fix
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
@@ -68,12 +66,13 @@ export default function Home() {
               Open Dashboard
             </button>
 
-            <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-               <Link href="/privacy" className="hover:text-green-500 transition-colors">Privacy Policy</Link>
-               <span className="text-zinc-800">•</span>
-               <Link href="/terms" className="hover:text-green-500 transition-colors">Terms of Service</Link>
-               <span className="text-zinc-800">•</span>
-               <Link href="/licenses" className="hover:text-green-500 transition-colors">Licenses</Link>
+            {/* HIER IST DER FIX: flex-wrap + justify-center */}
+            <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest w-full px-4">
+               <Link href="/privacy" className="hover:text-green-500 transition-colors whitespace-nowrap">Privacy Policy</Link>
+               <span className="text-zinc-800 hidden md:inline">•</span>
+               <Link href="/terms" className="hover:text-green-500 transition-colors whitespace-nowrap">Terms of Service</Link>
+               <span className="text-zinc-800 hidden md:inline">•</span>
+               <Link href="/licenses" className="hover:text-green-500 transition-colors whitespace-nowrap">Licenses</Link>
             </div>
           </div>
         </div>

@@ -70,13 +70,11 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <Script src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`} strategy="afterInteractive" />
       
-      {/* Backdrop: Smoother (duration-500) and Lighter (bg-black/40) */}
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500 ease-out animate-in fade-in" 
         onClick={onClose} 
       />
 
-      {/* Modal Content: Smoother Scale Animation */}
       <div className="relative bg-[#0c0c0e] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 ease-out">
         
         <div className="flex border-b border-white/5">
@@ -149,9 +147,9 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 </button>
             </form>
 
-            <div className="text-center">
-                <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">
-                    Protected by reCAPTCHA & Sekerbaba Security
+            <div className="text-center px-4">
+                <p className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
+                    This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" className="underline hover:text-zinc-400">Privacy Policy</a> and <a href="https://policies.google.com/terms" className="underline hover:text-zinc-400">Terms of Service</a> apply.
                 </p>
             </div>
         </div>
