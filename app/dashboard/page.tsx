@@ -36,7 +36,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030121"; // Camera Module & Compact Sidebar
+  const version = "0.030122"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -123,7 +123,6 @@ function DashboardContent() {
           </div>
         </div>
         
-        {/* COMPACT SIDEBAR MENU */}
         <nav className="space-y-1">
           <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
@@ -174,7 +173,6 @@ function DashboardContent() {
 
 // --- SUB COMPONENTS ---
 
-// COMPACT SIDEBAR ITEM (py-2 instead of py-3)
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
@@ -183,7 +181,6 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-// NEW CAMERA MODULE
 function ModuleCamera() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streaming, setStreaming] = useState(false);
@@ -201,7 +198,7 @@ function ModuleCamera() {
   };
 
   const startStream = async () => {
-    stopStream(); // Stop existing if any
+    stopStream(); 
     setError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -213,22 +210,20 @@ function ModuleCamera() {
       }
     } catch (err: any) {
       console.error(err);
-      setError("Camera access denied or not available.");
+      setError("Camera access denied. Please allow camera permissions in browser.");
       setStreaming(false);
     }
   };
 
   const switchCamera = () => {
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-    setMirror(prev => !prev); // Usually back camera shouldn't be mirrored by default
+    setMirror(prev => !prev);
   };
 
-  // Restart stream when facing mode changes
   useEffect(() => {
     if (streaming) startStream();
   }, [facingMode]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => stopStream();
   }, []);
@@ -257,17 +252,15 @@ function ModuleCamera() {
             <button onClick={streaming ? stopStream : startStream} className={`py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 ${streaming ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-white text-black hover:bg-green-400"}`}>
                 {streaming ? <><StopCircle size={16} /> STOP CAM</> : <><Play size={16} /> START CAM</>}
             </button>
-            
             <button onClick={switchCamera} disabled={!streaming} className="py-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl text-[10px] font-black hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2">
                 <RefreshCw size={16} className={streaming ? "animate-spin-once" : ""} /> SWITCH
             </button>
-
             <button onClick={() => setMirror(!mirror)} disabled={!streaming} className="py-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl text-[10px] font-black hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2">
                 <FlipHorizontal size={16} /> MIRROR
             </button>
         </div>
       </div>
-      <p className="text-center text-[9px] text-zinc-600">Works on Android, iOS, and Desktop Webcams.</p>
+      <p className="text-center text-[9px] text-zinc-600">Works best on Mobile (iOS Safari & Android Chrome)</p>
     </div>
   );
 }
