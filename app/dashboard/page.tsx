@@ -1,27 +1,21 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { logout } from "@/app/actions/auth";
+import { useSearchParams, useRouter } from "next/navigation";
+import { logout, checkSession } from "@/app/actions/auth";
 import { 
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
-  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut
+  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle
 } from "lucide-react";
 
-// --- LOGO COMPONENT ---
 function SekerLogo({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.44 36.04" className={className} fill="currentColor">
-      <path d="M27.26,2.42c2.04,2.03,2.91,4.78,2.41,7.64-.21,1.23-.77,2.43-1.45,3.47.77.44,1.52.93,2.2,1.51,8.1,6.96,3.1,20.52-7.35,20.99h-12.16c-5.82-.32-10.53-5.18-10.92-10.95v-4.43s.03-.04.03-.04h7.25c.46-.05.8-.04,1.2-.3.95-.65,1.02-2.07.11-2.78-.47-.37-.9-.32-1.45-.43-3.42-.69-6.24-3.35-6.94-6.79C-.86,5.12,2.71.47,7.91,0h13.89c2.07.12,4,.97,5.46,2.42ZM16.65,17.21v-5.5l.1-.05c1.54-.06,3.15.09,4.68,0,1.43-.08,2.63-1.12,2.92-2.52.37-1.81-.95-3.62-2.79-3.77h-13.28c-3.6.42-3.89,5.47-.26,6.25,1.29.28,2.19.45,3.35,1.14,5.77,3.44,3.86,12.13-2.71,13.23-.96.16-1.86,0-2.76.1-.05,0-.08,0-.11.05.82,2.36,3,4.1,5.51,4.27h11.67c4.61-.34,7.24-5.47,5.17-9.55-1.06-2.1-3.2-3.4-5.54-3.58l-5.91-.02s-.06-.05-.06-.06Z"/>
-    </svg>
-  );
+  return (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.44 36.04" className={className} fill="currentColor"><path d="M27.26,2.42c2.04,2.03,2.91,4.78,2.41,7.64-.21,1.23-.77,2.43-1.45,3.47.77.44,1.52.93,2.2,1.51,8.1,6.96,3.1,20.52-7.35,20.99h-12.16c-5.82-.32-10.53-5.18-10.92-10.95v-4.43s.03-.04.03-.04h7.25c.46-.05.8-.04,1.2-.3.95-.65,1.02-2.07.11-2.78-.47-.37-.9-.32-1.45-.43-3.42-.69-6.24-3.35-6.94-6.79C-.86,5.12,2.71.47,7.91,0h13.89c2.07.12,4,.97,5.46,2.42ZM16.65,17.21v-5.5l.1-.05c1.54-.06,3.15.09,4.68,0,1.43-.08,2.63-1.12,2.92-2.52.37-1.81-.95-3.62-2.79-3.77h-13.28c-3.6.42-3.89,5.47-.26,6.25,1.29.28,2.19.45,3.35,1.14,5.77,3.44,3.86,12.13-2.71,13.23-.96.16-1.86,0-2.76.1-.05,0-.08,0-.11.05.82,2.36,3,4.1,5.51,4.27h11.67c4.61-.34,7.24-5.47,5.17-9.55-1.06-2.1-3.2-3.4-5.54-3.58l-5.91-.02s-.06-.05-.06-.06Z"/></svg>);
 }
 
-// --- HAUPT EXPORT MIT SUSPENSE WRAPPER (WICHTIG FÜR BUILD!) ---
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="bg-black h-screen w-full flex items-center justify-center text-white"><Loader2 className="animate-spin text-green-500 w-10 h-10" /></div>}>
+    <Suspense fallback={<div className="bg-black h-screen w-full flex items-center justify-center"><Loader2 className="animate-spin text-green-500" /></div>}>
       <DashboardContent />
     </Suspense>
   );
@@ -29,10 +23,10 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [authUser, setAuthUser] = useState("");     
   const [activeView, setActiveView] = useState("ttv");
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
@@ -40,7 +34,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030112";
+  const version = "0.030118";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -53,8 +47,9 @@ function DashboardContent() {
     if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
     if (savedTarget) setTargetUser(savedTarget);
     if (savedPerf) setPerfQuality(parseInt(savedPerf));
-    const userFromUrl = searchParams.get("u");
-    if (userFromUrl) setAuthUser(userFromUrl);
+    
+    setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
+    if (searchParams.get("connected")) setIsTikTokConnected(true);
   }, [searchParams]);
 
   useEffect(() => {
@@ -77,16 +72,21 @@ function DashboardContent() {
     return () => clearTimeout(timer);
   }, [targetUser]);
 
-  const handleLogout = async () => {
-    localStorage.clear();
-    await logout();
+  const handleTikTokConnect = () => {
+    if (isTikTokConnected) {
+        document.cookie = "tiktok_connected=; Max-Age=0; path=/;";
+        setIsTikTokConnected(false);
+        router.refresh();
+    } else {
+        window.location.href = "/api/auth/login";
+    }
   };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
-      {sidebarOpen && <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => window.location.href = "/"}>
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-black border-r border-white/10 flex flex-col p-5">
+        <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
           <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
         </div>
         <div className="mb-8 space-y-2 not-italic">
@@ -113,27 +113,28 @@ function DashboardContent() {
           </div>
         </div>
         <nav className="space-y-1">
-          <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => setActiveView("ttv")} />
+          <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => setActiveView("sounds")} />
+          <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => setActiveView("ttc")} />
+          <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => setActiveView("fanclub")} />
         </nav>
         <div className="flex-1"></div>
         <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
-           <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
+           <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => setActiveView("settings")} />
            <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div>
               <span className="font-mono">EN</span>
            </div>
-           {/* LOGOUT BUTTON */}
-           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 border-transparent text-red-500 hover:bg-red-500/10 hover:border-red-500/20">
+           <button onClick={async () => { localStorage.clear(); await logout(); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 border-transparent text-red-500 hover:bg-red-500/10 hover:border-red-500/20">
               <LogOut size={16} /> LOGOUT
            </button>
         </div>
       </aside>
+
+      {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
-          <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
-          <div className="lg:hidden flex items-center gap-2 font-black italic"><SekerLogo className="w-5 h-5 text-green-500" /> SEKERBABA</div>
+          <div className="flex items-center gap-2 font-black italic md:hidden"><SekerLogo className="w-5 h-5 text-green-500" /></div>
           <div className="hidden md:block" />
         </header>
         <div className="px-6 pt-6 pb-2">
@@ -144,14 +145,16 @@ function DashboardContent() {
         <div className="flex-1 overflow-y-auto">
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
-          {activeView === "fanclub" && <ModuleFanclub authUser={authUser} config={fanclubConfig} setConfig={setFanclubConfig} />}
-          {activeView === "settings" && <ModuleSettings authUser={authUser} setAuthUser={setAuthUser} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
+          {activeView === "ttc" && <ModuleTTC />}
+          {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
+          {activeView === "settings" && <ModuleSettings isConnected={isTikTokConnected} onConnect={handleTikTokConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
         </div>
       </main>
     </div>
   );
 }
 
+// --- SUB COMPONENTS ---
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
@@ -165,6 +168,119 @@ function InfoCard({ label, value, color = "text-white" }: any) {
     <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
       <p className="text-[9px] text-zinc-600 font-black">{label}</p>
       <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
+    </div>
+  );
+}
+
+function ModuleTTC() {
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState("");
+  const [text, setText] = useState("Willkommen bei Sekerbaba! Dies ist ein Test.");
+  const [pitch, setPitch] = useState(1);
+  const [rate, setRate] = useState(1);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const available = window.speechSynthesis.getVoices();
+      setVoices(available);
+      if (available.length > 0 && !selectedVoice) {
+        // Versuche eine deutsche Stimme zu finden, sonst die erste
+        const deVoice = available.find(v => v.lang.includes("de"));
+        setSelectedVoice(deVoice ? deVoice.name : available[0].name);
+      }
+    };
+    
+    loadVoices();
+    // Chrome lädt Stimmen asynchron, wir müssen auf das Event warten
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    
+    return () => { window.speechSynthesis.onvoiceschanged = null; }
+  }, []);
+
+  const handleSpeak = () => {
+    if (!selectedVoice) return;
+    
+    window.speechSynthesis.cancel(); // Stop previous
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voice = voices.find(v => v.name === selectedVoice);
+    if (voice) utterance.voice = voice;
+    
+    utterance.pitch = pitch;
+    utterance.rate = rate;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleStop = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
+  return (
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
+        <div className="flex items-center justify-between">
+            <h3 className="text-white text-xs not-italic flex items-center gap-2"><MessageSquare size={14} className="text-green-500" /> Text to Chat (Browser TTS)</h3>
+            {isSpeaking && <span className="text-[9px] text-green-500 animate-pulse flex items-center gap-1">SPEAKING... <Volume2 size={10}/></span>}
+        </div>
+
+        <div className="space-y-4">
+            <div className="space-y-1">
+                <label className="text-[9px] text-zinc-500">Select Voice</label>
+                <select 
+                    value={selectedVoice} 
+                    onChange={(e) => setSelectedVoice(e.target.value)} 
+                    className="w-full bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none cursor-pointer hover:border-zinc-700 transition-colors"
+                >
+                    {voices.map((v) => (
+                        <option key={v.name} value={v.name}>
+                            {v.name} ({v.lang})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="space-y-1">
+                <label className="text-[9px] text-zinc-500">Test Message</label>
+                <textarea 
+                    value={text} 
+                    onChange={(e) => setText(e.target.value)} 
+                    className="w-full h-24 bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none resize-none focus:border-green-500/50 transition-colors"
+                    placeholder="Enter text to speak..."
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <div className="flex justify-between text-[9px] text-zinc-500"><span>Speed</span><span>{rate}x</span></div>
+                    <input type="range" min="0.5" max="2" step="0.1" value={rate} onChange={e => setRate(parseFloat(e.target.value))} className="w-full accent-green-500 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
+                </div>
+                <div className="space-y-2">
+                    <div className="flex justify-between text-[9px] text-zinc-500"><span>Pitch</span><span>{pitch}</span></div>
+                    <input type="range" min="0" max="2" step="0.1" value={pitch} onChange={e => setPitch(parseFloat(e.target.value))} className="w-full accent-green-500 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
+                </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+                <button onClick={handleSpeak} className="flex-1 bg-white text-black py-3 rounded-xl text-[10px] font-black hover:bg-green-400 transition-all flex items-center justify-center gap-2">
+                    <Play size={14} fill="currentColor" /> PREVIEW VOICE
+                </button>
+                <button onClick={handleStop} className="w-16 bg-zinc-900 border border-zinc-800 text-red-500 rounded-xl flex items-center justify-center hover:bg-zinc-800">
+                    <StopCircle size={18} />
+                </button>
+            </div>
+        </div>
+      </div>
+      
+      <div className="text-center text-[9px] text-zinc-600 font-bold">
+        Note: Available voices depend on your browser and OS.
+      </div>
     </div>
   );
 }
@@ -241,12 +357,12 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
   );
 }
 
-function ModuleFanclub({ authUser, config, setConfig }: any) {
-  if (!authUser) return (
+function ModuleFanclub({ isConnected, config, setConfig }: any) {
+  if (!isConnected) return (
     <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
       <Heart size={48} className="text-pink-500 animate-pulse" />
       <h2 className="text-xl text-white">Auth Required</h2>
-      <button onClick={() => window.location.href="/api/auth/login"} className="bg-white text-black px-8 py-3 rounded-full text-[10px] font-black hover:scale-105 transition-all">Login with TikTok</button>
+      <p className="text-[9px] text-zinc-500">Connect your TikTok Account in Settings to use Fanclub Features.</p>
     </div>
   );
   return (
@@ -262,7 +378,7 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
   );
 }
 
-function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, expiry }: any) {
+function ModuleSettings({ isConnected, onConnect, quality, setQuality, version, expiry }: any) {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState("");
   const runHardwareTest = () => { setTesting(true); setTestResult(""); setTimeout(() => { setTesting(false); setTestResult("EXCELLENT"); }, 2000); };
@@ -271,7 +387,7 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">AUTHENTICATION CHANNELS</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <AuthCard icon={<Zap className="text-black" />} name="TIKTOK" status={authUser ? "CONNECTED" : "DISCONNECTED"} active={true} connected={!!authUser} onAction={() => authUser ? setAuthUser("") : window.location.href="/api/auth/login"} />
+          <AuthCard icon={<Zap className="text-black" />} name="TIKTOK" status={isConnected ? "CONNECTED" : "DISCONNECTED"} active={true} connected={isConnected} onAction={onConnect} />
           <AuthCard icon={<Share2 />} name="DISCORD" status="COMING SOON" active={false} />
           <AuthCard icon={<Monitor />} name="TWITCH" status="COMING SOON" active={false} />
         </div>
