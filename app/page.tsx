@@ -4,84 +4,145 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Box, Plus, Trash2, X, Menu,
-  Volume2, Globe, LogIn, CheckCircle2, Wifi, Loader2, AlertCircle, Radio, Music, Info
+  Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
+  Zap, ArrowRight, Monitor
 } from "lucide-react";
 
+// --- HAUPT-CONTROLLER ---
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="bg-black h-screen w-full flex items-center justify-center"><Loader2 className="animate-spin text-green-500" /></div>}>
+      <MainController />
+    </Suspense>
+  );
+}
+
+function MainController() {
+  const searchParams = useSearchParams();
+  const [showApp, setShowApp] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("u") || searchParams.get("view") || searchParams.get("connected")) {
+      setShowApp(true);
+    }
+  }, [searchParams]);
+
+  if (showApp) {
+    return <DashboardContent />;
+  }
+
+  return <LandingPage onLaunch={() => setShowApp(true)} />;
+}
+
+// --- LANDING PAGE ---
+function LandingPage({ onLaunch }: { onLaunch: () => void }) {
+  return (
+    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30">
+      <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-black italic tracking-tighter text-xl cursor-pointer" onClick={() => window.location.reload()}>
+            <Box className="text-green-500" /> ARC TOOLS
+          </div>
+          <div className="flex gap-4">
+            <button onClick={() => window.location.href = "/api/auth/login"} className="hidden md:flex text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors py-2">
+              Login
+            </button>
+            <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center gap-2">
+              Launch App <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="relative pt-32 pb-20 px-6 overflow-hidden text-center">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest mb-4">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030062 Stable
+          </div>
+          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter leading-tight">
+            INTERACTIVE OVERLAYS <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 to-zinc-600">FOR TIKTOK LIVE</span>
+          </h1>
+          <p className="text-zinc-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed font-bold uppercase">
+            Create immersive streams with video triggers, sound alerts, and real-time interactions. 
+          </p>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4">
+            <button onClick={onLaunch} className="w-full md:w-auto bg-green-500 hover:bg-green-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+              Start Creating
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FeatureCard icon={<Monitor size={24} className="text-blue-400" />} title="Video Triggers" desc="Trigger MP4 videos instantly via chat commands." />
+          <FeatureCard icon={<Volume2 size={24} className="text-pink-400" />} title="Sound Alerts" desc="Play custom sound effects (MP3) directly from chat." />
+          <FeatureCard icon={<Heart size={24} className="text-red-500" />} title="Fanclub Tools" desc="Exclusive alerts for Team Heart and Subscribers." />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, desc }: any) {
+  return (
+    <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl group transition-all">
+      <div className="mb-4 bg-zinc-900 w-12 h-12 rounded-lg flex items-center justify-center">{icon}</div>
+      <h3 className="text-white font-black italic uppercase text-lg mb-2">{title}</h3>
+      <p className="text-zinc-400 text-[10px] uppercase font-bold leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+// --- DASHBOARD APP ---
 function DashboardContent() {
   const searchParams = useSearchParams();
-  
   const [targetUser, setTargetUser] = useState(""); 
   const [authUser, setAuthUser] = useState("");     
-  
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
-  
-  // Neuer Status 'too_short' hinzugefügt
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
-  
+  const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
+  const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
+  const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030058";
-  const expiryDate = "17.02.2025";
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
+    const savedTTV = localStorage.getItem("arc_ttv");
+    const savedSounds = localStorage.getItem("arc_sounds");
+    const savedTarget = localStorage.getItem("arc_target");
+    
+    if (savedTTV) setTtvTriggers(JSON.parse(savedTTV));
+    else setTtvTriggers([{ id: 1, code: "777", url: "https://cdn.discordapp.com/attachments/1462540433463709815/1472988001838563361/Meme_Okay_.mp4", start: 0, end: 10 }]);
+
+    if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
+    if (savedTarget) setTargetUser(savedTarget);
+
     const userFromUrl = searchParams.get("u");
-    const viewFromUrl = searchParams.get("view");
-    
-    if (userFromUrl) {
-      setAuthUser(userFromUrl);
-      if (!targetUser) {
-         setTargetUser(userFromUrl);
-         checkUserStatus(userFromUrl);
-      }
-    }
-    
-    if (viewFromUrl) setActiveView(viewFromUrl);
+    if (userFromUrl) setAuthUser(userFromUrl);
   }, [searchParams]);
 
-  const checkUserStatus = async (userToCheck: string) => {
-    setStatus('checking'); 
-    try {
-      const res = await fetch(`/api/status?u=${userToCheck}`);
-      if (res.ok) {
-        setStatus('online'); 
-      } else {
-        setStatus('offline'); 
-      }
-    } catch (e) {
-      setStatus('offline');
-    }
-  };
+  useEffect(() => {
+    localStorage.setItem("arc_ttv", JSON.stringify(ttvTriggers));
+    localStorage.setItem("arc_sounds", JSON.stringify(soundTriggers));
+    if (targetUser) localStorage.setItem("arc_target", targetUser);
+  }, [ttvTriggers, soundTriggers, targetUser]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!targetUser) {
-        setStatus('idle');
-      } else if (targetUser.length < 3) {
-        // FIX: Wenn Text da ist, aber zu kurz -> Status 'too_short'
-        setStatus('too_short');
-      } else {
-        checkUserStatus(targetUser);
-      }
+    const timer = setTimeout(async () => {
+      if (!targetUser) { setStatus('idle'); return; }
+      if (targetUser.length < 3) { setStatus('too_short'); return; }
+      setStatus('checking');
+      try {
+        const res = await fetch(`/api/status?u=${targetUser}`);
+        setStatus(res.ok ? 'online' : 'offline');
+      } catch { setStatus('offline'); }
     }, 800);
     return () => clearTimeout(timer);
   }, [targetUser]);
-
-  const handleTargetInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.toLowerCase();
-    setTargetUser(val);
-    
-    // Logik für sofortiges Feedback während des Tippens
-    if (val.length === 0) {
-      setStatus('idle');
-    } else if (val.length < 3) {
-      // Wenn zu kurz, noch nicht 'checking' zeigen, sondern warten (idle) oder direkt info
-      // Wir lassen es kurz auf idle, der Debounce setzt es dann auf 'too_short'
-      setStatus('idle'); 
-    } else {
-      setStatus('checking'); 
-    }
-  };
 
   const navigateTo = (view: string) => {
     setActiveView(view);
@@ -89,115 +150,53 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px]">
-      
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-      )}
+    <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
+      {sidebarOpen && <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
 
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 font-sans uppercase font-bold italic ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <button className="lg:hidden absolute top-5 right-5 text-zinc-500 hover:text-white" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
-
-        <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight">
-          <h1 className="text-base flex items-center gap-2"><Box className="w-4 h-4" /> ARC TOOLS</h1>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => window.location.href = "/"}>
+          <Box className="w-4 h-4 mr-2 text-green-500" /> ARC TOOLS
         </div>
         
         <div className="mb-8 space-y-2 not-italic">
-          <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
-          <div className="relative group">
+          <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
+          <div className="relative">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
-            
             <input 
-              type="text" 
-              placeholder="username" 
-              value={targetUser} 
-              onChange={handleTargetInput} 
-              className={`
-                w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
-                ${status === 'online' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
-                ${status === 'offline' ? "border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : ""}
-                ${status === 'checking' ? "border-yellow-500/50 text-yellow-100" : ""}
-                ${status === 'too_short' ? "border-blue-500/30 text-zinc-300" : ""}
-                ${status === 'idle' ? "border-zinc-800 text-zinc-200" : ""}
-              `} 
+              type="text" placeholder="username" value={targetUser} 
+              onChange={(e) => setTargetUser(e.target.value.toLowerCase())}
+              className={`w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none border transition-all ${status === 'online' ? 'border-green-500/50' : 'border-zinc-800'}`}
             />
-            
-            <div className="absolute inset-y-0 right-3 flex items-center justify-center pointer-events-none">
-              {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
-              {status === 'online' && (
-                <div className="relative flex items-center justify-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full z-10"></div>
-                  <div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                </div>
-              )}
-              {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
-              {/* Info Icon für zu kurzen Text */}
-              {status === 'too_short' && <Info className="w-3 h-3 text-blue-500" />}
-              {status === 'idle' && <div className="w-2 h-2 bg-zinc-800 rounded-full border border-zinc-700"></div>}
+            <div className="absolute inset-y-0 right-3 flex items-center">
+              {status === 'checking' && <Loader2 className="w-3 h-3 animate-spin text-yellow-500" />}
+              {status === 'online' && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />}
+              {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full" />}
             </div>
-          </div>
-          
-          <div className="h-4 flex items-center justify-end px-1">
-            {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline / Not Found</span>}
-            {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Live Connection Ready</span>}
-            {/* Info Text */}
-            {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> Enter at least 3 chars</span>}
-          </div>
-
-          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
-            <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
-            <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
-            <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>EXPIRY</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
           </div>
         </div>
 
         <nav className="space-y-1">
           <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => navigateTo("ttv")} />
           <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => navigateTo("sounds")} />
+          <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => navigateTo("fanclub")} />
         </nav>
 
-        <div className="flex-1"></div>
-
-        <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
-           <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => navigateTo("settings")} />
-           <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 group cursor-pointer uppercase font-bold tracking-widest">
-              <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div>
-              <span className="text-[10px] font-mono">EN</span>
-           </div>
-        </div>
+        <div className="flex-1" />
+        <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => navigateTo("settings")} />
       </aside>
 
-      <main className="flex-1 bg-[#09090b] flex flex-col min-w-0 font-bold uppercase">
-        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 tracking-widest text-[10px]">
+      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
+        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
           <button className="lg:hidden p-2 text-white bg-zinc-900 rounded-lg border border-white/10" onClick={() => setSidebarOpen(true)}><Menu size={18} /></button>
-          <div className="flex items-center"><span className="text-zinc-700">App /</span> <span className="ml-1 text-white">{activeView}</span></div>
-          <div className="w-8 lg:hidden"></div>
+          <div className="text-[10px] uppercase font-black tracking-widest"><span className="text-zinc-600">App /</span> {activeView}</div>
+          <div className="hidden md:block text-[9px] font-mono text-zinc-500">v0.030062</div>
         </header>
 
         <div className="flex-1 overflow-y-auto">
-          {activeView === "settings" ? (
-            <div className="p-6 lg:p-10 max-w-2xl space-y-8 uppercase italic font-bold text-center">
-              <h2 className="text-2xl text-white mb-8">Account Settings</h2>
-              <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-8 shadow-xl not-italic">
-                <h3 className="text-zinc-500 text-[10px] font-black tracking-widest mb-4 uppercase">TikTok Authentication</h3>
-                {authUser ? (
-                  <div className="text-green-500 font-bold flex flex-col items-center gap-2">
-                    <CheckCircle2 size={32} />
-                    <span className="uppercase text-xs tracking-widest">Authenticated as: {authUser}</span>
-                    <button onClick={() => setAuthUser("")} className="mt-4 text-[9px] text-zinc-500 underline hover:text-white uppercase">Disconnect</button>
-                  </div>
-                ) : (
-                  <button onClick={() => window.location.href = "/api/auth/login"} className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-black hover:bg-zinc-200 transition-all uppercase text-xs">
-                    <LogIn size={18} /> Login with TikTok
-                  </button>
-                )}
-              </div>
-            </div>
-          ) : activeView === "sounds" ? (
-            <ModuleSounds username={targetUser} baseUrl={baseUrl} />
-          ) : (
-            <ModuleTTV username={targetUser} baseUrl={baseUrl} />
-          )}
+          {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
+          {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
+          {activeView === "fanclub" && <ModuleFanclub authUser={authUser} config={fanclubConfig} setConfig={setFanclubConfig} />}
+          {activeView === "settings" && <ModuleSettings authUser={authUser} setAuthUser={setAuthUser} />}
         </div>
       </main>
     </div>
@@ -205,107 +204,131 @@ function DashboardContent() {
 }
 
 function SidebarItem({ icon, label, active, onClick }: any) {
-  return <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold ${active ? "bg-[#0c0c0e] text-white border border-white/5 shadow-xl" : "text-zinc-500 hover:text-white"}`}><span>{icon}</span>{label}</button>;
+  return (
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border ${active ? "bg-[#0c0c0e] text-white border-white/10" : "border-transparent text-zinc-500 hover:text-white"}`}>
+      {icon} {label}
+    </button>
+  );
 }
 
-function ModuleTTV({ username, baseUrl }: any) {
-  const [triggers, setTriggers] = useState<any[]>([{ id: 1, code: "777", url: "https://cdn.discordapp.com/attachments/1462540433463709815/1472988001838563361/Meme_Okay_.mp4", start: 0, end: 10 }]);
+// --- MODULE KOMPONENTEN (Kern-Logik unverändert) ---
+function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const [newCode, setNewCode] = useState("");
   const [newUrl, setNewUrl] = useState("");
-  const [newStart, setNewStart] = useState("0");
-  const [newEnd, setNewEnd] = useState("10");
-
-  const addTrigger = () => {
-    if (!newCode || !newUrl) return;
-    setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, start: parseInt(newStart), end: parseInt(newEnd) }]);
-    setNewCode(""); setNewUrl("");
-  };
-
-  const configString = typeof window !== 'undefined' ? btoa(JSON.stringify(triggers)) : "";
+  const configString = btoa(JSON.stringify(triggers));
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}`;
-
+  const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, start: 0, end: 10 }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-6 lg:p-10 max-w-6xl mx-auto space-y-10 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-6 shadow-lg">
-        <h3 className="text-white text-xs font-black flex items-center gap-2 not-italic"><Plus size={14} /> NEW VIDEO TRIGGER</h3>
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 lg:p-8 rounded-2xl space-y-4">
+        <h3 className="text-white text-xs not-italic flex items-center gap-2"><Plus size={14} /> Add Video Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" placeholder="Trigger Code (e.g. 777)" value={newCode} onChange={(e) => setNewCode(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500" />
-          <input type="text" placeholder="Video URL (.mp4)" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500 font-mono" />
+          <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
+          <input placeholder="URL (.mp4)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2"><label className="text-[9px] text-zinc-500 ml-1">START (S)</label><input type="number" value={newStart} onChange={(e) => setNewStart(e.target.value)} className="w-full bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500" /></div>
-          <div className="space-y-2"><label className="text-[9px] text-zinc-500 ml-1">END (S)</label><input type="number" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} className="w-full bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500" /></div>
-        </div>
-        <button onClick={addTrigger} className="w-full bg-white text-black font-black py-4 rounded-xl text-xs tracking-widest uppercase hover:bg-zinc-200 transition-all">Add to List</button>
+        <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black">Add Trigger</button>
       </div>
-
-      <div className="space-y-3">
-        {triggers.map((t) => (
-          <div key={t.id} className="flex items-center gap-4 bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group hover:border-zinc-600 transition-all">
-            <span className="text-green-400 font-black text-sm">{t.code}</span>
-            <div className="flex-1 min-w-0"><p className="text-zinc-500 text-[9px] truncate opacity-50 font-mono italic">{t.url}</p><p className="text-[8px] text-zinc-600 font-mono">Video: {t.start}s - {t.end}s</p></div>
-            <button onClick={() => setTriggers(triggers.filter(x => x.id !== t.id))} className="text-zinc-600 hover:text-red-500 p-2"><Trash2 size={16} /></button>
+      <div className="space-y-2">
+        {triggers.map((t: any) => (
+          <div key={t.id} className="flex items-center justify-between bg-black/40 border border-zinc-800 p-4 rounded-xl group">
+            <span className="text-green-500">{t.code}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[150px] md:max-w-xs">{t.url}</span>
+            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))}><Trash2 size={14} className="text-zinc-600 hover:text-red-500" /></button>
           </div>
         ))}
-        {triggers.length === 0 && <div className="text-center text-zinc-600 text-[10px] italic py-4">No video triggers added yet.</div>}
       </div>
-
-      <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-4 not-italic font-bold shadow-xl">
-        <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">OBS Master Link (Video)</label>
-        <div className="flex flex-col gap-2 font-mono text-[10px]">
-          <div className="flex-1 text-zinc-600 truncate bg-black px-4 py-4 rounded-xl border border-white/5 uppercase tracking-tighter break-all">{link}</div>
-          <button onClick={() => navigator.clipboard.writeText(link)} className="bg-white text-black px-12 py-3 rounded-xl font-black uppercase text-xs hover:bg-zinc-200">Copy</button>
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3">
+        <label className="text-[9px] text-zinc-500 uppercase tracking-widest font-black">OBS Master Link</label>
+        <div className="flex flex-col gap-3">
+          <div className="bg-black p-4 rounded text-[9px] font-mono text-zinc-500 break-all border border-white/5">{link}</div>
+          <button onClick={() => navigator.clipboard.writeText(link)} className="bg-white text-black py-3 rounded-lg text-[10px] font-black uppercase">Copy Link</button>
         </div>
       </div>
     </div>
   );
 }
 
-function ModuleSounds({ username, baseUrl }: any) {
-  const [sounds, setSounds] = useState<any[]>([{ id: 1, code: "!horn", url: "https://www.myinstants.com/media/sounds/air-horn-club-sample_1.mp3" }]);
+function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
   const [newCode, setNewCode] = useState("");
   const [newUrl, setNewUrl] = useState("");
-
-  const addSound = () => {
-    if (!newCode || !newUrl) return;
-    setSounds([...sounds, { id: Date.now(), code: newCode, url: newUrl, type: 'audio' }]);
-    setNewCode(""); setNewUrl("");
-  };
-
-  const configString = typeof window !== 'undefined' ? btoa(JSON.stringify(sounds)) : "";
+  const configString = btoa(JSON.stringify(triggers));
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}&type=audio`;
-
+  const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, type: 'audio' }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-6 lg:p-10 max-w-6xl mx-auto space-y-10 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-6 shadow-lg">
-        <h3 className="text-white text-xs font-black flex items-center gap-2 not-italic"><Music size={14} /> NEW SOUND TRIGGER</h3>
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
+        <h3 className="text-white text-xs not-italic flex items-center gap-2"><Music size={14} /> Add Sound Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" placeholder="Sound Command (e.g. !horn)" value={newCode} onChange={(e) => setNewCode(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500" />
-          <input type="text" placeholder="Audio URL (.mp3)" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 rounded px-3 py-3 text-white text-xs outline-none focus:border-zinc-500 font-mono" />
+          <input placeholder="Command (e.g. !horn)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
+          <input placeholder="URL (.mp3)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
         </div>
-        <button onClick={addSound} className="w-full bg-white text-black font-black py-4 rounded-xl text-xs tracking-widest uppercase hover:bg-zinc-200 transition-all">Add Sound</button>
+        <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black">Add Sound</button>
       </div>
-
-      <div className="space-y-3">
-        {sounds.map((s) => (
-          <div key={s.id} className="flex items-center gap-4 bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group hover:border-zinc-600 transition-all">
-            <span className="text-blue-400 font-black text-sm">{s.code}</span>
-            <div className="flex-1 min-w-0"><p className="text-zinc-500 text-[9px] truncate opacity-50 font-mono italic">{s.url}</p></div>
-            <button onClick={() => setSounds(sounds.filter(x => x.id !== s.id))} className="text-zinc-600 hover:text-red-500 p-2"><Trash2 size={16} /></button>
+      <div className="space-y-2">
+        {triggers.map((t: any) => (
+          <div key={t.id} className="flex items-center justify-between bg-black/40 border border-zinc-800 p-4 rounded-xl">
+            <span className="text-blue-500">{t.code}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[150px] md:max-w-xs">{t.url}</span>
+            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))}><Trash2 size={14} className="text-zinc-600 hover:text-red-500" /></button>
           </div>
         ))}
-         {sounds.length === 0 && <div className="text-center text-zinc-600 text-[10px] italic py-4">No sound alerts added yet.</div>}
       </div>
-
-      <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 lg:p-8 space-y-4 not-italic font-bold shadow-xl">
-        <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">OBS Master Link (Sound)</label>
-        <div className="flex flex-col gap-2 font-mono text-[10px]">
-          <div className="flex-1 text-zinc-600 truncate bg-black px-4 py-4 rounded-xl border border-white/5 uppercase tracking-tighter break-all">{link}</div>
-          <button onClick={() => navigator.clipboard.writeText(link)} className="bg-white text-black px-12 py-3 rounded-xl font-black uppercase text-xs hover:bg-zinc-200">Copy</button>
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3">
+        <label className="text-[9px] text-zinc-500 uppercase tracking-widest font-black">OBS Audio Link</label>
+        <div className="flex flex-col gap-3">
+          <div className="bg-black p-4 rounded text-[9px] font-mono text-zinc-500 break-all border border-white/5">{link}</div>
+          <button onClick={() => navigator.clipboard.writeText(link)} className="bg-white text-black py-3 rounded-lg text-[10px] font-black uppercase">Copy Link</button>
         </div>
       </div>
     </div>
   );
 }
 
-export default function Dashboard() { return <Suspense fallback={null}><DashboardContent /></Suspense>; }
+function ModuleFanclub({ authUser, config, setConfig }: any) {
+  if (!authUser) {
+    return (
+      <div className="h-[80vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
+        <Heart size={48} className="text-pink-500 animate-pulse" />
+        <h2 className="text-xl text-white">Auth Required</h2>
+        <p className="text-zinc-500 text-[10px] max-w-xs">Please login in the settings to access fanclub features.</p>
+        <button onClick={() => window.location.href="/api/auth/login"} className="bg-white text-black px-8 py-3 rounded-full text-[10px] font-black">Login with TikTok</button>
+      </div>
+    );
+  }
+  return (
+    <div className="p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
+        <h3 className="text-white text-xs not-italic flex items-center gap-2"><Heart size={14} className="text-pink-500" /> Fanclub Alerts</h3>
+        <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
+          <span className="text-[10px]">Team Heart Alert</span>
+          <input type="checkbox" checked={config.teamHeart} onChange={e => setConfig({...config, teamHeart: e.target.checked})} className="w-4 h-4 accent-pink-500" />
+        </div>
+        <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
+          <span className="text-[10px]">Subscribers Alert</span>
+          <input type="checkbox" checked={config.subAlert} onChange={e => setConfig({...config, subAlert: e.target.checked})} className="w-4 h-4 accent-pink-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ModuleSettings({ authUser, setAuthUser }: any) {
+  return (
+    <div className="p-10 max-w-xl mx-auto text-center space-y-8 uppercase italic font-bold">
+      <h2 className="text-xl text-white">Account</h2>
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-10 rounded-3xl space-y-6">
+        {authUser ? (
+          <div className="space-y-4">
+            <CheckCircle2 size={40} className="mx-auto text-green-500" />
+            <p className="text-xs">Authenticated: <span className="text-green-500">{authUser}</span></p>
+            <button onClick={() => setAuthUser("")} className="text-[9px] text-zinc-500 underline uppercase">Disconnect</button>
+          </div>
+        ) : (
+          <button onClick={() => window.location.href="/api/auth/login"} className="w-full bg-white text-black py-4 rounded-2xl text-[10px] font-black flex items-center justify-center gap-2">
+            <LogIn size={16} /> Login with TikTok
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
