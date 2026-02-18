@@ -49,6 +49,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
+      {/* VIDEO BACKGROUND */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
         <video 
           autoPlay 
@@ -73,10 +74,11 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         </div>
       </nav>
 
+      {/* CONTENT */}
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030075 Stable
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030076 Stable
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
@@ -89,12 +91,19 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
               Open Dashboard
             </button>
             <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-               <a href="/privacy" className="hover:text-green-500 transition-colors">Privacy Policy</a>
+               <a href="/privacy" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Privacy Policy</a>
                <span className="text-zinc-800">•</span>
-               <a href="/terms" className="hover:text-green-500 transition-colors">Terms of Service</a>
+               <a href="/terms" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Terms of Service</a>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* COPYRIGHT FOOTER */}
+      <div className="absolute bottom-6 w-full text-center z-20 px-4">
+        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest opacity-60">
+          &copy; 2026 SEKERBABA. ALL RIGHTS RESERVED.
+        </p>
       </div>
     </div>
   );
@@ -114,7 +123,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030075";
+  const version = "0.030076";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
