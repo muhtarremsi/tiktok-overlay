@@ -8,10 +8,14 @@ function SekerLogo({ className }: { className?: string }) {
 }
 
 export default function Privacy() {
+  const [isVisible, setIsVisible] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    // Fade In
+    setIsVisible(true);
+
     const checkScroll = () => {
       if (window.scrollY > 200) setShowScroll(true);
       else setShowScroll(false);
@@ -25,22 +29,30 @@ export default function Privacy() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Fade Out Logik
+  const handleExit = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      router.push('/');
+    }, 300);
+  };
+
   const handlePageClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('a') || target.closest('button')) return;
-    router.push('/');
+    if (target.closest('section') || target.closest('button') || target.closest('a')) return;
+    handleExit();
   };
 
   return (
     <div 
       onClick={handlePageClick}
-      className="min-h-screen bg-[#09090b] text-white font-sans p-8 md:p-20 selection:bg-green-500/30 uppercase italic font-bold cursor-pointer"
+      className={`min-h-screen bg-[#09090b] text-white font-sans p-8 md:p-20 selection:bg-green-500/30 uppercase italic font-bold cursor-pointer transition-opacity duration-300 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}
     >
       
       {/* FIXED HEADER */}
       <div className="fixed top-0 left-0 w-full z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl transition-all duration-300">
         <div className="max-w-4xl mx-auto px-8 md:px-20 py-8 space-y-6">
-          <button onClick={() => router.push('/')} className="inline-flex items-center gap-2 text-zinc-500 hover:text-green-500 transition-colors text-xs tracking-widest not-italic bg-transparent border-none cursor-pointer">
+          <button onClick={handleExit} className="inline-flex items-center gap-2 text-zinc-500 hover:text-green-500 transition-colors text-xs tracking-widest not-italic bg-transparent border-none cursor-pointer outline-none">
             <ArrowLeft size={16} /> BACK TO DASHBOARD
           </button>
           <div className="flex items-center gap-4 not-italic">
@@ -54,7 +66,7 @@ export default function Privacy() {
         <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-[#09090b]/20 pointer-events-none"></div>
       </div>
 
-      {/* CONTENT - PT-64 (SYNCED WITH TERMS) */}
+      {/* CONTENT - PT-64 (EXAKT GLEICH WIE TERMS) */}
       <div className="max-w-4xl mx-auto px-8 md:px-20 pt-64 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
         <section>
           <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">01.</span> Data Processing</h2>
