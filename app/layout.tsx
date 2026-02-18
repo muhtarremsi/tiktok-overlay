@@ -1,21 +1,25 @@
-import './globals.css'
-import { Inter } from 'next/font/google'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: 'ARC Overlay Tool',
-  description: 'Stream Overlay Generator',
-}
+export const metadata: Metadata = {
+  title: "SEKERBABA | Interactive TikTok Overlays",
+  description: "Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.",
+  icons: {
+    icon: "/icon.svg",
+  },
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="de">
+    <html lang="en">
       <body className={inter.className}>{children}</body>
     </html>
-  )
+  );
 }
