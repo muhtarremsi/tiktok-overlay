@@ -50,18 +50,20 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
-      {/* VIDEO BACKGROUND */}
+      {/* VIDEO BACKGROUND - DESKTOP STRETCHED, MOBILE COVER */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
         <video 
           autoPlay 
           loop 
           muted 
           playsInline 
-          className="absolute top-0 left-0 w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-[2000ms]"
+          // Desktop: object-fill (gestreckt), Mobile: object-cover (zentriert)
+          className="absolute top-0 left-0 w-full h-full object-cover md:object-fill opacity-60 grayscale hover:grayscale-0 transition-all duration-[2000ms]"
         >
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/40 to-[#09090b] z-10"></div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#09090b]/90 via-[#09090b]/50 to-transparent z-10"></div>
       </div>
 
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
@@ -75,25 +77,28 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         </div>
       </nav>
 
-      <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-20">
-        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030068 Logo-Update
-          </div>
-          
-          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
-            INTERACTIVE <br /> OVERLAYS
-          </h1>
-          
-          <p className="text-zinc-300 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md px-2">
-            Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
-          </p>
+      {/* CONTENT - DESKTOP LINKS, MOBILE ZENTRIERT */}
+      <div className="relative flex-1 flex flex-col justify-center px-4 z-20 pt-20 md:pt-0">
+        <div className="max-w-7xl mx-auto w-full flex md:justify-start justify-center">
+            <div className="max-w-2xl space-y-6 md:space-y-8 w-full md:text-left text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030068 Logo-Update
+            </div>
+            
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
+                INTERACTIVE <br /> OVERLAYS
+            </h1>
+            
+            <p className="text-zinc-300 max-w-xl md:mx-0 mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md px-2 md:px-0">
+                Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
+            </p>
 
-          <div className="pt-6 md:pt-8 w-full px-4">
-            <button onClick={onLaunch} className="w-full sm:w-auto bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-sm">
-              Open Dashboard
-            </button>
-          </div>
+            <div className="pt-6 md:pt-8 w-full px-4 md:px-0">
+                <button onClick={onLaunch} className="w-full sm:w-auto bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-sm">
+                Open Dashboard
+                </button>
+            </div>
+            </div>
         </div>
       </div>
     </div>
