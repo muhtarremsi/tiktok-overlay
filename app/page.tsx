@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
-  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2
+  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Cookie
 } from "lucide-react";
 
 // --- CUSTOM LOGO COMPONENT ---
@@ -46,10 +46,32 @@ function MainController() {
 
 // --- LANDING PAGE ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
+
+  useEffect(() => {
+    // Check local storage after mount to avoid hydration mismatch
+    const consent = localStorage.getItem("seker_cookie_consent");
+    if (!consent) {
+      // Small delay for animation effect
+      const timer = setTimeout(() => setShowCookieBanner(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleAccept = () => {
+    localStorage.setItem("seker_cookie_consent", "accepted");
+    setShowCookieBanner(false);
+  };
+
+  const handleDecline = () => {
+    localStorage.setItem("seker_cookie_consent", "declined");
+    setShowCookieBanner(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
-      {/* BACKGROUND VIDEO FIX: Scale only on Desktop (md:) */}
+      {/* BACKGROUND VIDEO */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
         <video 
           autoPlay 
@@ -63,25 +85,25 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/30 to-[#09090b] z-10"></div>
       </div>
 
-      {/* LOGO POSITIONING: top-6 (1.5rem), Desktop left-16 (~4em/higher padding) */}
-      <div className="absolute top-6 left-6 md:left-16 z-30">
+      {/* LOGO */}
+      <div className="absolute top-6 left-6 md:top-6 md:left-10 z-30">
         <div className="flex items-center gap-2 cursor-pointer opacity-90 hover:opacity-100 transition-opacity" onClick={() => window.location.reload()}>
           <SekerLogo className="text-green-500 w-6 h-6" />
           <span className="text-lg font-black italic tracking-tighter text-white">SEKERBABA</span>
         </div>
       </div>
 
+      {/* MAIN CONTENT */}
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030101 Refined
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030102 Compliance
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
           </h1>
           
-          {/* DESCRIPTION TEXT: Manual margins of 4em for left and right */}
           <p 
             className="text-zinc-400 text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed"
             style={{ marginLeft: '4em', marginRight: '4em' }}
@@ -107,11 +129,43 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           &copy; 2026 SEKERBABA. ALL RIGHTS RESERVED.
         </p>
       </div>
+
+      {/* COOKIE CONSENT BANNER (PREMIUM GLASS STYLE) */}
+      {showCookieBanner && (
+        <div className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:bottom-6 md:w-96 z-50 p-6 md:rounded-2xl bg-black/80 backdrop-blur-xl border-t md:border border-white/10 shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-10 fade-in-20">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
+              <Cookie size={20} />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">Privacy & Cookies</h4>
+              <p className="text-[10px] text-zinc-400 leading-relaxed font-bold">
+                We use cookies to ensure you get the best experience on our dashboard. This includes analytics and essential session data.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button 
+              onClick={handleDecline}
+              className="flex-1 py-2.5 rounded-lg border border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 transition-colors"
+            >
+              Decline
+            </button>
+            <button 
+              onClick={handleAccept}
+              className="flex-1 py-2.5 rounded-lg bg-green-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-green-400 hover:scale-105 transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+            >
+              Accept
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
-// --- DASHBOARD APP (Keep existing functionality) ---
+// --- DASHBOARD APP ---
 function DashboardContent() {
   const searchParams = useSearchParams();
   const [targetUser, setTargetUser] = useState(""); 
@@ -125,7 +179,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030101";
+  const version = "0.030102";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
