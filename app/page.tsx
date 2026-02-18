@@ -48,39 +48,49 @@ function MainController() {
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
-      <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-        <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover opacity-60 transition-all duration-[2000ms]">
+      
+      {/* BACKGROUND VIDEO FIX: Fullscreen + Shifted Right */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute top-0 left-0 w-full h-full object-cover object-[75%_center] opacity-60 scale-110 transition-transform duration-[2000ms]"
+        >
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/40 to-[#09090b] z-10"></div>
       </div>
 
-      <div className="absolute top-8 left-8 z-30">
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.location.reload()}>
-          <SekerLogo className="text-green-500 w-8 h-8 group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]" />
-          <span className="text-2xl font-black italic tracking-tighter text-white drop-shadow-md">SEKERBABA</span>
+      {/* SMALLER LOGO (TOP LEFT) - NO GLOW */}
+      <div className="absolute top-6 left-6 z-30">
+        <div className="flex items-center gap-2 cursor-pointer opacity-80 hover:opacity-100 transition-opacity" onClick={() => window.location.reload()}>
+          <SekerLogo className="text-green-500 w-6 h-6" />
+          <span className="text-lg font-black italic tracking-tighter text-white">SEKERBABA</span>
         </div>
       </div>
 
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030096 Fixed
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030097 Stable
           </div>
+
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
           </h1>
-          <p className="text-zinc-400 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md">
+          <p className="text-zinc-400 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
             Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
           <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
-            <button onClick={onLaunch} className="bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-xs md:text-sm">
+            <button onClick={onLaunch} className="bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] text-xs md:text-sm">
               Open Dashboard
             </button>
             <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-               <a href="/privacy" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Privacy Policy</a>
+               <a href="/privacy" className="hover:text-green-500 transition-colors">Privacy Policy</a>
                <span className="text-zinc-800">•</span>
-               <a href="/terms" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Terms of Service</a>
+               <a href="/terms" className="hover:text-green-500 transition-colors">Terms of Service</a>
             </div>
           </div>
         </div>
@@ -109,7 +119,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030096";
+  const version = "0.030097";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -220,7 +230,15 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-// --- MODULE KOMPONENTEN ---
+function InfoCard({ label, value, color = "text-white" }: any) {
+  return (
+    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
+      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
+      <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
+    </div>
+  );
+}
+
 function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const [newCode, setNewCode] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -384,15 +402,6 @@ function AuthCard({ icon, name, status, active, connected, onAction }: any) {
           {connected ? "DISCONNECT" : "CONNECT"}
         </button>
       )}
-    </div>
-  );
-}
-
-function InfoCard({ label, value, color = "text-white" }: any) {
-  return (
-    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
-      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
-      <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
     </div>
   );
 }
