@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { logout, checkSession } from "@/app/actions/auth";
 import { 
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
-  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle
+  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
+  Camera, RefreshCw, FlipHorizontal
 } from "lucide-react";
 
 function SekerLogo({ className }: { className?: string }) {
@@ -26,7 +27,7 @@ function DashboardContent() {
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
   const [activeView, setActiveView] = useState("ttv");
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar State
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
@@ -35,7 +36,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030120"; // Mobile Menu Fix
+  const version = "0.030121"; // Camera Module & Compact Sidebar
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -85,27 +86,20 @@ function DashboardContent() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
-      
-      {/* MOBILE BACKDROP - Click to close sidebar */}
       {sidebarOpen && (
-        <div 
-            className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" 
-            onClick={() => setSidebarOpen(false)} 
-        />
+        <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* SIDEBAR - Fixed on Mobile, Relative on Desktop */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
+        <div className="flex items-center mb-6 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
           <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
         </div>
         
-        {/* MOBILE CLOSE BUTTON (Optional, but good UX) */}
         <button className="absolute top-4 right-4 lg:hidden text-zinc-500" onClick={() => setSidebarOpen(false)}>
             <X size={20} />
         </button>
 
-        <div className="mb-8 space-y-2 not-italic">
+        <div className="mb-6 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
@@ -122,41 +116,40 @@ function DashboardContent() {
             {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
             {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
-          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
+          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-3 space-y-2 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
             <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>EXPIRY</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
           </div>
         </div>
+        
+        {/* COMPACT SIDEBAR MENU */}
         <nav className="space-y-1">
           <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
           <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<Camera size={16} />} label="LIVE CAM" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
         </nav>
+        
         <div className="flex-1"></div>
         <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
            <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
-           <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
+           <div className="flex items-center justify-between px-3 py-2 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div>
               <span className="font-mono">EN</span>
            </div>
-           <button onClick={async () => { localStorage.clear(); await logout(); }} className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 border-transparent text-red-500 hover:bg-red-500/10 hover:border-red-500/20">
+           <button onClick={async () => { localStorage.clear(); await logout(); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 border-transparent text-red-500 hover:bg-red-500/10 hover:border-red-500/20">
               <LogOut size={16} /> LOGOUT
            </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
-        {/* HEADER */}
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
-          
-          {/* HAMBURGER MENU BUTTON (VISIBLE ON MOBILE) */}
           <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}>
             <Menu size={24} />
           </button>
-
           <div className="flex items-center gap-2 font-black italic lg:hidden"><SekerLogo className="w-5 h-5 text-green-500" /> SEKERBABA</div>
           <div className="hidden lg:block" />
         </header>
@@ -170,6 +163,7 @@ function DashboardContent() {
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
+          {activeView === "camera" && <ModuleCamera />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
           {activeView === "settings" && <ModuleSettings isConnected={isTikTokConnected} onConnect={handleTikTokConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
         </div>
@@ -178,12 +172,103 @@ function DashboardContent() {
   );
 }
 
-// --- SUB COMPONENTS (UNCHANGED) ---
+// --- SUB COMPONENTS ---
+
+// COMPACT SIDEBAR ITEM (py-2 instead of py-3)
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
       {icon} {label}
     </button>
+  );
+}
+
+// NEW CAMERA MODULE
+function ModuleCamera() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [streaming, setStreaming] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [mirror, setMirror] = useState(true);
+  const [error, setError] = useState("");
+
+  const stopStream = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setStreaming(false);
+    }
+  };
+
+  const startStream = async () => {
+    stopStream(); // Stop existing if any
+    setError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setStreaming(true);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError("Camera access denied or not available.");
+      setStreaming(false);
+    }
+  };
+
+  const switchCamera = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+    setMirror(prev => !prev); // Usually back camera shouldn't be mirrored by default
+  };
+
+  // Restart stream when facing mode changes
+  useEffect(() => {
+    if (streaming) startStream();
+  }, [facingMode]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopStream();
+  }, []);
+
+  return (
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
+        <div className="flex items-center justify-between">
+            <h3 className="text-white text-xs not-italic flex items-center gap-2"><Camera size={14} className="text-red-500" /> Live Camera Feed</h3>
+            {streaming && <span className="text-[9px] text-red-500 animate-pulse flex items-center gap-1">REC <span className="w-2 h-2 rounded-full bg-red-500"></span></span>}
+        </div>
+
+        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center">
+            {!streaming && !error && <p className="text-zinc-600 text-[10px]">Camera is off</p>}
+            {error && <p className="text-red-500 text-[10px]">{error}</p>}
+            <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted 
+                className={`w-full h-full object-cover transition-transform ${mirror ? 'scale-x-[-1]' : ''}`} 
+            />
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button onClick={streaming ? stopStream : startStream} className={`py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 ${streaming ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-white text-black hover:bg-green-400"}`}>
+                {streaming ? <><StopCircle size={16} /> STOP CAM</> : <><Play size={16} /> START CAM</>}
+            </button>
+            
+            <button onClick={switchCamera} disabled={!streaming} className="py-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl text-[10px] font-black hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2">
+                <RefreshCw size={16} className={streaming ? "animate-spin-once" : ""} /> SWITCH
+            </button>
+
+            <button onClick={() => setMirror(!mirror)} disabled={!streaming} className="py-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl text-[10px] font-black hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2">
+                <FlipHorizontal size={16} /> MIRROR
+            </button>
+        </div>
+      </div>
+      <p className="text-center text-[9px] text-zinc-600">Works on Android, iOS, and Desktop Webcams.</p>
+    </div>
   );
 }
 
