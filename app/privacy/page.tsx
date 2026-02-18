@@ -42,8 +42,8 @@ export default function Privacy() {
         <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-[#09090b]/20 pointer-events-none"></div>
       </div>
 
-      {/* CONTENT */}
-      <div className="max-w-4xl mx-auto px-8 md:px-20 pt-64 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
+      {/* CONTENT - PADDING ADJUSTED TO MATCH TERMS PAGE */}
+      <div className="max-w-4xl mx-auto px-8 md:px-20 pt-56 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
         <section>
           <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">01.</span> Data Processing</h2>
           <p>SEKERBABA processes your TikTok profile data (Username, Avatar) solely to provide the overlay interface. We do not store your private credentials. Authentication is handled via TikTok’s official OAuth system.</p>
