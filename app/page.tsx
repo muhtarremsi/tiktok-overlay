@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Box, Plus, Trash2, X, Menu,
-  Volume2, Globe, LogIn, CheckCircle2, Wifi, Loader2, AlertCircle, Radio, Music
+  Volume2, Globe, LogIn, CheckCircle2, Wifi, Loader2, AlertCircle, Radio, Music, Info
 } from "lucide-react";
 
 function DashboardContent() {
@@ -16,10 +16,11 @@ function DashboardContent() {
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   
-  const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline'>('idle');
+  // Neuer Status 'too_short' hinzugefügt
+  const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
   
   const [baseUrl, setBaseUrl] = useState("");
-  const version = "0.030056";
+  const version = "0.030057";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -39,11 +40,6 @@ function DashboardContent() {
   }, [searchParams]);
 
   const checkUserStatus = async (userToCheck: string) => {
-    // FIX: Erst ab 3 Zeichen prüfen
-    if (!userToCheck || userToCheck.length < 3) {
-      setStatus('idle');
-      return;
-    }
     setStatus('checking'); 
     try {
       const res = await fetch(`/api/status?u=${userToCheck}`);
@@ -59,11 +55,13 @@ function DashboardContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // FIX: Wenn leer oder zu kurz, dann Reset auf 'idle'
-      if (targetUser && targetUser.length >= 3) {
-        checkUserStatus(targetUser);
-      } else {
+      if (!targetUser) {
         setStatus('idle');
+      } else if (targetUser.length < 3) {
+        // FIX: Wenn Text da ist, aber zu kurz -> Status 'too_short'
+        setStatus('too_short');
+      } else {
+        checkUserStatus(targetUser);
       }
     }, 800);
     return () => clearTimeout(timer);
@@ -73,9 +71,13 @@ function DashboardContent() {
     const val = e.target.value.toLowerCase();
     setTargetUser(val);
     
-    // FIX: Wenn leer, SOFORT auf 'idle' setzen, sonst bleibt es gelb
+    // Logik für sofortiges Feedback während des Tippens
     if (val.length === 0) {
       setStatus('idle');
+    } else if (val.length < 3) {
+      // Wenn zu kurz, noch nicht 'checking' zeigen, sondern warten (idle) oder direkt info
+      // Wir lassen es kurz auf idle, der Debounce setzt es dann auf 'too_short'
+      setStatus('idle'); 
     } else {
       setStatus('checking'); 
     }
@@ -103,10 +105,8 @@ function DashboardContent() {
         <div className="mb-8 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
           <div className="relative group">
-            {/* Font Größe auf 10px reduziert */}
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
             
-            {/* Input Font Größe auf 11px reduziert */}
             <input 
               type="text" 
               placeholder="username" 
@@ -117,6 +117,7 @@ function DashboardContent() {
                 ${status === 'online' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
                 ${status === 'offline' ? "border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : ""}
                 ${status === 'checking' ? "border-yellow-500/50 text-yellow-100" : ""}
+                ${status === 'too_short' ? "border-blue-500/30 text-zinc-300" : ""}
                 ${status === 'idle' ? "border-zinc-800 text-zinc-200" : ""}
               `} 
             />
@@ -130,6 +131,8 @@ function DashboardContent() {
                 </div>
               )}
               {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
+              {/* Info Icon für zu kurzen Text */}
+              {status === 'too_short' && <Info className="w-3 h-3 text-blue-500" />}
               {status === 'idle' && <div className="w-2 h-2 bg-zinc-800 rounded-full border border-zinc-700"></div>}
             </div>
           </div>
@@ -137,6 +140,8 @@ function DashboardContent() {
           <div className="h-4 flex items-center justify-end px-1">
             {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline / Not Found</span>}
             {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Live Connection Ready</span>}
+            {/* Info Text */}
+            {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> Enter at least 3 chars</span>}
           </div>
 
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
