@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
-  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Cookie
+  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Cookie, Code2
 } from "lucide-react";
 
 // --- CUSTOM LOGO COMPONENT ---
@@ -49,10 +49,8 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   const [showCookieBanner, setShowCookieBanner] = useState(false);
 
   useEffect(() => {
-    // Check local storage after mount to avoid hydration mismatch
     const consent = localStorage.getItem("seker_cookie_consent");
     if (!consent) {
-      // Small delay for animation effect
       const timer = setTimeout(() => setShowCookieBanner(true), 1000);
       return () => clearTimeout(timer);
     }
@@ -71,7 +69,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
-      {/* BACKGROUND VIDEO */}
+      {/* BACKGROUND VIDEO: Scale 150% only on Desktop */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
         <video 
           autoPlay 
@@ -86,7 +84,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       </div>
 
       {/* LOGO */}
-      <div className="absolute top-6 left-6 md:top-6 md:left-10 z-30">
+      <div className="absolute top-6 left-6 md:left-10 z-30">
         <div className="flex items-center gap-2 cursor-pointer opacity-90 hover:opacity-100 transition-opacity" onClick={() => window.location.reload()}>
           <SekerLogo className="text-green-500 w-6 h-6" />
           <span className="text-lg font-black italic tracking-tighter text-white">SEKERBABA</span>
@@ -97,7 +95,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030102 Compliance
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030103 Legal
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
@@ -119,6 +117,8 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
                <a href="/privacy" className="hover:text-green-500 transition-colors">Privacy Policy</a>
                <span className="text-zinc-800">•</span>
                <a href="/terms" className="hover:text-green-500 transition-colors">Terms of Service</a>
+               <span className="text-zinc-800">•</span>
+               <a href="/licenses" className="hover:text-green-500 transition-colors">Licenses</a>
             </div>
           </div>
         </div>
@@ -130,7 +130,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         </p>
       </div>
 
-      {/* COOKIE CONSENT BANNER (PREMIUM GLASS STYLE) */}
+      {/* COOKIE CONSENT BANNER */}
       {showCookieBanner && (
         <div className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:bottom-6 md:w-96 z-50 p-6 md:rounded-2xl bg-black/80 backdrop-blur-xl border-t md:border border-white/10 shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-10 fade-in-20">
           <div className="flex items-start gap-4 mb-4">
@@ -140,27 +140,16 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
             <div className="space-y-1">
               <h4 className="text-xs font-black uppercase tracking-wider text-white">Privacy & Cookies</h4>
               <p className="text-[10px] text-zinc-400 leading-relaxed font-bold">
-                We use cookies to ensure you get the best experience on our dashboard. This includes analytics and essential session data.
+                We use cookies to ensure you get the best experience on our dashboard.
               </p>
             </div>
           </div>
           <div className="flex gap-3">
-            <button 
-              onClick={handleDecline}
-              className="flex-1 py-2.5 rounded-lg border border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 transition-colors"
-            >
-              Decline
-            </button>
-            <button 
-              onClick={handleAccept}
-              className="flex-1 py-2.5 rounded-lg bg-green-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-green-400 hover:scale-105 transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-            >
-              Accept
-            </button>
+            <button onClick={handleDecline} className="flex-1 py-2.5 rounded-lg border border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 transition-colors">Decline</button>
+            <button onClick={handleAccept} className="flex-1 py-2.5 rounded-lg bg-green-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-green-400 hover:scale-105 transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]">Accept</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
@@ -179,7 +168,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030102";
+  const version = "0.030103";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -440,6 +429,20 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
           <InfoCard label="PLAN" value="PRO LIFETIME" color="text-blue-500" />
           <InfoCard label="EXPIRES" value={expiry} />
           <InfoCard label="STATUS" value="ACTIVE" color="text-green-500" />
+        </div>
+        {/* ADDED: OPEN SOURCE CREDITS SECTION */}
+        <div className="pt-8 border-t border-white/5">
+           <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1 mb-4">OPEN SOURCE CREDITS</h3>
+           <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                 <Code2 size={18} className="text-purple-500" />
+                 <div>
+                    <p className="text-xs font-black text-white">TikTok-Live-Connector</p>
+                    <p className="text-[9px] text-zinc-500 font-bold">Powered by zerodytrash (MIT License)</p>
+                 </div>
+              </div>
+              <a href="https://github.com/zerodytrash/TikTok-Live-Connector" target="_blank" rel="noopener noreferrer" className="text-[9px] text-zinc-400 hover:text-white underline">View Source</a>
+           </div>
         </div>
       </section>
     </div>
