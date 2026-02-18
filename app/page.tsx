@@ -31,21 +31,44 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE ---
+// --- LANDING PAGE (MOBILE OPTIMIZED) ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-x-hidden">
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-xl">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-lg md:text-xl">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-            <Box className="text-green-500" /> ARC TOOLS
+            <Box className="text-green-500 w-5 h-5 md:w-6 md:h-6" /> ARC TOOLS
           </div>
-          <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all">Launch App</button>
+          <button onClick={onLaunch} className="bg-white text-black px-4 md:px-6 py-2 rounded-full text-[10px] md:text-xs uppercase font-black tracking-widest hover:bg-zinc-200 transition-all">
+            Launch App
+          </button>
         </div>
       </nav>
-      <div className="relative pt-40 pb-20 px-6 text-center">
-        <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter mb-8 uppercase">Interactive Overlays</h1>
-        <button onClick={onLaunch} className="bg-green-500 text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all">Open Dashboard</button>
+
+      <div className="relative pt-32 md:pt-48 pb-20 px-4 md:px-6 text-center">
+        {/* Glow Effekt */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full md:w-[1000px] h-[300px] md:h-[500px] bg-green-500/10 rounded-full blur-[80px] md:blur-[120px] -z-10 pointer-events-none"></div>
+        
+        <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-2 md:mb-4">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030062 Stable
+          </div>
+          
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[1.1] uppercase">
+            Interactive <br className="hidden sm:block" /> Overlays
+          </h1>
+          
+          <p className="text-zinc-400 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-wide px-4 leading-relaxed">
+            Boost your TikTok Live with custom video triggers and real-time interactions. 
+          </p>
+
+          <div className="pt-4 md:pt-6">
+            <button onClick={onLaunch} className="w-full sm:w-auto bg-green-500 text-black px-10 py-4 md:py-5 rounded-xl font-black uppercase tracking-widest text-xs md:text-sm transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+              Open Dashboard
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -54,14 +77,11 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
 // --- DASHBOARD APP ---
 function DashboardContent() {
   const searchParams = useSearchParams();
-  
-  // GLOBAL STATE
   const [targetUser, setTargetUser] = useState(""); 
   const [authUser, setAuthUser] = useState("");     
   const [activeView, setActiveView] = useState("ttv");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
-  
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
   const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
@@ -75,13 +95,9 @@ function DashboardContent() {
     const savedTTV = localStorage.getItem("arc_ttv");
     const savedSounds = localStorage.getItem("arc_sounds");
     const savedTarget = localStorage.getItem("arc_target");
-    
     if (savedTTV) setTtvTriggers(JSON.parse(savedTTV));
     if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
-    if (savedTarget) {
-      setTargetUser(savedTarget);
-    }
-
+    if (savedTarget) setTargetUser(savedTarget);
     const userFromUrl = searchParams.get("u");
     if (userFromUrl) setAuthUser(userFromUrl);
   }, [searchParams]);
@@ -92,22 +108,17 @@ function DashboardContent() {
     if (targetUser) localStorage.setItem("arc_target", targetUser);
   }, [ttvTriggers, soundTriggers, targetUser]);
 
-  // RESTAURIERTE STATUS LOGIK
   useEffect(() => {
     const checkUser = async () => {
       if (!targetUser) { setStatus('idle'); return; }
       if (targetUser.length < 3) { setStatus('too_short'); return; }
-      
       setStatus('checking');
       try {
         const res = await fetch(`/api/status?u=${targetUser}`);
         if (res.ok) setStatus('online');
         else setStatus('offline');
-      } catch (e) {
-        setStatus('offline');
-      }
+      } catch (e) { setStatus('offline'); }
     };
-
     const timer = setTimeout(checkUser, 800);
     return () => clearTimeout(timer);
   }, [targetUser]);
@@ -127,42 +138,26 @@ function DashboardContent() {
         </div>
         
         <div className="mb-8 space-y-2 not-italic">
-          <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
-          <div className="relative group">
+          <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
+          <div className="relative">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
             <input 
-              type="text" 
-              placeholder="username" 
-              value={targetUser} 
+              type="text" placeholder="username" value={targetUser} 
               onChange={(e) => setTargetUser(e.target.value.toLowerCase())} 
-              className={`
-                w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
-                ${status === 'online' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : "border-zinc-800"}
-                ${status === 'offline' ? "border-red-500/50 text-red-400" : ""}
-                ${status === 'checking' ? "border-yellow-500/50" : ""}
-              `} 
+              className={`w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none border transition-all lowercase ${status === 'online' ? "border-green-500/50 text-green-400" : "border-zinc-800"}`}
             />
             <div className="absolute inset-y-0 right-3 flex items-center">
               {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
-              {status === 'online' && (
-                <div className="relative flex items-center justify-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full z-10"></div>
-                  <div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                </div>
-              )}
+              {status === 'online' && <div className="relative flex items-center justify-center"><div className="w-2 h-2 bg-green-500 rounded-full z-10"></div><div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div></div>}
               {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
               {status === 'too_short' && <Info className="w-3 h-3 text-blue-500" />}
             </div>
           </div>
-          
-          {/* STATUS TEXTE UNTER INPUT */}
           <div className="h-4 flex items-center justify-end px-1">
-            {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline / Not Found</span>}
-            {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Live Connection Ready</span>}
-            {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> Enter at least 3 chars</span>}
+            {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline</span>}
+            {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
+            {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
-
-          {/* INFO BOX */}
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
@@ -175,14 +170,12 @@ function DashboardContent() {
           <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => navigateTo("sounds")} />
           <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => navigateTo("fanclub")} />
         </nav>
-
         <div className="flex-1"></div>
-
         <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
            <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => navigateTo("settings")} />
-           <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 group cursor-pointer uppercase font-bold tracking-widest">
+           <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div>
-              <span className="text-[10px] font-mono">EN</span>
+              <span className="font-mono">EN</span>
            </div>
         </div>
       </aside>
@@ -193,7 +186,6 @@ function DashboardContent() {
           <div className="text-[10px] uppercase font-black tracking-widest"><span className="text-zinc-600">App /</span> {activeView}</div>
           <div className="hidden md:block" />
         </header>
-
         <div className="flex-1 overflow-y-auto">
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
@@ -221,8 +213,8 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}`;
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, start: 0, end: 10 }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
+    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-4">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Plus size={14} /> Add Video Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
@@ -234,7 +226,7 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
         {triggers.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group transition-all hover:border-zinc-700">
             <span className="text-green-500">{t.code}</span>
-            <span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[120px] md:max-w-[200px] italic">{t.url}</span>
             <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
           </div>
         ))}
@@ -257,8 +249,8 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}&type=audio`;
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, type: 'audio' }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
+    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-4">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Music size={14} /> Add Sound Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input placeholder="Command (e.g. !horn)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
@@ -270,7 +262,7 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
         {triggers.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group transition-all hover:border-zinc-700">
             <span className="text-blue-500">{t.code}</span>
-            <span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[120px] md:max-w-[200px] italic">{t.url}</span>
             <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
           </div>
         ))}
@@ -295,8 +287,8 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
     </div>
   );
   return (
-    <div className="p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
+    <div className="p-6 md:p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-6">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Heart size={14} className="text-pink-500" /> Fanclub Alerts</h3>
         <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
           <span className="text-[10px]">Team Heart Alert</span>
@@ -309,9 +301,9 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
 
 function ModuleSettings({ authUser, setAuthUser }: any) {
   return (
-    <div className="p-10 max-w-xl mx-auto text-center space-y-8 uppercase italic font-bold">
+    <div className="p-6 md:p-10 max-w-xl mx-auto text-center space-y-8 uppercase italic font-bold">
       <h2 className="text-xl text-white">Account</h2>
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-10 rounded-3xl space-y-6">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 md:p-10 rounded-3xl space-y-6">
         {authUser ? (
           <div className="space-y-4">
             <CheckCircle2 size={40} className="mx-auto text-green-500" />
