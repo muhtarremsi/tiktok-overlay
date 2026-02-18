@@ -13,7 +13,10 @@ export async function login(prevState: any, formData: FormData) {
   // Einfacher Check: Stimmen die Daten mit der .env überein?
   if (email === adminEmail && password === adminPassword) {
     // Cookie setzen (hält 7 Tage)
-    cookies().set("seker_admin_session", "true", {
+    // WICHTIG: In Next.js 15+ ist cookies() asynchron! Wir müssen 'await' nutzen.
+    const cookieStore = await cookies();
+    
+    cookieStore.set("seker_admin_session", "true", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 Woche
@@ -28,6 +31,8 @@ export async function login(prevState: any, formData: FormData) {
 }
 
 export async function logout() {
-  cookies().delete("seker_admin_session");
+  // Auch hier: await cookies()
+  const cookieStore = await cookies();
+  cookieStore.delete("seker_admin_session");
   redirect("/login");
 }
