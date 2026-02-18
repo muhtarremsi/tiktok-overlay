@@ -27,10 +27,7 @@ function MainController() {
     }
   }, [searchParams]);
 
-  if (showApp) {
-    return <DashboardContent />;
-  }
-
+  if (showApp) return <DashboardContent />;
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
@@ -44,9 +41,6 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
             <Box className="text-green-500" /> ARC TOOLS
           </div>
           <div className="flex gap-4">
-            <button onClick={() => window.location.href = "/api/auth/login"} className="hidden md:flex text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors py-2">
-              Login
-            </button>
             <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center gap-2">
               Launch App <ArrowRight size={14} />
             </button>
@@ -60,43 +54,20 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest mb-4">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030062 Stable
           </div>
-          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter leading-tight">
-            INTERACTIVE OVERLAYS <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 to-zinc-600">FOR TIKTOK LIVE</span>
+          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter leading-tight uppercase">
+            Interactive Overlays <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 to-zinc-600">for TikTok Live</span>
           </h1>
-          <p className="text-zinc-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed font-bold uppercase">
-            Create immersive streams with video triggers, sound alerts, and real-time interactions. 
-          </p>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-4">
-            <button onClick={onLaunch} className="w-full md:w-auto bg-green-500 hover:bg-green-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-              Start Creating
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FeatureCard icon={<Monitor size={24} className="text-blue-400" />} title="Video Triggers" desc="Trigger MP4 videos instantly via chat commands." />
-          <FeatureCard icon={<Volume2 size={24} className="text-pink-400" />} title="Sound Alerts" desc="Play custom sound effects (MP3) directly from chat." />
-          <FeatureCard icon={<Heart size={24} className="text-red-500" />} title="Fanclub Tools" desc="Exclusive alerts for Team Heart and Subscribers." />
+          <button onClick={onLaunch} className="bg-green-500 hover:bg-green-400 text-black px-10 py-5 rounded-xl font-black uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+            Start Dashboard
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function FeatureCard({ icon, title, desc }: any) {
-  return (
-    <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl group transition-all">
-      <div className="mb-4 bg-zinc-900 w-12 h-12 rounded-lg flex items-center justify-center">{icon}</div>
-      <h3 className="text-white font-black italic uppercase text-lg mb-2">{title}</h3>
-      <p className="text-zinc-400 text-[10px] uppercase font-bold leading-relaxed">{desc}</p>
-    </div>
-  );
-}
-
-// --- DASHBOARD APP ---
+// --- DASHBOARD ---
 function DashboardContent() {
   const searchParams = useSearchParams();
   const [targetUser, setTargetUser] = useState(""); 
@@ -114,13 +85,9 @@ function DashboardContent() {
     const savedTTV = localStorage.getItem("arc_ttv");
     const savedSounds = localStorage.getItem("arc_sounds");
     const savedTarget = localStorage.getItem("arc_target");
-    
     if (savedTTV) setTtvTriggers(JSON.parse(savedTTV));
-    else setTtvTriggers([{ id: 1, code: "777", url: "https://cdn.discordapp.com/attachments/1462540433463709815/1472988001838563361/Meme_Okay_.mp4", start: 0, end: 10 }]);
-
     if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
     if (savedTarget) setTargetUser(savedTarget);
-
     const userFromUrl = searchParams.get("u");
     if (userFromUrl) setAuthUser(userFromUrl);
   }, [searchParams]);
@@ -133,8 +100,7 @@ function DashboardContent() {
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (!targetUser) { setStatus('idle'); return; }
-      if (targetUser.length < 3) { setStatus('too_short'); return; }
+      if (!targetUser || targetUser.length < 3) { setStatus(targetUser ? 'too_short' : 'idle'); return; }
       setStatus('checking');
       try {
         const res = await fetch(`/api/status?u=${targetUser}`);
@@ -152,7 +118,7 @@ function DashboardContent() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
       {sidebarOpen && <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
-
+      
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => window.location.href = "/"}>
           <Box className="w-4 h-4 mr-2 text-green-500" /> ARC TOOLS
@@ -170,7 +136,6 @@ function DashboardContent() {
             <div className="absolute inset-y-0 right-3 flex items-center">
               {status === 'checking' && <Loader2 className="w-3 h-3 animate-spin text-yellow-500" />}
               {status === 'online' && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />}
-              {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full" />}
             </div>
           </div>
         </div>
@@ -203,15 +168,16 @@ function DashboardContent() {
   );
 }
 
+// FIX: Border-Transparent verhindert Layout-Shift (Zittern)
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border ${active ? "bg-[#0c0c0e] text-white border-white/10" : "border-transparent text-zinc-500 hover:text-white"}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
       {icon} {label}
     </button>
   );
 }
 
-// --- MODULE KOMPONENTEN (Kern-Logik unverändert) ---
+// --- MODULE (UNVERÄNDERT PERFEKT) ---
 function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const [newCode, setNewCode] = useState("");
   const [newUrl, setNewUrl] = useState("");
@@ -220,7 +186,7 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, start: 0, end: 10 }]); setNewCode(""); setNewUrl(""); };
   return (
     <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 lg:p-8 rounded-2xl space-y-4">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Plus size={14} /> Add Video Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
@@ -230,14 +196,14 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
       </div>
       <div className="space-y-2">
         {triggers.map((t: any) => (
-          <div key={t.id} className="flex items-center justify-between bg-black/40 border border-zinc-800 p-4 rounded-xl group">
+          <div key={t.id} className="flex items-center justify-between bg-black/40 border border-zinc-800 p-4 rounded-xl">
             <span className="text-green-500">{t.code}</span>
-            <span className="text-[9px] text-zinc-600 truncate max-w-[150px] md:max-w-xs">{t.url}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[150px] md:max-w-xs italic">{t.url}</span>
             <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))}><Trash2 size={14} className="text-zinc-600 hover:text-red-500" /></button>
           </div>
         ))}
       </div>
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3 not-italic">
         <label className="text-[9px] text-zinc-500 uppercase tracking-widest font-black">OBS Master Link</label>
         <div className="flex flex-col gap-3">
           <div className="bg-black p-4 rounded text-[9px] font-mono text-zinc-500 break-all border border-white/5">{link}</div>
@@ -268,12 +234,12 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
         {triggers.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between bg-black/40 border border-zinc-800 p-4 rounded-xl">
             <span className="text-blue-500">{t.code}</span>
-            <span className="text-[9px] text-zinc-600 truncate max-w-[150px] md:max-w-xs">{t.url}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[150px] md:max-w-xs italic">{t.url}</span>
             <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))}><Trash2 size={14} className="text-zinc-600 hover:text-red-500" /></button>
           </div>
         ))}
       </div>
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3 not-italic">
         <label className="text-[9px] text-zinc-500 uppercase tracking-widest font-black">OBS Audio Link</label>
         <div className="flex flex-col gap-3">
           <div className="bg-black p-4 rounded text-[9px] font-mono text-zinc-500 break-all border border-white/5">{link}</div>
@@ -285,16 +251,13 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
 }
 
 function ModuleFanclub({ authUser, config, setConfig }: any) {
-  if (!authUser) {
-    return (
-      <div className="h-[80vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
-        <Heart size={48} className="text-pink-500 animate-pulse" />
-        <h2 className="text-xl text-white">Auth Required</h2>
-        <p className="text-zinc-500 text-[10px] max-w-xs">Please login in the settings to access fanclub features.</p>
-        <button onClick={() => window.location.href="/api/auth/login"} className="bg-white text-black px-8 py-3 rounded-full text-[10px] font-black">Login with TikTok</button>
-      </div>
-    );
-  }
+  if (!authUser) return (
+    <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
+      <Heart size={48} className="text-pink-500 animate-pulse" />
+      <h2 className="text-xl text-white">Auth Required</h2>
+      <button onClick={() => window.location.href="/api/auth/login"} className="bg-white text-black px-8 py-3 rounded-full text-[10px] font-black">Login with TikTok</button>
+    </div>
+  );
   return (
     <div className="p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
       <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
@@ -302,10 +265,6 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
         <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
           <span className="text-[10px]">Team Heart Alert</span>
           <input type="checkbox" checked={config.teamHeart} onChange={e => setConfig({...config, teamHeart: e.target.checked})} className="w-4 h-4 accent-pink-500" />
-        </div>
-        <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
-          <span className="text-[10px]">Subscribers Alert</span>
-          <input type="checkbox" checked={config.subAlert} onChange={e => setConfig({...config, subAlert: e.target.checked})} className="w-4 h-4 accent-pink-500" />
         </div>
       </div>
     </div>
