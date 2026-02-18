@@ -26,6 +26,7 @@ function DashboardContent() {
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
   const [activeView, setActiveView] = useState("ttv");
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar State
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
@@ -34,7 +35,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030118";
+  const version = "0.030120"; // Mobile Menu Fix
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -84,11 +85,26 @@ function DashboardContent() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-black border-r border-white/10 flex flex-col p-5">
+      
+      {/* MOBILE BACKDROP - Click to close sidebar */}
+      {sidebarOpen && (
+        <div 
+            className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" 
+            onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+
+      {/* SIDEBAR - Fixed on Mobile, Relative on Desktop */}
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
           <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
         </div>
+        
+        {/* MOBILE CLOSE BUTTON (Optional, but good UX) */}
+        <button className="absolute top-4 right-4 lg:hidden text-zinc-500" onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+        </button>
+
         <div className="mb-8 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
           <div className="relative">
@@ -113,14 +129,14 @@ function DashboardContent() {
           </div>
         </div>
         <nav className="space-y-1">
-          <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => setActiveView("ttv")} />
-          <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => setActiveView("sounds")} />
-          <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => setActiveView("ttc")} />
-          <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => setActiveView("fanclub")} />
+          <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
         </nav>
         <div className="flex-1"></div>
         <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
-           <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => setActiveView("settings")} />
+           <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
            <div className="flex items-center justify-between px-3 py-2.5 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div>
               <span className="font-mono">EN</span>
@@ -133,10 +149,18 @@ function DashboardContent() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
+        {/* HEADER */}
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
-          <div className="flex items-center gap-2 font-black italic md:hidden"><SekerLogo className="w-5 h-5 text-green-500" /></div>
-          <div className="hidden md:block" />
+          
+          {/* HAMBURGER MENU BUTTON (VISIBLE ON MOBILE) */}
+          <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}>
+            <Menu size={24} />
+          </button>
+
+          <div className="flex items-center gap-2 font-black italic lg:hidden"><SekerLogo className="w-5 h-5 text-green-500" /> SEKERBABA</div>
+          <div className="hidden lg:block" />
         </header>
+
         <div className="px-6 pt-6 pb-2">
            <div className="text-[10px] uppercase font-black tracking-widest text-zinc-600 flex items-center gap-2">
               <span>APP</span> <span className="text-zinc-800">/</span> <span className="text-white text-xs">{activeView}</span>
@@ -154,7 +178,7 @@ function DashboardContent() {
   );
 }
 
-// --- SUB COMPONENTS ---
+// --- SUB COMPONENTS (UNCHANGED) ---
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
@@ -185,35 +209,26 @@ function ModuleTTC() {
       const available = window.speechSynthesis.getVoices();
       setVoices(available);
       if (available.length > 0 && !selectedVoice) {
-        // Versuche eine deutsche Stimme zu finden, sonst die erste
         const deVoice = available.find(v => v.lang.includes("de"));
         setSelectedVoice(deVoice ? deVoice.name : available[0].name);
       }
     };
-    
     loadVoices();
-    // Chrome lädt Stimmen asynchron, wir müssen auf das Event warten
     window.speechSynthesis.onvoiceschanged = loadVoices;
-    
     return () => { window.speechSynthesis.onvoiceschanged = null; }
   }, []);
 
   const handleSpeak = () => {
     if (!selectedVoice) return;
-    
-    window.speechSynthesis.cancel(); // Stop previous
-    
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const voice = voices.find(v => v.name === selectedVoice);
     if (voice) utterance.voice = voice;
-    
     utterance.pitch = pitch;
     utterance.rate = rate;
-    
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
-    
     window.speechSynthesis.speak(utterance);
   };
 
@@ -229,33 +244,17 @@ function ModuleTTC() {
             <h3 className="text-white text-xs not-italic flex items-center gap-2"><MessageSquare size={14} className="text-green-500" /> Text to Chat (Browser TTS)</h3>
             {isSpeaking && <span className="text-[9px] text-green-500 animate-pulse flex items-center gap-1">SPEAKING... <Volume2 size={10}/></span>}
         </div>
-
         <div className="space-y-4">
             <div className="space-y-1">
                 <label className="text-[9px] text-zinc-500">Select Voice</label>
-                <select 
-                    value={selectedVoice} 
-                    onChange={(e) => setSelectedVoice(e.target.value)} 
-                    className="w-full bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none cursor-pointer hover:border-zinc-700 transition-colors"
-                >
-                    {voices.map((v) => (
-                        <option key={v.name} value={v.name}>
-                            {v.name} ({v.lang})
-                        </option>
-                    ))}
+                <select value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)} className="w-full bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none cursor-pointer hover:border-zinc-700 transition-colors">
+                    {voices.map((v) => (<option key={v.name} value={v.name}>{v.name} ({v.lang})</option>))}
                 </select>
             </div>
-
             <div className="space-y-1">
                 <label className="text-[9px] text-zinc-500">Test Message</label>
-                <textarea 
-                    value={text} 
-                    onChange={(e) => setText(e.target.value)} 
-                    className="w-full h-24 bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none resize-none focus:border-green-500/50 transition-colors"
-                    placeholder="Enter text to speak..."
-                />
+                <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full h-24 bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none resize-none focus:border-green-500/50 transition-colors" placeholder="Enter text to speak..." />
             </div>
-
             <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <div className="flex justify-between text-[9px] text-zinc-500"><span>Speed</span><span>{rate}x</span></div>
@@ -266,20 +265,11 @@ function ModuleTTC() {
                     <input type="range" min="0" max="2" step="0.1" value={pitch} onChange={e => setPitch(parseFloat(e.target.value))} className="w-full accent-green-500 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
                 </div>
             </div>
-
             <div className="flex gap-3 pt-4">
-                <button onClick={handleSpeak} className="flex-1 bg-white text-black py-3 rounded-xl text-[10px] font-black hover:bg-green-400 transition-all flex items-center justify-center gap-2">
-                    <Play size={14} fill="currentColor" /> PREVIEW VOICE
-                </button>
-                <button onClick={handleStop} className="w-16 bg-zinc-900 border border-zinc-800 text-red-500 rounded-xl flex items-center justify-center hover:bg-zinc-800">
-                    <StopCircle size={18} />
-                </button>
+                <button onClick={handleSpeak} className="flex-1 bg-white text-black py-3 rounded-xl text-[10px] font-black hover:bg-green-400 transition-all flex items-center justify-center gap-2"><Play size={14} fill="currentColor" /> PREVIEW VOICE</button>
+                <button onClick={handleStop} className="w-16 bg-zinc-900 border border-zinc-800 text-red-500 rounded-xl flex items-center justify-center hover:bg-zinc-800"><StopCircle size={18} /></button>
             </div>
         </div>
-      </div>
-      
-      <div className="text-center text-[9px] text-zinc-600 font-bold">
-        Note: Available voices depend on your browser and OS.
       </div>
     </div>
   );
