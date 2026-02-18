@@ -31,14 +31,14 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE (EXAKT WIE IM BILD) ---
+// --- LANDING PAGE (SEKERBABA BRANDING) ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-x-hidden">
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-xl">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-            <Box className="text-green-500" /> ARC TOOLS
+            <Box className="text-green-500" /> SEKERBABA
           </div>
           <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
             Launch App
@@ -51,12 +51,15 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
         
         <div className="max-w-5xl mx-auto space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030064 Stable
+          </div>
           <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-none uppercase">
             INTERACTIVE <br /> OVERLAYS
           </h1>
           
           <p className="text-zinc-500 max-w-2xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
-            Boost your TikTok Live with custom video triggers and real-time interactions.
+            Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
 
           <div className="pt-8">
@@ -81,19 +84,19 @@ function DashboardContent() {
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
   const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
-  // Neue Quality State
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030063";
+  const version = "0.030064";
   const expiryDate = "17.02.2025";
 
+  // Rebranding: Keys auf 'seker_' geändert
   useEffect(() => {
     setBaseUrl(window.location.origin);
-    const savedTTV = localStorage.getItem("arc_ttv");
-    const savedSounds = localStorage.getItem("arc_sounds");
-    const savedTarget = localStorage.getItem("arc_target");
-    const savedPerf = localStorage.getItem("arc_perf");
+    const savedTTV = localStorage.getItem("seker_ttv");
+    const savedSounds = localStorage.getItem("seker_sounds");
+    const savedTarget = localStorage.getItem("seker_target");
+    const savedPerf = localStorage.getItem("seker_perf");
     
     if (savedTTV) setTtvTriggers(JSON.parse(savedTTV));
     if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
@@ -105,10 +108,10 @@ function DashboardContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    localStorage.setItem("arc_ttv", JSON.stringify(ttvTriggers));
-    localStorage.setItem("arc_sounds", JSON.stringify(soundTriggers));
-    localStorage.setItem("arc_perf", perfQuality.toString());
-    if (targetUser) localStorage.setItem("arc_target", targetUser);
+    localStorage.setItem("seker_ttv", JSON.stringify(ttvTriggers));
+    localStorage.setItem("seker_sounds", JSON.stringify(soundTriggers));
+    localStorage.setItem("seker_perf", perfQuality.toString());
+    if (targetUser) localStorage.setItem("seker_target", targetUser);
   }, [ttvTriggers, soundTriggers, targetUser, perfQuality]);
 
   useEffect(() => {
@@ -135,7 +138,7 @@ function DashboardContent() {
 
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => window.location.href = "/"}>
-          <Box className="w-4 h-4 mr-2 text-green-500" /> ARC TOOLS
+          <Box className="w-4 h-4 mr-2 text-green-500" /> SEKERBABA
         </div>
         
         <div className="mb-8 space-y-2 not-italic">
@@ -160,7 +163,6 @@ function DashboardContent() {
             {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
 
-          {/* VERSION BOX WIEDER DA */}
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
@@ -302,7 +304,6 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
   );
 }
 
-// --- NEUES SETTINGS MODUL (DEIN WUNSCH) ---
 function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, expiry }: any) {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState("");
@@ -312,7 +313,7 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
     setTestResult("");
     setTimeout(() => {
       setTesting(false);
-      setTestResult("EXCELLENT"); // Simuliertes Ergebnis
+      setTestResult("EXCELLENT"); 
     }, 2000);
   };
 
