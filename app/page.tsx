@@ -94,14 +94,14 @@ function DashboardContent() {
         <div className="mb-8 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target (Streamer)</label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-sm">@</div>
+            <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-xs">@</div>
             <input 
               type="text" 
               placeholder="username" 
               value={targetUser} 
               onChange={handleTargetInput} 
               className={`
-                w-full bg-[#0c0c0e] text-[13px] rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
+                w-full bg-[#0c0c0e] text-sm rounded-lg py-3 pl-8 pr-10 focus:outline-none transition-all lowercase border
                 ${status === 'online' ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.1)]" : ""}
                 ${status === 'offline' ? "border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : ""}
                 ${status === 'checking' ? "border-yellow-500/50 text-yellow-100" : ""}

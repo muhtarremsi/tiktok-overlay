@@ -1,69 +1,56 @@
 import { WebcastPushConnection } from 'tiktok-live-connector';
 
-// Vercel Config: Wichtig, damit der Stream nicht sofort gekillt wird
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs'; 
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('u');
 
   if (!username) {
-    return new Response(JSON.stringify({ error: 'Username missing' }), { status: 400 });
+    return new Response('Username required', { status: 400 });
   }
 
   const stream = new ReadableStream({
     async start(controller) {
-      const encoder = new TextEncoder();
+      const tiktok = new WebcastPushConnection(username);
       
-      // Verbindung aufbauen
-      const tiktok = new WebcastPushConnection(username, {
-        processInitialData: false,
-        enableExtendedGiftInfo: false,
-        requestOptions: { timeout: 10000 } // Timeout erhöhen
-      });
-
       const send = (data: any) => {
         try {
           const msg = `data: ${JSON.stringify(data)}\n\n`;
-          controller.enqueue(encoder.encode(msg));
+          controller.enqueue(new TextEncoder().encode(msg));
         } catch (e) {
           tiktok.disconnect();
         }
       };
 
+      // WICHTIG: Wir hören NUR auf 'chat'
+      tiktok.on('chat', (data) => {
+        send({ 
+          event: 'chat', 
+          comment: data.comment, 
+          nickname: data.nickname 
+        });
+      });
+
+      // ALLES ANDERE IST AUSKOMMENTIERT / GELÖSCHT
+      // tiktok.on('like', ...) -> WEG DAMIT!
+      // tiktok.on('gift', ...) -> WEG DAMIT!
+
+      tiktok.on('disconnected', () => {
+         // Optional: Reconnect Logik oder Client schließen lassen
+      });
+
       try {
         await tiktok.connect();
-        send({ event: 'status', msg: 'Connected to TikTok!' });
-
-        tiktok.on('chat', (data) => {
-          send({ event: 'chat', comment: data.comment, user: data.uniqueId });
-        });
-
-        tiktok.on('disconnected', () => {
-          send({ event: 'status', msg: 'Stream disconnected' });
-          controller.close();
-        });
-
-        tiktok.on('error', (err) => {
-          console.error("TikTok Error:", err);
-          // Nicht sofort schließen, vielleicht fängt es sich
-        });
-
-        // WICHTIG: Ping senden, damit Vercel die Leitung offen hält
-        const pingInterval = setInterval(() => {
-          send({ event: 'ping' });
-        }, 3000);
-
-        request.signal.addEventListener('abort', () => {
-          clearInterval(pingInterval);
-          tiktok.disconnect();
-        });
-
       } catch (err: any) {
-        send({ event: 'error', msg: err.message || 'Connection failed' });
+        console.error("Stream Connection Error:", err);
+        send({ event: 'error', message: 'Stream offline or not found' });
         controller.close();
       }
+
+      request.signal.addEventListener('abort', () => {
+        tiktok.disconnect();
+      });
     }
   });
 
