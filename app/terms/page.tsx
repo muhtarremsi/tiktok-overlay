@@ -8,20 +8,23 @@ function SekerLogo({ className }: { className?: string }) {
 }
 
 export default function Terms() {
-  const [isVisible, setIsVisible] = useState(false); // Für Fade-Animation
+  const [isVisible, setIsVisible] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Trigger Fade-In beim Mounten
-    setIsVisible(true);
+    // Kurze Verzögerung für smootheren Start
+    const timer = setTimeout(() => setIsVisible(true), 50);
 
     const checkScroll = () => {
       if (window.scrollY > 200) setShowScroll(true);
       else setShowScroll(false);
     };
     window.addEventListener('scroll', checkScroll);
-    return () => window.removeEventListener('scroll', checkScroll);
+    return () => {
+      window.removeEventListener('scroll', checkScroll);
+      clearTimeout(timer);
+    };
   }, []);
 
   const scrollToTop = (e: React.MouseEvent) => {
@@ -29,75 +32,71 @@ export default function Terms() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Logik für Fade-Out vor dem Seitenwechsel
   const handleExit = () => {
-    setIsVisible(false); // Start Fade-Out
+    setIsVisible(false);
     setTimeout(() => {
-      router.push('/'); // Warte 300ms bis Animation fertig ist, dann navigiere
-    }, 300);
+      router.push('/');
+    }, 500); // 500ms warten für Animation
   };
 
   const handlePageClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Wenn auf Inhalt, Links oder Button geklickt wird -> Nichts tun
     if (target.closest('section') || target.closest('button') || target.closest('a')) return;
-    
-    // Sonst -> Fade Out und Home
     handleExit();
   };
 
   return (
     <div 
       onClick={handlePageClick}
-      className={`min-h-screen bg-[#09090b] text-white font-sans p-8 md:p-20 selection:bg-green-500/30 uppercase italic font-bold cursor-pointer transition-opacity duration-300 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      className={`min-h-screen bg-black text-white font-sans p-8 md:p-20 selection:bg-green-500/30 uppercase italic font-bold cursor-pointer transition-opacity duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
     >
       
-      {/* FIXED HEADER */}
-      <div className="fixed top-0 left-0 w-full z-50 bg-[#09090b]/90 backdrop-blur-xl border-b border-white/10 shadow-2xl transition-all duration-300">
-        <div className="max-w-4xl mx-auto px-8 md:px-20 py-8 space-y-6">
+      {/* FIXED HEADER - IDENTISCHE HÖHE */}
+      <div className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-xl border-b border-white/10 shadow-2xl h-32 flex flex-col justify-center transition-all">
+        <div className="max-w-4xl mx-auto w-full px-8 md:px-20 space-y-4">
           <button onClick={handleExit} className="inline-flex items-center gap-2 text-zinc-500 hover:text-green-500 transition-colors text-xs tracking-widest not-italic bg-transparent border-none cursor-pointer outline-none">
             <ArrowLeft size={16} /> BACK TO DASHBOARD
           </button>
           <div className="flex items-center gap-4 not-italic">
-            <SekerLogo className="text-green-500 w-10 h-10" />
+            <SekerLogo className="text-green-500 w-8 h-8" />
             <div>
-              <h1 className="text-4xl font-black italic tracking-tighter uppercase">Terms of Service</h1>
-              <p className="text-zinc-500 text-[10px] tracking-widest mt-1 uppercase">EFFECTIVE DATE: FEBRUARY 18, 2026</p>
+              <h1 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase leading-none">Terms of Service</h1>
+              <p className="text-zinc-500 text-[10px] tracking-widest mt-1 uppercase leading-none">EFFECTIVE DATE: FEBRUARY 18, 2026</p>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-[#09090b]/20 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-transparent to-black/40 pointer-events-none"></div>
       </div>
 
-      {/* CONTENT - PT-64 (EXAKT GLEICH WIE PRIVACY) */}
-      <div className="max-w-4xl mx-auto px-8 md:px-20 pt-64 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
+      {/* CONTENT - PT-44 FÜR PERFEKTEN ABSTAND */}
+      <div className="max-w-4xl mx-auto px-8 md:px-20 pt-44 pb-20 space-y-12 text-zinc-300 text-[11px] leading-relaxed tracking-wider not-italic font-medium">
         <section>
-          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">01.</span> Scope of Service</h2>
+          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">01.</span> Scope of Service</h2>
           <p>SEKERBABA provides interactive web-based overlays for TikTok Live. By using our services, you agree to comply with TikTok’s official Community Guidelines and Terms of Service. SEKERBABA is not responsible for any account suspensions resulting from improper use of overlays.</p>
         </section>
 
         <section>
-          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">02.</span> User Conduct</h2>
+          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">02.</span> User Conduct</h2>
           <p>You agree not to use SEKERBABA to display prohibited content, including but not limited to: illegal activities, harassment, or explicit material. You are solely responsible for the content triggered via our API on your stream.</p>
         </section>
 
         <section>
-          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">03.</span> Intellectual Property</h2>
+          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">03.</span> Intellectual Property</h2>
           <p>All software, designs, and the name "SEKERBABA" are the exclusive property of Sekerbaba Software & Design. You are granted a limited license to use the overlays for your personal or commercial broadcasts.</p>
         </section>
 
         <section>
-          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">04.</span> Limitation of Liability</h2>
+          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">04.</span> Limitation of Liability</h2>
           <p>The service is provided "as is". We do not guarantee 100% uptime. SEKERBABA shall not be held liable for any loss of revenue or data resulting from technical issues or platform changes by TikTok.</p>
         </section>
 
         <section>
-          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">05.</span> Termination</h2>
+          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">05.</span> Termination</h2>
           <p>We reserve the right to terminate your access to the Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
         </section>
 
         <section>
-          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-2"><span className="text-green-500">06.</span> Changes to Terms</h2>
+          <h2 className="text-white font-black text-xs mb-3 uppercase flex items-center gap-3"><span className="text-green-500">06.</span> Changes to Terms</h2>
           <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. By continuing to access or use our Service after those revisions become effective, you agree to be bound by the revised terms.</p>
         </section>
         
@@ -108,7 +107,7 @@ export default function Terms() {
 
       <button 
         onClick={scrollToTop} 
-        className={`fixed bottom-8 right-8 bg-green-500 text-black p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-300 z-50 ${showScroll ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}
+        className={`fixed bottom-8 right-8 bg-green-500 text-black p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-500 z-50 ${showScroll ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"}`}
       >
         <ArrowUp size={20} strokeWidth={3} />
       </button>
