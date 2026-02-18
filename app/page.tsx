@@ -61,8 +61,8 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
       </div>
 
-      {/* NAVBAR: Liquid Glass iOS Style - Height 100px */}
-      <nav className="fixed top-0 w-full z-50 transition-all duration-300 h-[100px] border-b border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+      {/* NAVBAR: h-24 (96px) - Standard Tailwind Height */}
+      <nav className="fixed top-0 w-full z-50 transition-all duration-300 h-24 border-b border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between font-black italic tracking-tighter text-xl">
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.location.reload()}>
             <SekerLogo className="text-green-500 w-8 h-8 group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(34,197,94,0.6)]" /> 
@@ -77,7 +77,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-32">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030084 Liquid-Nav
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030085 Clean-Nav
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
@@ -121,7 +121,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030084";
+  const version = "0.030085";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
