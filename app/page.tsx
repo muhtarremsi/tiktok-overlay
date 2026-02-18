@@ -49,14 +49,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
-      {/* 1. SVG FILTER DEFINITION */}
-      <svg style={{ display: 'none' }}>
-        <filter id="liquid-glass-nav" x="-50%" y="-50%" width="200%" height="200%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="4" seed="5" result="noise" />
-          <feGaussianBlur in="noise" stdDeviation="2" result="blur" />
-          <feDisplacementMap in="SourceGraphic" in2="blur" scale="50" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </svg>
+      {/* SVG FILTER REMOVED - Caused edge artifacts over video */}
 
       {/* BACKGROUND VIDEO */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
@@ -72,29 +65,20 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
       </div>
 
-      {/* NAVBAR: REAL LIQUID GLASS IMPLEMENTATION */}
-      <nav className="fixed top-0 w-full z-50 h-14 md:h-24 overflow-hidden border-b border-white/10 transition-all duration-300">
-        
-        {/* Layer 1: The Liquid Distortion Background */}
-        <div 
-          className="absolute inset-0 w-full h-full z-0"
-          style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            boxShadow: 'inset 0 0 20px rgba(255,255,255,0.05)',
-            backdropFilter: 'blur(6px)',
-            filter: 'url(#liquid-glass-nav)',
-            transform: 'scale(1.1)' 
-          }}
-        />
-
-        {/* Layer 2: Content */}
+      {/* NAVBAR: ULTRA-PREMIUM FROSTED GLASS (Flawless edges) */}
+      <nav className="fixed top-0 w-full z-50 h-14 md:h-24 transition-all duration-300 overflow-hidden
+        bg-white/[0.01] /* Extremely transparent base */
+        backdrop-blur-2xl /* Heavy, premium blur */
+        backdrop-saturate-[1.6] /* Boosts colors behind the glass significantly */
+        border-b border-white/5 /* Subtle bottom edge */
+        shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] /* Inner top highlight for depth */
+      ">
         <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex items-center justify-between font-black italic tracking-tighter text-xl">
           <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.location.reload()}>
             <SekerLogo className="text-green-500 w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]" /> 
             <span className="text-xl md:text-2xl tracking-[-0.05em] text-white drop-shadow-md">SEKERBABA</span>
           </div>
-          
-          {/* MOBILE BUTTON RESIZED: px-4 py-1 text-[9px] (~20% smaller) */}
+          {/* Mobile button: compact size */}
           <button onClick={onLaunch} className="bg-white/90 text-black px-4 py-1 md:px-8 md:py-3 rounded-full text-[9px] md:text-xs uppercase font-black tracking-widest hover:bg-white hover:scale-105 transition-all shadow-lg hover:shadow-green-500/20">
             Launch App
           </button>
@@ -104,7 +88,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-24 md:pt-32">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030090
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030091 Premium-Glass
           </div>
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
@@ -148,7 +132,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030090";
+  const version = "0.030091";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
