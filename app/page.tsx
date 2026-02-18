@@ -49,22 +49,21 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
       
-      {/* BACKGROUND VIDEO FIX: Higher Scale (150%) + Perfect Positioning */}
+      {/* BACKGROUND VIDEO FIX: Scale only on Desktop (md:) */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
         <video 
           autoPlay 
           loop 
           muted 
           playsInline 
-          className="absolute top-0 left-0 w-full h-full object-cover object-[80%_45%] opacity-60 scale-[1.5] transition-transform duration-[2000ms]"
+          className="absolute top-0 left-0 w-full h-full object-cover object-center md:object-[80%_45%] opacity-60 scale-100 md:scale-[1.5] transition-transform duration-[2000ms]"
         >
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
-        {/* Slightly adjusted gradient for better readability with high zoom */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/30 to-[#09090b] z-10"></div>
       </div>
 
-      {/* LOGO: Pushed further right and down (2.5rem / top-10 left-10) */}
+      {/* LOGO POSITIONING */}
       <div className="absolute top-10 left-10 z-30">
         <div className="flex items-center gap-2 cursor-pointer opacity-90 hover:opacity-100 transition-opacity" onClick={() => window.location.reload()}>
           <SekerLogo className="text-green-500 w-6 h-6" />
@@ -75,7 +74,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030098 Refined
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030099 Responsive
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
@@ -120,7 +119,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030098";
+  const version = "0.030099";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
