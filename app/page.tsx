@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import AuthModal from "@/components/AuthModal";
+import { checkSession } from "@/app/actions/auth"; // Import der Check Funktion
 
 function SekerLogo({ className }: { className?: string }) {
   return (
@@ -18,12 +19,11 @@ export default function Home() {
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // Check if session exists (simple client side check to skip modal if already logged in)
-  const handleOpenDashboard = () => {
-    // Einfacher Check: Haben wir den Cookie? (Nicht sicher, aber schnell)
-    const hasSession = document.cookie.includes("seker_admin_session=true");
+  const handleOpenDashboard = async () => {
+    // Serverseitiger Check!
+    const isLoggedIn = await checkSession();
     
-    if (hasSession) {
+    if (isLoggedIn) {
         router.push("/dashboard");
     } else {
         setShowAuthModal(true);
@@ -49,7 +49,7 @@ export default function Home() {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030113 Modal Auth
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030114 Smooth
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">

@@ -11,7 +11,6 @@ function SekerLogo({ className }: { className?: string }) {
   return (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.44 36.04" className={className} fill="currentColor"><path d="M27.26,2.42c2.04,2.03,2.91,4.78,2.41,7.64-.21,1.23-.77,2.43-1.45,3.47.77.44,1.52.93,2.2,1.51,8.1,6.96,3.1,20.52-7.35,20.99h-12.16c-5.82-.32-10.53-5.18-10.92-10.95v-4.43s.03-.04.03-.04h7.25c.46-.05.8-.04,1.2-.3.95-.65,1.02-2.07.11-2.78-.47-.37-.9-.32-1.45-.43-3.42-.69-6.24-3.35-6.94-6.79C-.86,5.12,2.71.47,7.91,0h13.89c2.07.12,4,.97,5.46,2.42ZM16.65,17.21v-5.5l.1-.05c1.54-.06,3.15.09,4.68,0,1.43-.08,2.63-1.12,2.92-2.52.37-1.81-.95-3.62-2.79-3.77h-13.28c-3.6.42-3.89,5.47-.26,6.25,1.29.28,2.19.45,3.35,1.14,5.77,3.44,3.86,12.13-2.71,13.23-.96.16-1.86,0-2.76.1-.05,0-.08,0-.11.05.82,2.36,3,4.1,5.51,4.27h11.67c4.61-.34,7.24-5.47,5.17-9.55-1.06-2.1-3.2-3.4-5.54-3.58l-5.91-.02s-.06-.05-.06-.06Z"/></svg>);
 }
 
-// Typ explizit machen für TypeScript
 type AuthState = {
   error?: string;
   success?: boolean;
@@ -22,7 +21,6 @@ const initialState: AuthState = { error: "", success: false };
 export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   
-  // TypeScript Fix: Explizite Typisierung nutzen
   const [loginState, loginAction] = useFormState<AuthState, FormData>(login, initialState);
   const [registerState, registerAction] = useFormState<AuthState, FormData>(register, initialState);
   
@@ -72,9 +70,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <Script src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`} strategy="afterInteractive" />
       
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity" onClick={onClose} />
+      {/* Backdrop: Smoother (duration-500) and Lighter (bg-black/40) */}
+      <div 
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500 ease-out animate-in fade-in" 
+        onClick={onClose} 
+      />
 
-      <div className="relative bg-[#0c0c0e] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+      {/* Modal Content: Smoother Scale Animation */}
+      <div className="relative bg-[#0c0c0e] border border-white/10 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 ease-out">
         
         <div className="flex border-b border-white/5">
             <button 
@@ -132,7 +135,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 )}
 
                 {currentState?.error && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase tracking-wide">
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-[10px] font-bold uppercase tracking-wide animate-in fade-in zoom-in-95">
                         <ShieldCheck size={12} /> {currentState.error}
                     </div>
                 )}

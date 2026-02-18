@@ -3,6 +3,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+// --- CHECK SESSION (NEU) ---
+// Erlaubt dem Frontend zu prüfen, ob der HttpOnly Cookie existiert
+export async function checkSession() {
+  const cookieStore = await cookies();
+  return cookieStore.has("seker_admin_session");
+}
+
 // --- LOGIN ACTION ---
 export async function login(prevState: any, formData: FormData) {
   const email = formData.get("email") as string;
@@ -13,7 +20,6 @@ export async function login(prevState: any, formData: FormData) {
   const adminPassword = process.env.ADMIN_PASSWORD;
   const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
 
-  // 1. Bot Check
   if (!token) return { error: "Security check failed. Please reload." };
 
   try {
@@ -30,7 +36,6 @@ export async function login(prevState: any, formData: FormData) {
     return { error: "Captcha validation failed." };
   }
 
-  // 2. Credentials Check
   if (email === adminEmail && password === adminPassword) {
     const cookieStore = await cookies();
     cookieStore.set("seker_admin_session", "true", {
@@ -39,7 +44,6 @@ export async function login(prevState: any, formData: FormData) {
       maxAge: 60 * 60 * 24 * 7, 
       path: "/",
     });
-    // Erfolg!
     return { success: true };
   } else {
     return { error: "Invalid email or password." };
@@ -58,7 +62,6 @@ export async function register(prevState: any, formData: FormData) {
     return { error: "Passwords do not match." };
   }
 
-  // Bot Check
   try {
     const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
       method: "POST",
@@ -69,12 +72,9 @@ export async function register(prevState: any, formData: FormData) {
     if (!data.success || data.score < 0.5) return { error: "Bot detected." };
   } catch (e) { return { error: "Captcha failed." }; }
 
-  // SIMULATION: Da wir keine DB haben, lassen wir nur den Admin "registrieren" (Login)
-  // oder geben einen Fehler aus.
   const adminEmail = process.env.ADMIN_EMAIL;
   
   if (email === adminEmail) {
-     // Falls der User versucht sich als Admin zu "registrieren", loggen wir ihn ein.
      const cookieStore = await cookies();
      cookieStore.set("seker_admin_session", "true", {
        httpOnly: true,
