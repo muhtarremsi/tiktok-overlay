@@ -30,7 +30,6 @@ function MainController() {
   const searchParams = useSearchParams();
   const [showApp, setShowApp] = useState(false);
 
-  // FIX: Force Title Update for Reviewers
   useEffect(() => {
     document.title = "SEKERBABA | Interactive Overlays";
   }, []);
@@ -45,21 +44,12 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE (v0.030066 Settings + Legal Links) ---
+// --- LANDING PAGE ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
-      
-      {/* VIDEO BACKGROUND - REVERTED TO v0.030066 SETTINGS */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          // OPACITY-30 WIE GEWÜNSCHT (v66 Standard)
-          className="absolute top-0 left-0 w-full h-full object-cover opacity-30 grayscale hover:grayscale-0 transition-all duration-[2000ms]"
-        >
+        <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover opacity-30 grayscale hover:grayscale-0 transition-all duration-[2000ms]">
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
@@ -70,37 +60,31 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
             <SekerLogo className="text-green-500 w-6 h-6" /> SEKERBABA
           </div>
-          <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold relative z-50">
+          <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase font-black tracking-widest hover:bg-zinc-200 transition-all relative z-50">
             Launch App
           </button>
         </div>
       </nav>
 
-      {/* CONTENT MIT LEGAL LINKS */}
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20 pt-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030072 Stable
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030073 Stable
           </div>
-          
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
             INTERACTIVE <br /> OVERLAYS
           </h1>
-          
-          <p className="text-zinc-400 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md px-2">
+          <p className="text-zinc-400 max-w-xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed drop-shadow-md">
             Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
           </p>
-
-          <div className="pt-6 md:pt-8 w-full px-4 flex flex-col items-center gap-6">
+          <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
             <button onClick={onLaunch} className="w-full sm:w-auto bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,197,94,0.5)] text-sm">
               Open Dashboard
             </button>
-            
-            {/* PRIVACY & TERMS LINKS */}
             <div className="flex gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-               <a href="/privacy" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Privacy Policy</a>
+               <a href="/privacy" className="hover:text-green-500 transition-colors">Privacy Policy</a>
                <span className="text-zinc-800">•</span>
-               <a href="/terms" className="hover:text-green-500 transition-colors border-b border-transparent hover:border-green-500/50 pb-0.5">Terms of Service</a>
+               <a href="/terms" className="hover:text-green-500 transition-colors">Terms of Service</a>
             </div>
           </div>
         </div>
@@ -109,7 +93,7 @@ function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   );
 }
 
-// --- DASHBOARD APP (UNCHANGED) ---
+// --- DASHBOARD APP ---
 function DashboardContent() {
   const searchParams = useSearchParams();
   const [targetUser, setTargetUser] = useState(""); 
@@ -123,7 +107,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030072";
+  const version = "0.030073";
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -132,12 +116,10 @@ function DashboardContent() {
     const savedSounds = localStorage.getItem("seker_sounds");
     const savedTarget = localStorage.getItem("seker_target");
     const savedPerf = localStorage.getItem("seker_perf");
-    
     if (savedTTV) setTtvTriggers(JSON.parse(savedTTV));
     if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
     if (savedTarget) setTargetUser(savedTarget);
     if (savedPerf) setPerfQuality(parseInt(savedPerf));
-
     const userFromUrl = searchParams.get("u");
     if (userFromUrl) setAuthUser(userFromUrl);
   }, [searchParams]);
@@ -170,21 +152,15 @@ function DashboardContent() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
       {sidebarOpen && <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
-
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center mb-8 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => window.location.href = "/"}>
           <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
         </div>
-        
         <div className="mb-8 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
-            <input 
-              type="text" placeholder="username" value={targetUser} 
-              onChange={(e) => setTargetUser(e.target.value.toLowerCase())} 
-              className={`w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none border transition-all lowercase ${status === 'online' ? "border-green-500/50 text-green-400" : "border-zinc-800"}`}
-            />
+            <input type="text" placeholder="username" value={targetUser} onChange={(e) => setTargetUser(e.target.value.toLowerCase())} className={`w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none border transition-all lowercase ${status === 'online' ? "border-green-500/50 text-green-400" : "border-zinc-800"}`} />
             <div className="absolute inset-y-0 right-3 flex items-center">
               {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
               {status === 'online' && <div className="relative flex items-center justify-center"><div className="w-2 h-2 bg-green-500 rounded-full z-10"></div><div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div></div>}
@@ -197,14 +173,12 @@ function DashboardContent() {
             {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
             {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
-
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
             <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>ABLAUF</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
           </div>
         </div>
-
         <nav className="space-y-1">
           <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
@@ -224,7 +198,6 @@ function DashboardContent() {
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
           <button className="lg:hidden p-2 text-white bg-zinc-900 rounded-lg border border-white/10" onClick={() => setSidebarOpen(true)}><Menu size={18} /></button>
           <div className="text-[10px] uppercase font-black tracking-widest"><span className="text-zinc-600">App /</span> {activeView}</div>
-          <div className="hidden md:block" />
         </header>
         <div className="flex-1 overflow-y-auto">
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
@@ -342,16 +315,7 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
 function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, expiry }: any) {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState("");
-
-  const runHardwareTest = () => {
-    setTesting(true);
-    setTestResult("");
-    setTimeout(() => {
-      setTesting(false);
-      setTestResult("EXCELLENT"); 
-    }, 2000);
-  };
-
+  const runHardwareTest = () => { setTesting(true); setTestResult(""); setTimeout(() => { setTesting(false); setTestResult("EXCELLENT"); }, 2000); };
   return (
     <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-10 uppercase italic font-bold">
       <section className="space-y-4">
@@ -362,7 +326,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
           <AuthCard icon={<Monitor />} name="TWITCH" status="COMING SOON" active={false} />
         </div>
       </section>
-
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">HARDWARE & QUALITY</h3>
         <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8">
@@ -375,10 +338,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
               <span className="text-xl text-white font-black not-italic">{quality}%</span>
             </div>
             <input type="range" min="10" max="100" step="10" value={quality} onChange={(e) => setQuality(parseInt(e.target.value))} className="w-full accent-green-500 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
-            <div className="flex justify-between text-[9px] text-zinc-600 font-black">
-              <span>PERFORMANCE (FAST)</span>
-              <span>QUALITY (BEST)</span>
-            </div>
           </div>
           <div className="pt-6 border-t border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -394,7 +353,6 @@ function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, e
           </div>
         </div>
       </section>
-
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">LICENSE STATUS</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
