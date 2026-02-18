@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, Home, MoveLeft } from "lucide-react";
+import { AlertCircle, MoveLeft } from "lucide-react";
 
 // --- CUSTOM LOGO COMPONENT (Reused for consistency) ---
 function SekerLogo({ className }: { className?: string }) {
@@ -14,28 +14,18 @@ function SekerLogo({ className }: { className?: string }) {
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col items-center justify-center relative">
       
-      {/* BACKGROUND VIDEO (Same aesthetic but slightly darker/red-shifted for error vibe? kept consistent for now) */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          className="absolute top-0 left-0 w-full h-full object-cover object-center opacity-40 scale-110 grayscale transition-all duration-[2000ms]"
-        >
-          <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/60 to-black/90 z-10"></div>
-      </div>
+      {/* BACKGROUND VIDEO REMOVED - Replaced with subtle static noise or gradient if desired, currently just solid dark bg */}
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80 pointer-events-none"></div>
 
       {/* ERROR CONTENT */}
       <div className="relative z-20 flex flex-col items-center text-center px-6 max-w-2xl w-full">
         
-        {/* LOGO */}
-        <div className="mb-8 opacity-80">
-           <SekerLogo className="w-12 h-12 text-zinc-500" />
+        {/* LOGO - Now Green */}
+        <div className="mb-8">
+           <SekerLogo className="w-12 h-12 text-green-500" />
         </div>
 
         {/* GLASS CARD */}
@@ -46,11 +36,11 @@ export default function NotFound() {
             </div>
 
             <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter leading-none text-white drop-shadow-2xl">
-                LOST<br/><span className="text-zinc-700">SIGNAL</span>
+                NO<br/><span className="text-zinc-700">SIGNAL</span>
             </h1>
 
             <p className="text-zinc-400 text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed max-w-md">
-                The overlay trigger you are looking for has been disconnected or does not exist in this timeline.
+                The page you are looking for has been disconnected or does not exist in this timeline.
             </p>
 
             <div className="pt-6 w-full flex justify-center">
