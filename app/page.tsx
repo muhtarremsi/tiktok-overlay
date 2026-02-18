@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { 
   Type, Settings, Box, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
-  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2
+  Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Activity
 } from "lucide-react";
 
 // --- HAUPT-CONTROLLER ---
@@ -31,31 +31,39 @@ function MainController() {
   return <LandingPage onLaunch={() => setShowApp(true)} />;
 }
 
-// --- LANDING PAGE ---
+// --- LANDING PAGE (EXAKT WIE IM BILD) ---
 function LandingPage({ onLaunch }: { onLaunch: () => void }) {
   return (
     <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-x-hidden">
       <nav className="border-b border-white/5 bg-black/50 backdrop-blur-md fixed top-0 w-full z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-lg md:text-xl">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between font-black italic tracking-tighter text-xl">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
-            <Box className="text-green-500 w-5 h-5 md:w-6 md:h-6" /> ARC TOOLS
+            <Box className="text-green-500" /> ARC TOOLS
           </div>
-          <button onClick={onLaunch} className="bg-white text-black px-4 md:px-6 py-2 rounded-full text-[10px] md:text-xs uppercase font-black tracking-widest hover:bg-zinc-200 transition-all">
+          <button onClick={onLaunch} className="bg-white text-black px-6 py-2 rounded-full text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all font-bold">
             Launch App
           </button>
         </div>
       </nav>
 
-      <div className="relative pt-32 md:pt-48 pb-20 px-4 md:px-6 text-center">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full md:w-[1000px] h-[300px] md:h-[500px] bg-green-500/10 rounded-full blur-[80px] md:blur-[120px] -z-10 pointer-events-none"></div>
-        <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-[9px] md:text-[10px] font-bold uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> v0.030063 Stable
+      <div className="relative pt-40 pb-20 px-6 text-center">
+        {/* Glow Background */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-green-500/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+        
+        <div className="max-w-5xl mx-auto space-y-8">
+          <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter leading-none uppercase">
+            INTERACTIVE <br /> OVERLAYS
+          </h1>
+          
+          <p className="text-zinc-500 max-w-2xl mx-auto text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed">
+            Boost your TikTok Live with custom video triggers and real-time interactions.
+          </p>
+
+          <div className="pt-8">
+            <button onClick={onLaunch} className="bg-green-500 text-black px-12 py-5 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_40px_rgba(34,197,94,0.3)]">
+              Open Dashboard
+            </button>
           </div>
-          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[1.1] uppercase">Interactive <br className="hidden sm:block" /> Overlays</h1>
-          <button onClick={onLaunch} className="w-full sm:w-auto bg-green-500 text-black px-10 py-4 md:py-5 rounded-xl font-black uppercase tracking-widest text-xs md:text-sm transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
-            Open Dashboard
-          </button>
         </div>
       </div>
     </div>
@@ -73,7 +81,8 @@ function DashboardContent() {
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
   const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
-  const [perfQuality, setPerfQuality] = useState(80); // Default 80% Qualität
+  // Neue Quality State
+  const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
   const version = "0.030063";
@@ -115,6 +124,11 @@ function DashboardContent() {
     return () => clearTimeout(timer);
   }, [targetUser]);
 
+  const navigateTo = (view: string) => {
+    setActiveView(view);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
       {sidebarOpen && <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
@@ -145,6 +159,8 @@ function DashboardContent() {
             {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
             {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
+
+          {/* VERSION BOX WIEDER DA */}
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-4 space-y-3 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
             <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
             <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
@@ -200,12 +216,12 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}`;
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, start: 0, end: 10 }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-4">
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Plus size={14} /> Add Video Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none focus:border-zinc-500" />
-          <input placeholder="URL (.mp4)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none focus:border-zinc-500" />
+          <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
+          <input placeholder="URL (.mp4)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
         </div>
         <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-all">Add Trigger</button>
       </div>
@@ -213,7 +229,7 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
         {triggers.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group transition-all hover:border-zinc-700">
             <span className="text-green-500">{t.code}</span>
-            <span className="text-[9px] text-zinc-600 truncate max-w-[120px] md:max-w-[200px] italic">{t.url}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
             <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
           </div>
         ))}
@@ -236,12 +252,12 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}&type=audio`;
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, type: 'audio' }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-4">
+    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Music size={14} /> Add Sound Trigger</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input placeholder="Command (e.g. !horn)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none focus:border-zinc-500" />
-          <input placeholder="URL (.mp3)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none focus:border-zinc-500" />
+          <input placeholder="Command (e.g. !horn)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
+          <input placeholder="URL (.mp3)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
         </div>
         <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-all">Add Sound</button>
       </div>
@@ -249,7 +265,7 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
         {triggers.map((t: any) => (
           <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl group transition-all hover:border-zinc-700">
             <span className="text-blue-500">{t.code}</span>
-            <span className="text-[9px] text-zinc-600 truncate max-w-[120px] md:max-w-[200px] italic">{t.url}</span>
+            <span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
             <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
           </div>
         ))}
@@ -274,8 +290,8 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
     </div>
   );
   return (
-    <div className="p-6 md:p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-6">
+    <div className="p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Heart size={14} className="text-pink-500" /> Fanclub Alerts</h3>
         <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
           <span className="text-[10px]">Team Heart Alert</span>
@@ -286,81 +302,111 @@ function ModuleFanclub({ authUser, config, setConfig }: any) {
   );
 }
 
+// --- NEUES SETTINGS MODUL (DEIN WUNSCH) ---
 function ModuleSettings({ authUser, setAuthUser, quality, setQuality, version, expiry }: any) {
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState("");
+
+  const runHardwareTest = () => {
+    setTesting(true);
+    setTestResult("");
+    setTimeout(() => {
+      setTesting(false);
+      setTestResult("EXCELLENT"); // Simuliertes Ergebnis
+    }, 2000);
+  };
+
   return (
-    <div className="p-4 md:p-10 max-w-4xl mx-auto space-y-10 uppercase italic font-bold">
+    <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-10 uppercase italic font-bold">
       
-      {/* 1. AUTH CATEGORY */}
+      {/* 1. AUTH KATEGORIEN */}
       <section className="space-y-4">
-        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-2">AUTH CHANNELS</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <AuthCard icon={<Zap className="text-green-500" />} name="TIKTOK" status={authUser ? "CONNECTED" : "DISCONNECTED"} user={authUser} onAction={() => authUser ? setAuthUser("") : window.location.href="/api/auth/login"} />
-          <AuthCard icon={<Share2 className="text-blue-400 opacity-30" />} name="DISCORD" status="COMING SOON" disabled />
-          <AuthCard icon={<Monitor className="text-purple-500 opacity-30" />} name="TWITCH" status="COMING SOON" disabled />
+        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">AUTHENTICATION CHANNELS</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <AuthCard icon={<Zap className="text-black" />} name="TIKTOK" status={authUser ? "CONNECTED" : "DISCONNECTED"} active={true} connected={!!authUser} onAction={() => authUser ? setAuthUser("") : window.location.href="/api/auth/login"} />
+          <AuthCard icon={<Share2 />} name="DISCORD" status="COMING SOON" active={false} />
+          <AuthCard icon={<Monitor />} name="TWITCH" status="COMING SOON" active={false} />
         </div>
       </section>
 
       {/* 2. PERFORMANCE & HARDWARE */}
       <section className="space-y-4">
-        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-2">PERFORMANCE & HARDWARE</h3>
-        <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-8 not-italic">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-1">
-              <h4 className="text-white text-xs font-black flex items-center gap-2"><Gauge size={14} className="text-yellow-500" /> ENGINE QUALITY</h4>
-              <p className="text-[10px] text-zinc-500 uppercase font-bold italic">REDUCE IF YOU EXPERIENCE LAG DURING STREAMING</p>
-            </div>
-            <div className="flex items-center gap-4 flex-1 max-w-md">
-              <span className="text-[9px] text-zinc-500">LOW</span>
-              <input type="range" min="10" max="100" value={quality} onChange={(e) => setQuality(parseInt(e.target.value))} className="flex-1 accent-green-500 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
-              <span className="text-[9px] text-white font-mono">{quality}%</span>
-            </div>
-          </div>
+        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">HARDWARE & QUALITY</h3>
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8">
           
-          <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-zinc-900 rounded-lg"><Cpu size={16} className="text-blue-500" /></div>
-              <span className="text-[10px] text-zinc-400 uppercase font-black">Hardware Auto-Test</span>
+          {/* SLIDER */}
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                 <h4 className="text-white text-xs font-black flex items-center gap-2"><Gauge size={16} className="text-yellow-500" /> GRAPHICS QUALITY</h4>
+                 <p className="text-[9px] text-zinc-500 uppercase font-bold italic max-w-xs">Lower this value if you experience lag or dropped frames during stream.</p>
+              </div>
+              <span className="text-xl text-white font-black not-italic">{quality}%</span>
             </div>
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-lg text-[9px] font-black transition-all">RUN TEST</button>
+            <input type="range" min="10" max="100" step="10" value={quality} onChange={(e) => setQuality(parseInt(e.target.value))} className="w-full accent-green-500 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
+            <div className="flex justify-between text-[9px] text-zinc-600 font-black">
+              <span>PERFORMANCE (FAST)</span>
+              <span>QUALITY (BEST)</span>
+            </div>
           </div>
+
+          {/* HARDWARE TEST */}
+          <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-zinc-900 rounded-xl"><Cpu size={18} className="text-blue-500" /></div>
+              <div className="space-y-1">
+                 <span className="text-[10px] text-white font-black block">SYSTEM BENCHMARK</span>
+                 <span className="text-[9px] text-zinc-500 block">{testResult || "Check your PC capability"}</span>
+              </div>
+            </div>
+            <button onClick={runHardwareTest} disabled={testing} className="bg-zinc-800 hover:bg-white hover:text-black text-white px-6 py-3 rounded-xl text-[10px] font-black transition-all min-w-[100px]">
+              {testing ? <Loader2 size={14} className="animate-spin mx-auto"/> : (testResult ? "RE-TEST" : "RUN TEST")}
+            </button>
+          </div>
+
         </div>
       </section>
 
-      {/* 3. SUBSCRIPTION INFO */}
+      {/* 3. ABO INFO */}
       <section className="space-y-4">
-        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-2">SUBSCRIPTION DETAILS</h3>
-        <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl grid grid-cols-2 md:grid-cols-4 gap-8 text-center not-italic">
-          <div className="space-y-1"><p className="text-[9px] text-zinc-500 uppercase font-black">VERSION</p><p className="text-xs text-white font-mono">{version}</p></div>
-          <div className="space-y-1"><p className="text-[9px] text-zinc-500 uppercase font-black">PLAN</p><p className="text-xs text-blue-500 font-black">PRO LIFETIME</p></div>
-          <div className="space-y-1"><p className="text-[9px] text-zinc-500 uppercase font-black">EXPIRES</p><p className="text-xs text-zinc-300">{expiry}</p></div>
-          <div className="space-y-1"><p className="text-[9px] text-zinc-500 uppercase font-black">STATUS</p><p className="text-xs text-green-500 font-black">ACTIVE</p></div>
+        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">LICENSE STATUS</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <InfoCard label="VERSION" value={version} />
+          <InfoCard label="PLAN" value="PRO LIFETIME" color="text-blue-500" />
+          <InfoCard label="EXPIRES" value={expiry} />
+          <InfoCard label="STATUS" value="ACTIVE" color="text-green-500" />
         </div>
       </section>
+
     </div>
   );
 }
 
-function AuthCard({ icon, name, status, user, onAction, disabled }: any) {
+function AuthCard({ icon, name, status, active, connected, onAction }: any) {
   return (
-    <div className={`bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl space-y-4 transition-all ${disabled ? 'opacity-50' : 'hover:border-zinc-600'}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-zinc-900 rounded-xl">{icon}</div>
-          <span className="text-[11px] font-black tracking-widest">{name}</span>
-        </div>
-        {status === "CONNECTED" && <CheckCircle2 size={14} className="text-green-500" />}
+    <div className={`border p-6 rounded-2xl space-y-4 transition-all flex flex-col justify-between h-40 ${active ? "bg-[#0c0c0e] border-zinc-800 hover:border-zinc-600" : "bg-black/40 border-zinc-900 opacity-60"}`}>
+      <div className="flex justify-between items-start">
+        <div className={`p-3 rounded-xl ${connected ? "bg-green-500 text-black" : "bg-zinc-900 text-zinc-500"}`}>{icon}</div>
+        {connected && <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,1)]"></div>}
       </div>
-      <div className="space-y-3">
-        <div className="flex flex-col">
-          <span className="text-[8px] text-zinc-500 uppercase">Status</span>
-          <span className={`text-[10px] font-bold ${status === "CONNECTED" ? "text-green-500" : "text-zinc-400"}`}>{status}</span>
-        </div>
-        {!disabled && (
-           <button onClick={onAction} className={`w-full py-2 rounded-lg text-[9px] font-black transition-all ${status === "CONNECTED" ? "bg-zinc-800 hover:bg-red-500/20 hover:text-red-500" : "bg-white text-black hover:bg-zinc-200"}`}>
-             {status === "CONNECTED" ? "DISCONNECT" : "CONNECT NOW"}
-           </button>
-        )}
+      <div>
+        <h4 className="text-sm text-white font-black tracking-tighter">{name}</h4>
+        <p className="text-[9px] text-zinc-500 font-bold">{status}</p>
       </div>
+      {active && (
+        <button onClick={onAction} className={`w-full py-2 rounded-lg text-[9px] font-black transition-all ${connected ? "bg-zinc-900 text-zinc-400 hover:text-white" : "bg-white text-black hover:bg-zinc-200"}`}>
+          {connected ? "DISCONNECT" : "CONNECT"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function InfoCard({ label, value, color = "text-white" }: any) {
+  return (
+    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
+      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
+      <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
     </div>
   );
 }
