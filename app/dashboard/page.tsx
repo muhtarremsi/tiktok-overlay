@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030161"; 
+  const version = "0.030162"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -353,7 +353,6 @@ function ModuleComingSoon({ name }: { name: string }) {
     );
 }
 
-// FEHLENDE INFOCARD HIER WIEDER EINGEFÜGT!
 function InfoCard({ label, value, color = "text-white" }: any) {
   return (
     <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1 flex flex-col justify-center h-full">
@@ -659,7 +658,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           </div>
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
           <div className="space-y-4">
-              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
+              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> KAMERA STARTEN</button>
               <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[9px] md:text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
           </div>
         </div>
@@ -672,7 +671,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   return (
     <div 
-        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 bg-black overflow-hidden flex items-center justify-center select-none md:flex-1 cursor-pointer"
+        className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center select-none cursor-pointer"
         style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={handleRootPointerDown}
@@ -691,6 +690,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             }} 
         />
         
+        {/* DRAGGABLE & ZOOMABLE SPOTIFY PLAYER */}
         {isSpotifyVisible && (
             <div 
                 className="absolute z-20 bg-black/70 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl transition-opacity duration-300 origin-top-left"
@@ -705,6 +705,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
+        {/* DRAGGABLE & RESIZABLE & ZOOMABLE LIVE CHAT */}
         {isChatVisible && (
             <div 
                 className="absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-opacity duration-300 origin-top-left"
@@ -716,8 +717,9 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 }}
                 onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'drag')}
             >
-                <div className="bg-white/5 border-b border-white/5 p-2 flex items-center justify-between pointer-events-none rounded-t-2xl shrink-0">
+                <div className="bg-white/5 border-b border-white/5 p-2 px-3 flex items-center justify-between pointer-events-none rounded-t-2xl shrink-0">
                     <span className="text-[9px] font-black text-white flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> CHAT</span>
+                    <span className="text-[8px] text-green-400 font-bold uppercase tracking-wider truncate max-w-[150px]">{chatStatus}</span>
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal" onPointerDown={stopEvent} onWheel={stopEvent}>
@@ -748,6 +750,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
+        {/* LIVE FILTER CAROUSEL */}
         {showFilters && (
             <div className={`absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-300 ease-out ${isClosingFilters ? 'opacity-0 translate-y-10' : 'opacity-100 animate-in fade-in slide-in-from-bottom-10'}`}>
                 <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={stopEvent}>
@@ -770,13 +773,19 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 z-10">
-            <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
-                    <div className="flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM</div>
-                    <span className="text-[8px] text-green-400 not-italic uppercase tracking-wider mt-1">{chatStatus}</span>
+        {/* STATIC UI CONTROLS */}
+        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 z-10">
+            
+            {/* Oben Rechts: Logo und X (Clean UI) */}
+            <div className={`flex justify-end items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div className="flex flex-col items-center gap-3 pointer-events-auto">
+                    <div className="bg-black/50 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg flex items-center justify-center" onPointerDown={stopEvent} onClick={stopEvent}>
+                        <SekerLogo className="w-6 h-6 text-green-500" />
+                    </div>
+                    <button onClick={(e) => { stopEvent(e); stopStream(); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors shadow-lg">
+                        <X size={20} />
+                    </button>
                 </div>
-                <button onClick={(e) => { stopEvent(e); stopStream(); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
             </div>
             
             {showSettings && (
@@ -804,7 +813,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 </div>
             )}
 
-            <div className="flex justify-between items-end mb-4 w-full">
+            <div className="flex justify-between items-end w-full">
                 <div className="w-10"></div> 
                 <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter ? "text-purple-400" : ""} /></button>
