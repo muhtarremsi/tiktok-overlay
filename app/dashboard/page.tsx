@@ -38,7 +38,7 @@ function DashboardContent() {
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
 
-  const version = "0.030126"; 
+  const version = "0.030127"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -196,9 +196,6 @@ function DashboardContent() {
     </div>
   );
 }
-
-// ... (Sub components SidebarItem, ModuleCamera, ModuleTTC, ModuleTTV, ModuleSounds, ModuleFanclub omitted here to save context space, THEY REMAIN EXACTLY THE SAME AS v0.030125) ...
-// We just update ModuleSettings to include a Cookie Reset Button.
 
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
@@ -576,15 +573,14 @@ function ModuleSettings({ hasConsent, isConnected, onConnect, quality, setQualit
         </div>
       </section>
       
-      {/* NEW PRIVACY SECTION */}
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">PRIVACY & COOKIES</h3>
         <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl flex items-center justify-between">
           <div className="flex items-center gap-3">
-              <Cookie size={18} className={hasFunctionalConsent ? "text-green-500" : "text-red-500"} />
+              <Cookie size={18} className={hasConsent ? "text-green-500" : "text-red-500"} />
               <div>
                 <p className="text-xs font-black text-white">Cookie Preferences</p>
-                <p className="text-[9px] text-zinc-500 font-bold">Functional Settings: {hasFunctionalConsent ? "Allowed" : "Declined"}</p>
+                <p className="text-[9px] text-zinc-500 font-bold">Functional Settings: {hasConsent ? "Allowed" : "Declined"}</p>
               </div>
           </div>
           <button onClick={resetCookies} className="text-[9px] bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-lg hover:text-white transition-colors">Reset Choices</button>
