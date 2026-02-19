@@ -12,14 +12,14 @@ export async function GET(req: Request) {
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET!;
   const redirectUri = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI!;
 
-  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const basicAuth = Buffer.from(clientId + ":" + clientSecret).toString("base64");
 
   try {
     const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${basicAuth}`,
+        Authorization: "Basic " + basicAuth,
       },
       body: new URLSearchParams({
         grant_type: "authorization_code",
@@ -34,15 +34,13 @@ export async function GET(req: Request) {
 
     const res = NextResponse.redirect(new URL("/dashboard?connected=spotify", req.url));
     
-    // Speichere den Refresh Token sicher als HTTP-Only Cookie
     res.cookies.set("spotify_refresh_token", data.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30, // 30 Tage
+      maxAge: 60 * 60 * 24 * 30, 
     });
     
-    // UI Indikator Cookie
     res.cookies.set("spotify_connected", "true", {
       secure: process.env.NODE_ENV === "production",
       path: "/",
