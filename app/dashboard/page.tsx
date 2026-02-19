@@ -50,10 +50,10 @@ function DashboardContent() {
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
 
-  const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
+  const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030159"; 
+  const version = "0.030160"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -353,6 +353,16 @@ function ModuleComingSoon({ name }: { name: string }) {
     );
 }
 
+// FEHLENDE INFOCARD HIER WIEDER EINGEFÜGT!
+function InfoCard({ label, value, color = "text-white" }: any) {
+  return (
+    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1 flex flex-col justify-center h-full">
+      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
+      <p className={`text-xs font-mono font-bold truncate ${color}`}>{value}</p>
+    </div>
+  );
+}
+
 function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setActiveView }: any) {
   return (
     <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-5xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
@@ -438,7 +448,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user'); 
-  const [mirror, setMirror] = useState(true); // Default Frontcam gespiegelt
+  const [mirror, setMirror] = useState(true); 
   
   const [showUI, setShowUI] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
@@ -449,7 +459,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [isClosingFilters, setIsClosingFilters] = useState(false);
   const [activeFilter, setActiveFilter] = useState("");
   
-  // Neu: Kamera Zoom Status
   const [cameraZoom, setCameraZoom] = useState(1);
 
   const CAMERA_FILTERS = [
@@ -478,7 +487,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
       setActiveStream(stream);
       setViewState('fullscreen');
-      setMirror(facingMode === 'user'); // Frontcam=gespiegelt, Rückcam=normal
+      setMirror(facingMode === 'user');
     } catch (err: any) { setError(`Kamerafehler: ${err.message || 'Zugriff verweigert'}`); }
   };
 
@@ -524,7 +533,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       }, 300); 
   };
 
-  // MULTI-TOUCH DRAG & PINCH LOGIC
   const activePointers = useRef(new Map());
   const dragInfo = useRef<any>(null);
   const initialPinchDist = useRef<number | null>(null);
@@ -559,7 +567,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       
       activePointers.current.set(e.pointerId, e);
       
-      // NEU: Wenn 2 Finger auf dem HINTERGRUND sind -> Kamera Zoom!
       if (activePointers.current.size === 2) {
           if (holdTimer.current) clearTimeout(holdTimer.current);
           const pts = Array.from(activePointers.current.values());
@@ -578,7 +585,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           activePointers.current.set(e.pointerId, e);
       }
 
-      // PINCH TO ZOOM
       if (activePointers.current.size === 2 && initialPinchDist.current) {
           const pts = Array.from(activePointers.current.values());
           const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
@@ -586,11 +592,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           
           if (targetType.current === 'spotify') setSpotifyState(prev => ({...prev, scale: Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3)}));
           else if (targetType.current === 'chat') setChatState(prev => ({...prev, scale: Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3)}));
-          else if (targetType.current === 'camera') setCameraZoom(Math.min(Math.max(1, (initialScale.current || 1) * scaleChange), 5)); // Kamera bis 5x Zoom
+          else if (targetType.current === 'camera') setCameraZoom(Math.min(Math.max(1, (initialScale.current || 1) * scaleChange), 5))); 
           return;
       }
 
-      // DRAG OR RESIZE
       if (dragInfo.current && dragInfo.current.id === e.pointerId) {
           const { type, action, startX, startY, initial } = dragInfo.current;
           const dx = e.clientX - startX;
@@ -654,7 +659,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           </div>
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
           <div className="space-y-4">
-              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> KAMERA STARTEN</button>
+              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
               <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[9px] md:text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
           </div>
         </div>
@@ -682,12 +687,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             className="absolute inset-0 w-full h-full object-cover" 
             style={{ 
                 filter: activeFilter || 'none',
-                // NEU: Inline Transform für echtes Spiegeln + Kamera Zoom
                 transform: `${mirror ? 'scaleX(-1)' : 'scaleX(1)'} scale(${cameraZoom})`
             }} 
         />
         
-        {/* DRAGGABLE & ZOOMABLE SPOTIFY PLAYER */}
         {isSpotifyVisible && (
             <div 
                 className="absolute z-20 bg-black/70 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl transition-opacity duration-300 origin-top-left"
@@ -702,7 +705,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        {/* DRAGGABLE & RESIZABLE & ZOOMABLE LIVE CHAT */}
         {isChatVisible && (
             <div 
                 className="absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-opacity duration-300 origin-top-left"
@@ -714,27 +716,29 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 }}
                 onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'drag')}
             >
-                {/* Chat Header (zieht man zum Bewegen) */}
                 <div className="bg-white/5 border-b border-white/5 p-2 flex items-center justify-between pointer-events-none rounded-t-2xl shrink-0">
                     <span className="text-[9px] font-black text-white flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> CHAT</span>
                 </div>
                 
-                {/* Nachrichten Bereich */}
-                <div className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-1.5 font-sans not-italic text-[12px] break-words whitespace-normal" onPointerDown={stopEvent} onWheel={stopEvent}>
+                <div className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal" onPointerDown={stopEvent} onWheel={stopEvent}>
                     {chatMessages.length === 0 ? (
                         <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>
                     ) : (
                         chatMessages.map((msg: any) => (
-                            <div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-1">
-                                <span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span>
-                                <span className="font-medium drop-shadow-md">{msg.comment}</span>
+                            <div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-2 flex gap-2 items-start">
+                                {msg.profilePictureUrl && (
+                                    <img src={msg.profilePictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 mt-0.5 shadow-md border border-white/10" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span>
+                                    <span className="font-medium drop-shadow-md">{msg.comment}</span>
+                                </div>
                             </div>
                         ))
                     )}
                     <div ref={chatScrollRef} />
                 </div>
 
-                {/* Resize Ecke unten rechts (zum Langziehen) */}
                 <div 
                     className="absolute bottom-0 right-0 w-8 h-8 cursor-nwse-resize flex items-end justify-end p-2 opacity-30 hover:opacity-100 z-30"
                     onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'resize')}
@@ -744,7 +748,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        {/* LIVE FILTER CAROUSEL */}
         {showFilters && (
             <div className={`absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-300 ease-out ${isClosingFilters ? 'opacity-0 translate-y-10' : 'opacity-100 animate-in fade-in slide-in-from-bottom-10'}`}>
                 <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={stopEvent}>
@@ -767,7 +770,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        {/* STATIC UI CONTROLS */}
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 z-10">
             <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
