@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030172"; 
+  const version = "0.030173"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -860,7 +860,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         {showFilters && (
             <div className={`absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-300 ease-out ${isClosingFilters ? 'opacity-0 translate-y-10' : 'opacity-100 animate-in fade-in slide-in-from-bottom-10'}`}>
                 <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={stopEvent}>
-                    <div className="flex flex-col items-center gap-6 w-full max-w-sm">
+                    <div className="flex flex-col items-center gap-6 w-full max-w-sm md:max-w-4xl">
                         <div 
                             ref={filtersScrollRef}
                             onPointerDown={handleFilterPointerDown}
