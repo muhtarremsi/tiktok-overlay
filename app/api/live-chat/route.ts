@@ -50,7 +50,31 @@ export async function GET(req: Request) {
         });
       });
 
-      // NEU: Sofortige Benachrichtigung, wenn der Stream beendet wird!
+      // NEU: Likes abfangen
+      tiktokLiveConnection.on('like', data => {
+        sendEvent({ 
+            type: 'like', 
+            userId: data.userId,
+            nickname: data.nickname || data.uniqueId,
+            profilePictureUrl: data.profilePictureUrl,
+            likeCount: data.likeCount
+        });
+      });
+
+      // NEU: Geschenke abfangen
+      tiktokLiveConnection.on('gift', data => {
+        sendEvent({ 
+            type: 'gift', 
+            nickname: data.nickname || data.uniqueId,
+            profilePictureUrl: data.profilePictureUrl,
+            giftName: data.giftName,
+            giftPictureUrl: data.giftPictureUrl,
+            diamondCount: data.diamondCount,
+            amount: data.amount || 1
+        });
+      });
+
+      // Sofortige Benachrichtigung, wenn der Stream beendet wird
       tiktokLiveConnection.on('streamEnd', () => {
         sendEvent({ type: 'offline' });
       });
