@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030182"; 
+  const version = "0.030183"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -923,8 +923,8 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         )}
 
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 z-10">
-            <div className={`flex justify-end items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <div className="flex flex-col items-center gap-3 pointer-events-auto">
+            <div className={`flex justify-end items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                <div className="flex flex-col items-center gap-3">
                     <div className="bg-black/50 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg flex items-center justify-center" onPointerDown={stopEvent} onClick={stopEvent} onPointerUp={stopEvent}>
                         <SekerLogo className="w-6 h-6 text-green-500" />
                     </div>
@@ -960,13 +960,13 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
             <div className="flex justify-between items-end w-full">
                 <div className="w-10"></div> 
-                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter !== "" ? "text-purple-400" : ""} /></button>
-                    <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
+                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                    <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><Wand2 size={24} className={activeFilter !== "" ? "text-purple-400" : ""} /></button>
+                    <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><Settings size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><FlipHorizontal size={24} /></button>
                     {cameraCount > 1 && (
-                        <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                        <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>
                     )}
                 </div>
             </div>
