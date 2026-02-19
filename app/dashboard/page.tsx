@@ -489,6 +489,8 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
 function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const cameraContainerRef = useRef<HTMLDivElement>(null);
+  const filtersScrollRef = useRef<HTMLDivElement>(null);
   const holdTimer = useRef<NodeJS.Timeout | null>(null);
   
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
@@ -581,12 +583,14 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   const activePointers = useRef(new Map());
   const dragInfo = useRef<any>(null);
+  const hasDragged = useRef(false); // NEU: Erkennt, ob eine Zieh-Bewegung stattfand
   const initialPinchDist = useRef<number | null>(null);
   const targetType = useRef<string | null>(null);
   const initialScale = useRef<number | null>(null);
 
   const handleElementPointerDown = (e: React.PointerEvent, type: string, action: string) => {
       e.stopPropagation(); 
+      hasDragged.current = false;
       
       if (action === 'drag' || action === 'resize') {
           dragInfo.current = {
@@ -610,6 +614,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   const handleRootPointerDown = (e: React.PointerEvent) => { 
       if (showSettings || showFilters) return; 
+      hasDragged.current = false;
       
       activePointers.current.set(e.pointerId, e);
       
@@ -632,6 +637,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       }
 
       if (activePointers.current.size === 2 && initialPinchDist.current) {
+          hasDragged.current = true;
           const pts = Array.from(activePointers.current.values());
           const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
           const scaleChange = dist / initialPinchDist.current;
@@ -647,11 +653,48 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           const dx = e.clientX - startX;
           const dy = e.clientY - startY;
           
+          if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged.current = true;
+          
           if (action === 'drag') {
-              if(type === 'spotify') setSpotifyState(prev => ({...prev, x: initial.x + dx, y: initial.y + dy}));
-              if(type === 'chat') setChatState(prev => ({...prev, x: initial.x + dx, y: initial.y + dy}));
+              // Bounding Box Logic für Desktop & Mobile
+              let cw = window.innerWidth;
+              let ch = window.innerHeight;
+              if (cameraContainerRef.current) {
+                  const rect = cameraContainerRef.current.getBoundingClientRect();
+                  cw = rect.width;
+                  ch = rect.height;
+              }
+              
+              const scale = type === 'spotify' ? spotifyState.scale : chatState.scale;
+              const approxW = (type === 'spotify' ? 200 : chatState.w) * scale;
+              const approxH = (type === 'spotify' ? 64 : chatState.h) * scale;
+              
+              let nx = initial.x + dx;
+              let ny = initial.y + dy;
+              
+              if (nx < 0) nx = 0;
+              if (ny < 0) ny = 0;
+              if (nx > cw - approxW) nx = cw - approxW;
+              if (ny > ch - approxH) ny = ch - approxH;
+
+              if(type === 'spotify') setSpotifyState(prev => ({...prev, x: nx, y: ny}));
+              if(type === 'chat') setChatState(prev => ({...prev, x: nx, y: ny}));
           } else if (action === 'resize') {
-              if(type === 'chat') setChatState(prev => ({...prev, w: Math.max(200, initial.w + dx), h: Math.max(150, initial.h + dy)}));
+              let cw = window.innerWidth;
+              let ch = window.innerHeight;
+              if (cameraContainerRef.current) {
+                  const rect = cameraContainerRef.current.getBoundingClientRect();
+                  cw = rect.width;
+                  ch = rect.height;
+              }
+
+              let nw = Math.max(200, initial.w + dx);
+              let nh = Math.max(150, initial.h + dy);
+
+              if (chatState.x + nw * chatState.scale > cw) nw = (cw - chatState.x) / chatState.scale;
+              if (chatState.y + nh * chatState.scale > ch) nh = (ch - chatState.y) / chatState.scale;
+
+              if(type === 'chat') setChatState(prev => ({...prev, w: nw, h: nh}));
           }
       }
   };
@@ -668,8 +711,13 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   const handleRootPointerUp = (e: React.PointerEvent) => {
       handleGlobalPointerUp(e); 
+      if (hasDragged.current) {
+          hasDragged.current = false;
+          return; // Verhindert dass UI schließt wenn man draggte
+      }
       if (showSettings || showFilters) {
           if(showSettings) setShowSettings(false);
+          // Bei Klick in den Hintergrund schließen sich Filter
           if(showFilters && !isClosingFilters) closeFiltersMenu();
           return;
       }
@@ -685,7 +733,24 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   const stopEvent = (e: React.SyntheticEvent) => {
       e.stopPropagation();
-      if (e.type !== 'pointerdown') e.preventDefault();
+  };
+
+  // NEU: Desktop Drag-To-Scroll für Filter
+  const filterDrag = useRef({ isDown: false, startX: 0, scrollLeft: 0 });
+  const handleFilterPointerDown = (e: React.PointerEvent) => {
+      e.stopPropagation();
+      filterDrag.current = { isDown: true, startX: e.pageX - (filtersScrollRef.current?.offsetLeft || 0), scrollLeft: filtersScrollRef.current?.scrollLeft || 0 };
+  };
+  const handleFilterPointerMove = (e: React.PointerEvent) => {
+      if (!filterDrag.current.isDown || !filtersScrollRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - filtersScrollRef.current.offsetLeft;
+      const walk = (x - filterDrag.current.startX) * 2; // Speed
+      filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - walk;
+  };
+  const handleFilterPointerUp = (e: React.PointerEvent) => {
+      e.stopPropagation();
+      filterDrag.current.isDown = false;
   };
 
   if (viewState === 'intro') {
@@ -718,7 +783,9 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   return (
     <div 
-        className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center select-none cursor-pointer"
+        ref={cameraContainerRef}
+        // NEU: Desktop = abgerundet und kleiner / Mobile = Fullscreen
+        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 md:shadow-2xl bg-black overflow-hidden flex items-center justify-center select-none cursor-pointer"
         style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={handleRootPointerDown}
@@ -730,14 +797,14 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         <video 
             ref={videoRef} 
             autoPlay playsInline muted 
-            className="absolute inset-0 w-full h-full object-cover" 
+            // FIX: "absolute top-0 left-0" + "border-none" verhindert dunkle Ränder
+            className="absolute top-0 left-0 w-full h-full object-cover outline-none border-none" 
             style={{ 
                 filter: activeFilter || 'none',
                 transform: `${mirror ? 'scaleX(-1)' : 'scaleX(1)'} scale(${cameraZoom})`
             }} 
         />
         
-        {/* DRAGGABLE & ZOOMABLE SPOTIFY PLAYER */}
         {isSpotifyVisible && (
             <div 
                 className="absolute z-20 bg-black/70 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl transition-opacity duration-300 origin-top-left"
@@ -752,7 +819,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        {/* DRAGGABLE & RESIZABLE & ZOOMABLE LIVE CHAT */}
         {isChatVisible && (
             <div 
                 className="absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-opacity duration-300 origin-top-left"
@@ -797,46 +863,51 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        {/* LIVE FILTER CAROUSEL */}
         {showFilters && (
             <div className={`absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-300 ease-out ${isClosingFilters ? 'opacity-0 translate-y-10' : 'opacity-100 animate-in fade-in slide-in-from-bottom-10'}`}>
                 <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={stopEvent}>
                     <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-                        <div className="flex gap-6 overflow-x-auto w-full px-10 py-4 snap-x snap-mandatory scrollbar-hide items-center justify-start" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
+                        <div 
+                            ref={filtersScrollRef}
+                            onPointerDown={handleFilterPointerDown}
+                            onPointerMove={handleFilterPointerMove}
+                            onPointerUp={handleFilterPointerUp}
+                            onPointerLeave={handleFilterPointerUp}
+                            className="flex gap-6 overflow-x-auto w-full px-10 py-4 snap-x snap-mandatory scrollbar-hide items-center justify-start cursor-grab active:cursor-grabbing" 
+                            style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
+                        >
                             {CAMERA_FILTERS.map(f => (
                                 <LiveFilterPreview 
                                     key={f.id} 
                                     stream={activeStream} 
                                     filterCss={f.css} 
                                     isActive={activeFilter === f.css} 
-                                    onClick={() => { setActiveFilter(f.css); closeFiltersMenu(); }} 
+                                    // Filter schließt sich nicht mehr bei Auswahl
+                                    onClick={() => { setActiveFilter(f.css); }} 
                                     name={f.name} 
                                 />
                             ))}
                         </div>
-                        <button onClick={(e) => { stopEvent(e); closeFiltersMenu(); }} onPointerDown={stopEvent} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110"><X size={20}/></button>
+                        <button onClick={(e) => { stopEvent(e); closeFiltersMenu(); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110"><X size={20}/></button>
                     </div>
                 </div>
             </div>
         )}
 
-        {/* STATIC UI CONTROLS */}
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 z-10">
-            
-            {/* Oben Rechts: Logo und X (Clean UI) */}
             <div className={`flex justify-end items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <div className="flex flex-col items-center gap-3 pointer-events-auto">
-                    <div className="bg-black/50 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg flex items-center justify-center" onPointerDown={stopEvent} onClick={stopEvent}>
+                    <div className="bg-black/50 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg flex items-center justify-center" onPointerDown={stopEvent} onClick={stopEvent} onPointerUp={stopEvent}>
                         <SekerLogo className="w-6 h-6 text-green-500" />
                     </div>
-                    <button onClick={(e) => { stopEvent(e); stopStream(); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors shadow-lg">
+                    <button onClick={(e) => { stopEvent(e); stopStream(); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors shadow-lg">
                         <X size={20} />
                     </button>
                 </div>
             </div>
             
             {showSettings && (
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex items-center justify-center pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex items-center justify-center pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent}>
                     <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl w-80 space-y-6 shadow-2xl">
                         <div className="flex justify-between items-center">
                             <h3 className="text-white text-xs font-black flex items-center gap-2"><Settings size={16}/> IRL Einstellungen</h3>
@@ -847,7 +918,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                                 <span className="text-[10px] text-white font-bold flex items-center gap-2 uppercase tracking-wider"><SpotifyLogo className="w-4 h-4 text-[#1DB954]"/> Player zeigen</span>
                                 <input type="checkbox" checked={spotifyConfig.showInCamera} onChange={e => setSpotifyConfig({...spotifyConfig, showInCamera: e.target.checked})} className="w-4 h-4 accent-[#1DB954]" />
                             </div>
-                            
                             <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5">
                                 <div className="space-y-1">
                                     <span className="text-[10px] text-white font-bold block uppercase tracking-wider">Immer sichtbar</span>
@@ -863,11 +933,12 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             <div className="flex justify-between items-end w-full">
                 <div className="w-10"></div> 
                 <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter ? "text-purple-400" : ""} /></button>
-                    <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setFacingMode(prev => { const nm = prev === 'user' ? 'environment' : 'user'; setMirror(nm === 'user'); return nm;}); setShowUI(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                    {/* BUTTON ACTIVE FIX: Wand leuchtet nur lila wenn NICHT leer */}
+                    <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter !== "" ? "text-purple-400" : ""} /></button>
+                    <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setFacingMode(prev => { const nm = prev === 'user' ? 'environment' : 'user'; setMirror(nm === 'user'); return nm;}); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
                 </div>
             </div>
         </div>
