@@ -36,7 +36,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("home"); 
+  const [activeView, setActiveView] = useState("camera"); 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030168"; 
+  const version = "0.030169"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -107,8 +107,7 @@ function DashboardContent() {
   useEffect(() => {
     let pollTimer: any;
     let wipeTimer: any;
-    
-    // WICHTIG: Sofortiges Zurücksetzen ausserhalb des Timers (verhindert den 1-Sekunden-Lag)
+
     if (!targetUser) {
         setStatus('idle');
     } else if (targetUser.length > 0 && targetUser.length < 3) {
@@ -125,18 +124,17 @@ function DashboardContent() {
         } else {
             setStatus('offline');
             localStorage.removeItem("seker_target");
-            // 5 Sekunden Timer & synchrones Leeren
-            wipeTimer = setTimeout(() => { 
-                setTargetUser(""); 
-                setStatus('idle'); 
+            wipeTimer = setTimeout(() => {
+                setTargetUser("");
+                setStatus('idle');
             }, 5000);
         }
-      } catch (e) { 
-          setStatus('offline'); 
+      } catch (e) {
+          setStatus('offline');
           localStorage.removeItem("seker_target");
-          wipeTimer = setTimeout(() => { 
-              setTargetUser(""); 
-              setStatus('idle'); 
+          wipeTimer = setTimeout(() => {
+              setTargetUser("");
+              setStatus('idle');
           }, 5000);
       }
     };
@@ -190,9 +188,9 @@ function DashboardContent() {
                 setStatus('offline');
                 setChatStatus('Stream wurde beendet.');
                 localStorage.removeItem("seker_target");
-                setTimeout(() => { 
-                    setTargetUser(""); 
-                    setStatus('idle'); 
+                setTimeout(() => {
+                    setTargetUser("");
+                    setStatus('idle');
                 }, 5000);
                 eventSource?.close();
             }
@@ -234,16 +232,16 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
+    <div className="flex h-[100dvh] w-screen max-w-[100vw] overflow-hidden bg-[#09090b] text-zinc-200 font-sans text-[12px] uppercase font-bold italic">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col h-full ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col h-full shrink-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         <div className="p-5 shrink-0 space-y-6">
             <div className="flex items-center text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
-            <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
+            <SekerLogo className="w-5 h-5 mr-2 text-green-500 shrink-0" /> SEKERBABA
             </div>
             <button className="absolute top-4 right-4 lg:hidden text-zinc-500" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
             
@@ -583,7 +581,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   const activePointers = useRef(new Map());
   const dragInfo = useRef<any>(null);
-  const hasDragged = useRef(false); // NEU: Erkennt, ob eine Zieh-Bewegung stattfand
+  const hasDragged = useRef(false);
   const initialPinchDist = useRef<number | null>(null);
   const targetType = useRef<string | null>(null);
   const initialScale = useRef<number | null>(null);
@@ -656,7 +654,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged.current = true;
           
           if (action === 'drag') {
-              // Bounding Box Logic für Desktop & Mobile
               let cw = window.innerWidth;
               let ch = window.innerHeight;
               if (cameraContainerRef.current) {
@@ -713,11 +710,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       handleGlobalPointerUp(e); 
       if (hasDragged.current) {
           hasDragged.current = false;
-          return; // Verhindert dass UI schließt wenn man draggte
+          return; 
       }
       if (showSettings || showFilters) {
           if(showSettings) setShowSettings(false);
-          // Bei Klick in den Hintergrund schließen sich Filter
           if(showFilters && !isClosingFilters) closeFiltersMenu();
           return;
       }
@@ -735,7 +731,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       e.stopPropagation();
   };
 
-  // NEU: Desktop Drag-To-Scroll für Filter
   const filterDrag = useRef({ isDown: false, startX: 0, scrollLeft: 0 });
   const handleFilterPointerDown = (e: React.PointerEvent) => {
       e.stopPropagation();
@@ -745,7 +740,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       if (!filterDrag.current.isDown || !filtersScrollRef.current) return;
       e.preventDefault();
       const x = e.pageX - filtersScrollRef.current.offsetLeft;
-      const walk = (x - filterDrag.current.startX) * 2; // Speed
+      const walk = (x - filterDrag.current.startX) * 2; 
       filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - walk;
   };
   const handleFilterPointerUp = (e: React.PointerEvent) => {
@@ -784,7 +779,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   return (
     <div 
         ref={cameraContainerRef}
-        // NEU: Desktop = abgerundet und kleiner / Mobile = Fullscreen
         className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 md:shadow-2xl bg-black overflow-hidden flex items-center justify-center select-none cursor-pointer"
         style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
@@ -797,11 +791,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         <video 
             ref={videoRef} 
             autoPlay playsInline muted 
-            // FIX: "absolute top-0 left-0" + "border-none" verhindert dunkle Ränder
             className="absolute top-0 left-0 w-full h-full object-cover outline-none border-none" 
             style={{ 
                 filter: activeFilter || 'none',
-                transform: `${mirror ? 'scaleX(-1)' : 'scaleX(1)'} scale(${cameraZoom})`
+                transform: `scaleX(${mirror ? '-1' : '1'}) scale(${cameraZoom})`
             }} 
         />
         
@@ -882,7 +875,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                                     stream={activeStream} 
                                     filterCss={f.css} 
                                     isActive={activeFilter === f.css} 
-                                    // Filter schließt sich nicht mehr bei Auswahl
                                     onClick={() => { setActiveFilter(f.css); }} 
                                     name={f.name} 
                                 />
@@ -933,7 +925,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             <div className="flex justify-between items-end w-full">
                 <div className="w-10"></div> 
                 <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    {/* BUTTON ACTIVE FIX: Wand leuchtet nur lila wenn NICHT leer */}
                     <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter !== "" ? "text-purple-400" : ""} /></button>
                     <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
@@ -1031,12 +1022,17 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
             
             <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5 w-full">
                 <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2 shrink-0"><Monitor size={14}/> OBS / Live Studio Link</span>
-                <div className="flex flex-col sm:flex-row gap-2 w-full">
-                    <div className="flex-1 min-w-0 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 border border-white/5 break-words whitespace-normal break-all leading-relaxed">
-                        {overlayLink}
+                
+                {/* NEUER SCROLLBARER OBS LINK */}
+                <div className="flex flex-col gap-2 w-full">
+                    <div className="w-full bg-black p-3 rounded-lg border border-white/5 overflow-x-auto scrollbar-hide">
+                        <div className="text-[9px] font-mono text-zinc-500 whitespace-nowrap inline-block pr-4">
+                            {overlayLink}
+                        </div>
                     </div>
-                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="w-full sm:w-auto shrink-0 bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> COPY</button>}
+                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="w-full bg-[#1DB954] text-black px-4 py-3 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> COPY</button>}
                 </div>
+                
                 <span className="text-[8px] sm:text-[9px] text-zinc-500 not-italic whitespace-normal break-words leading-snug">Dieser Link zeigt ausschließlich den Spotify-Player an. Füge ihn als Browser-Quelle in OBS ein.</span>
             </div>
         </div>
