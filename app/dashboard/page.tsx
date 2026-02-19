@@ -45,7 +45,6 @@ function DashboardContent() {
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
   const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
-  // ERWEITERT: alwaysOn für Spotify
   const [spotifyConfig, setSpotifyConfig] = useState({ allowRequests: false, showInCamera: true, cameraScale: 100, alwaysOn: false });
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
@@ -54,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030146"; 
+  const version = "0.030147"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -185,72 +184,89 @@ function DashboardContent() {
         <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 overflow-y-auto scrollbar-hide ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center mb-6 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
-          <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
+      {/* VERÄNDERTE SIDEBAR STRUKTUR (FLEX COL) */}
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col h-full ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        
+        {/* FIXED HEADER BEREICH */}
+        <div className="p-5 shrink-0 space-y-6">
+            <div className="flex items-center text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
+            <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
+            </div>
+            <button className="absolute top-4 right-4 lg:hidden text-zinc-500" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
+            
+            <div className="space-y-2 not-italic">
+            <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
+            <div className="relative">
+                <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
+                <input type="text" placeholder="username" value={targetUser} onChange={(e) => setTargetUser(e.target.value.toLowerCase())} className={`w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none border transition-all lowercase ${status === 'online' ? "border-green-500/50 text-green-400" : "border-zinc-800"}`} />
+                <div className="absolute inset-y-0 right-3 flex items-center">
+                {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
+                {status === 'online' && <div className="relative flex items-center justify-center"><div className="w-2 h-2 bg-green-500 rounded-full z-10"></div><div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div></div>}
+                {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
+                {status === 'too_short' && <Info className="w-3 h-3 text-blue-500" />}
+                </div>
+            </div>
+            <div className="h-4 flex items-center justify-end px-1">
+                {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline</span>}
+                {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
+                {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
+            </div>
+            <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-3 space-y-2 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
+                <div className="flex justify-between items-center text-[10px]"><span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-green-500" /> VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
+                <div className="flex justify-between items-center text-[10px]"><span className="flex items-center gap-1.5"><Key size={14} className="text-green-500" /> LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
+                <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span className="flex items-center gap-1.5"><CalendarDays size={14} className="text-green-500" /> ABLAUFDATUM</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
+            </div>
+            </div>
         </div>
-        <button className="absolute top-4 right-4 lg:hidden text-zinc-500" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
-        
-        <div className="mb-6 space-y-2 not-italic">
-          <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-3 flex items-center text-zinc-500 text-[10px]">@</div>
-            <input type="text" placeholder="username" value={targetUser} onChange={(e) => setTargetUser(e.target.value.toLowerCase())} className={`w-full bg-[#0c0c0e] text-[11px] rounded-lg py-3 pl-8 pr-10 focus:outline-none border transition-all lowercase ${status === 'online' ? "border-green-500/50 text-green-400" : "border-zinc-800"}`} />
-            <div className="absolute inset-y-0 right-3 flex items-center">
-              {status === 'checking' && <Loader2 className="w-3 h-3 text-yellow-500 animate-spin" />}
-              {status === 'online' && <div className="relative flex items-center justify-center"><div className="w-2 h-2 bg-green-500 rounded-full z-10"></div><div className="absolute w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75"></div></div>}
-              {status === 'offline' && <div className="w-2 h-2 bg-red-500 rounded-full"></div>}
-              {status === 'too_short' && <Info className="w-3 h-3 text-blue-500" />}
-            </div>
-          </div>
-          <div className="h-4 flex items-center justify-end px-1">
-            {status === 'offline' && <span className="text-[9px] text-red-500 flex items-center gap-1 font-bold uppercase tracking-wider"><AlertCircle size={8} /> Offline</span>}
-            {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
-            {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
-          </div>
-          
-          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-3 space-y-2 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
-            <div className="flex justify-between items-center text-[10px]"><span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-green-500" /> VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
-            <div className="flex justify-between items-center text-[10px]"><span className="flex items-center gap-1.5"><Key size={14} className="text-green-500" /> LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
-            <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span className="flex items-center gap-1.5"><CalendarDays size={14} className="text-green-500" /> ABLAUFDATUM</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
-          </div>
+
+        {/* SCROLLBARER MIDDLE BEREICH (NAV) MIT FADE-EFFEKT */}
+        <div 
+            className="flex-1 overflow-y-auto scrollbar-hide px-5" 
+            style={{ 
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)', 
+                maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' 
+            }}
+        >
+            {/* Kleiner Padding-Puffer für weiches Scrollen oben */}
+            <div className="h-4"></div>
+            
+            <nav className="space-y-6 pb-10">
+                <div>
+                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK OVERLAYS</div>
+                    <div className="space-y-1">
+                        <MenuFolder label="TEXT TO" icon={<MessageSquare size={16}/>} defaultOpen={true}>
+                            <SidebarSubItem icon={<Volume2 size={14}/>} label="Voice" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
+                            <SidebarSubItem icon={<Video size={14}/>} label="Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
+                        </MenuFolder>
+                        
+                        <MenuFolder label="ALERTS" icon={<Zap size={16}/>} defaultOpen={true}>
+                            <SidebarSubItem icon={<Music size={14}/>} label="Sound" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
+                        </MenuFolder>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">STREAMING & TOOLS</div>
+                    <div className="space-y-1">
+                        <SidebarItem icon={<Camera size={16} />} label="IRL Cam" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
+                        <SidebarItem icon={<Heart size={16} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
+                        <SidebarItem icon={<SpotifyLogo className="w-4 h-4"/>} label="Spotify" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
+                    </div>
+                </div>
+
+                <div>
+                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic flex items-center gap-2">COMING SOON</div>
+                    <div className="space-y-1 opacity-50">
+                        <SidebarItem icon={<Gamepad2 size={16} />} label="Mini Games" active={activeView === "games"} onClick={() => setActiveView("games")} />
+                        <SidebarItem icon={<Bot size={16} />} label="Chat Bot" active={activeView === "bot"} onClick={() => setActiveView("bot")} />
+                        <SidebarItem icon={<Trophy size={16} />} label="Leaderboard" active={activeView === "leaderboard"} onClick={() => setActiveView("leaderboard")} />
+                    </div>
+                </div>
+            </nav>
         </div>
         
-        <nav className="space-y-4 pb-10">
-            <div>
-                <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK OVERLAYS</div>
-                <div className="space-y-1">
-                    <MenuFolder label="TEXT TO" icon={<MessageSquare size={16}/>} defaultOpen={true}>
-                        <SidebarSubItem icon={<Volume2 size={14}/>} label="Voice" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
-                        <SidebarSubItem icon={<Video size={14}/>} label="Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
-                    </MenuFolder>
-                    <MenuFolder label="ALERTS" icon={<Zap size={16}/>} defaultOpen={true}>
-                        <SidebarSubItem icon={<Music size={14}/>} label="Sound" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
-                    </MenuFolder>
-                </div>
-            </div>
-
-            <div>
-                <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">STREAMING & TOOLS</div>
-                <div className="space-y-1">
-                    <SidebarItem icon={<Camera size={16} />} label="IRL Cam" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
-                    <SidebarItem icon={<Heart size={16} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
-                    <SidebarItem icon={<SpotifyLogo className="w-4 h-4"/>} label="Spotify" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
-                </div>
-            </div>
-
-            <div>
-                <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic flex items-center gap-2">COMING SOON</div>
-                <div className="space-y-1 opacity-50">
-                    <SidebarItem icon={<Gamepad2 size={16} />} label="Mini Games" active={activeView === "games"} onClick={() => setActiveView("games")} />
-                    <SidebarItem icon={<Bot size={16} />} label="Chat Bot" active={activeView === "bot"} onClick={() => setActiveView("bot")} />
-                    <SidebarItem icon={<Trophy size={16} />} label="Leaderboard" active={activeView === "leaderboard"} onClick={() => setActiveView("leaderboard")} />
-                </div>
-            </div>
-        </nav>
-        
-        <div className="flex-1"></div>
-        <div className="pt-4 space-y-2 border-t border-white/5 not-italic shrink-0">
+        {/* FIXED FOOTER BEREICH */}
+        <div className="p-5 shrink-0 pt-4 space-y-2 border-t border-white/5 not-italic z-10 bg-black">
            <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
            <div className="flex items-center justify-between px-3 py-2 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div><span className="font-mono">EN</span>
@@ -286,6 +302,7 @@ function DashboardContent() {
   );
 }
 
+// --- NAVIGATION COMPONENTS ---
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
@@ -426,7 +443,11 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
   };
   const handlePointerUp = () => {
-      if (showSettings || showFilters) return;
+      if (showSettings || showFilters) {
+          if(showSettings) setShowSettings(false);
+          if(showFilters) setShowFilters(false);
+          return;
+      }
       if (holdTimer.current) clearTimeout(holdTimer.current);
       if (isHolding) { setIsHolding(false); } else { setShowUI(prev => !prev); }
   };
@@ -608,7 +629,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   );
 }
 
-// ... Unveränderte Module
 function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
   const [track, setTrack] = useState<any>(null);
   const [loading, setLoading] = useState(isConnected);
@@ -852,6 +872,33 @@ function ModuleSettings({ hasConsent, isConnected, onConnect, isSpotifyConnected
           <AuthCard icon={<SpotifyLogo className={isSpotifyConnected ? "text-black" : "text-zinc-500"} />} name="SPOTIFY" status={isSpotifyConnected ? "CONNECTED" : "DISCONNECTED"} active={true} connected={isSpotifyConnected} onAction={onSpotifyConnect} />
           <AuthCard icon={<Share2 />} name="DISCORD" status="COMING SOON" active={false} />
           <AuthCard icon={<Monitor />} name="TWITCH" status="COMING SOON" active={false} />
+        </div>
+      </section>
+      <section className="space-y-4">
+        <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">HARDWARE & QUALITY</h3>
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8">
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                 <h4 className="text-white text-xs font-black flex items-center gap-2"><Gauge size={16} className="text-yellow-500" /> GRAPHICS QUALITY</h4>
+                 <p className="text-[9px] text-zinc-500 uppercase font-bold italic max-w-xs">Lower this value if you experience lag or dropped frames during stream.</p>
+              </div>
+              <span className="text-xl text-white font-black not-italic">{quality}%</span>
+            </div>
+            <input type="range" min="10" max="100" step="10" value={quality} onChange={(e) => setQuality(parseInt(e.target.value))} className="w-full accent-green-500 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
+          </div>
+          <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-zinc-900 rounded-xl"><Cpu size={18} className="text-blue-500" /></div>
+              <div className="space-y-1">
+                 <span className="text-[10px] text-white font-black block">SYSTEM BENCHMARK</span>
+                 <span className="text-[9px] text-zinc-500 block">{testResult || "Check your PC capability"}</span>
+              </div>
+            </div>
+            <button onClick={runHardwareTest} disabled={testing} className="bg-zinc-800 hover:bg-white hover:text-black text-white px-6 py-3 rounded-xl text-[10px] font-black transition-all min-w-[100px]">
+              {testing ? <Loader2 size={14} className="animate-spin mx-auto"/> : (testResult ? "RE-TEST" : "RUN TEST")}
+            </button>
+          </div>
         </div>
       </section>
       <section className="space-y-4">
