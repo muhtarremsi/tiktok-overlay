@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030163"; 
+  const version = "0.030164"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -101,18 +101,30 @@ function DashboardContent() {
         localStorage.setItem("seker_sounds", JSON.stringify(soundTriggers));
         localStorage.setItem("seker_perf", perfQuality.toString());
         localStorage.setItem("seker_spotify", JSON.stringify(spotifyConfig));
-        if (targetUser) localStorage.setItem("seker_target", targetUser);
     }
-  }, [ttvTriggers, soundTriggers, targetUser, perfQuality, spotifyConfig, hasFunctionalConsent]);
+  }, [ttvTriggers, soundTriggers, perfQuality, spotifyConfig, hasFunctionalConsent]);
 
   useEffect(() => {
     let pollTimer: any;
-    const checkUser = async () => {
-      if (!targetUser || targetUser.length < 3) return;
+    let wipeTimer: any;
+    
+    const checkUser = async (userToCheck: string) => {
+      if (!userToCheck || userToCheck.length < 3) return;
       try {
-        const res = await fetch(`/api/status?u=${targetUser}`);
-        setStatus(res.ok ? 'online' : 'offline');
-      } catch (e) { setStatus('offline'); }
+        const res = await fetch(`/api/status?u=${userToCheck}`);
+        if (res.ok) {
+            setStatus('online');
+            if (hasFunctionalConsent) localStorage.setItem("seker_target", userToCheck);
+        } else {
+            setStatus('offline');
+            localStorage.removeItem("seker_target");
+            wipeTimer = setTimeout(() => setTargetUser(""), 3000); // Feld nach 3s leeren
+        }
+      } catch (e) { 
+          setStatus('offline'); 
+          localStorage.removeItem("seker_target");
+          wipeTimer = setTimeout(() => setTargetUser(""), 3000);
+      }
     };
 
     const debounceTimer = setTimeout(() => {
@@ -121,17 +133,17 @@ function DashboardContent() {
         return;
       }
       setStatus('checking');
-      checkUser().then(() => {
-        // Fragt alle 15 Sekunden im Hintergrund den Status ab
-        pollTimer = setInterval(checkUser, 15000);
+      checkUser(targetUser).then(() => {
+        pollTimer = setInterval(() => checkUser(targetUser), 15000);
       });
-    }, 800);
+    }, 1000);
 
     return () => {
       clearTimeout(debounceTimer);
       if (pollTimer) clearInterval(pollTimer);
+      if (wipeTimer) clearTimeout(wipeTimer);
     };
-  }, [targetUser]);
+  }, [targetUser, hasFunctionalConsent]);
 
   useEffect(() => {
     if (status !== 'online' || !targetUser || targetUser.length < 3) return;
@@ -166,6 +178,8 @@ function DashboardContent() {
             } else if (data.type === 'offline') {
                 setStatus('offline');
                 setChatStatus('Stream wurde beendet.');
+                localStorage.removeItem("seker_target");
+                setTimeout(() => setTargetUser(""), 3000);
                 eventSource?.close();
             }
         };
