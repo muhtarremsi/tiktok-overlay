@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030154"; 
+  const version = "0.030155"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -283,17 +283,18 @@ function DashboardContent() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative">
+      {/* overflow-x-hidden am Main-Container verhindert horizontales Scrollen strikt! */}
+      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative overflow-x-hidden">
         <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 z-10 relative">
           <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
           <div className="flex items-center gap-2 font-black italic lg:hidden"><SekerLogo className="w-5 h-5 text-green-500" /> SEKERBABA</div>
           <div className="hidden lg:block" />
         </header>
 
-        <div className="flex-1 overflow-y-auto relative z-0 flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 flex flex-col w-full min-w-0">
           {!hasFunctionalConsent && activeView !== 'settings' && activeView !== 'camera' && activeView !== 'home' && (
-              <div className="mx-6 lg:mx-10 mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] flex items-center gap-3 font-black tracking-widest animate-pulse">
-                  <Cookie size={16} /> ACHTUNG: FUNKTIONALE COOKIES SIND DEAKTIVIERT. TRIGGER WERDEN NICHT GESPEICHERT!
+              <div className="mx-4 sm:mx-6 lg:mx-10 mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] flex items-center gap-3 font-black tracking-widest animate-pulse">
+                  <Cookie size={16} className="shrink-0" /> ACHTUNG: FUNKTIONALE COOKIES SIND DEAKTIVIERT. TRIGGER WERDEN NICHT GESPEICHERT!
               </div>
           )}
           {activeView === "home" && <ModuleHome targetUser={targetUser} isSpotifyConnected={isSpotifyConnected} ttvCount={ttvTriggers.length} soundCount={soundTriggers.length} setActiveView={setActiveView} />}
@@ -345,56 +346,56 @@ function ModuleComingSoon({ name }: { name: string }) {
     const displayName = name === "entry" ? "Entry Alerts" : name === "gifts" ? "Gift Alerts" : name;
 
     return (
-        <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
+        <div className="h-[70vh] flex flex-col items-center justify-center p-6 md:p-10 text-center space-y-4 italic font-bold uppercase w-full">
             <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center animate-pulse"><Code2 className="text-zinc-600" size={32}/></div>
-            <h2 className="text-2xl text-white">IN ENTWICKLUNG</h2>
-            <p className="text-[10px] text-zinc-500 max-w-sm">Das Modul "{displayName}" wird in einem zukünftigen Update veröffentlicht.</p>
+            <h2 className="text-xl md:text-2xl text-white">IN ENTWICKLUNG</h2>
+            <p className="text-[9px] md:text-[10px] text-zinc-500 max-w-sm">Das Modul "{displayName}" wird in einem zukünftigen Update veröffentlicht.</p>
         </div>
     );
 }
 
 function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setActiveView }: any) {
   return (
-    <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 md:p-12 rounded-3xl space-y-4 relative overflow-hidden shadow-2xl">
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-5xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-12 rounded-3xl space-y-4 relative overflow-hidden shadow-2xl w-full">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-        <h2 className="text-3xl md:text-5xl text-white font-black tracking-tighter relative z-10">WILLKOMMEN ZURÜCK</h2>
-        <p className="text-xs text-zinc-400 not-italic font-medium relative z-10 max-w-lg">
+        <h2 className="text-2xl md:text-5xl text-white font-black tracking-tighter relative z-10 break-words">WILLKOMMEN ZURÜCK</h2>
+        <p className="text-[10px] md:text-xs text-zinc-400 not-italic font-medium relative z-10 max-w-lg leading-relaxed">
           Dein zentrales Control Panel für interaktive TikTok Live Streams. Konfiguriere deine Overlays oder starte den Mobile IRL Modus.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 w-full">
         <InfoCard label="LIVE TARGET" value={targetUser ? `@${targetUser}` : "NICHT GESETZT"} color={targetUser ? "text-green-500" : "text-red-500"} />
         <InfoCard label="SPOTIFY API" value={isSpotifyConnected ? "VERBUNDEN" : "OFFLINE"} color={isSpotifyConnected ? "text-[#1DB954]" : "text-zinc-500"} />
         <InfoCard label="VIDEO TRIGGERS" value={ttvCount.toString()} color="text-blue-500" />
         <InfoCard label="SOUND ALERTS" value={soundCount.toString()} color="text-purple-500" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-black/50 border border-white/5 p-8 rounded-3xl space-y-6">
-          <h3 className="text-white text-sm font-black flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> QUICK START GUIDE</h3>
-          <div className="space-y-4 text-xs text-zinc-400 not-italic font-medium">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+        <div className="bg-black/50 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 w-full">
+          <h3 className="text-white text-xs md:text-sm font-black flex items-center gap-2"><Zap size={18} className="text-yellow-500 shrink-0" /> QUICK START GUIDE</h3>
+          <div className="space-y-4 text-[10px] md:text-xs text-zinc-400 not-italic font-medium">
             <div className="flex gap-3"><span className="text-green-500 font-black">1.</span><p>Trage dein <strong>Live Target</strong> oben links in die Seitenleiste ein, damit der Chat gelesen wird.</p></div>
             <div className="flex gap-3"><span className="text-green-500 font-black">2.</span><p>Erstelle <button onClick={() => setActiveView('ttv')} className="text-white underline hover:text-green-500">Video-Triggers</button> oder <button onClick={() => setActiveView('sounds')} className="text-white underline hover:text-green-500">Sound-Alerts</button>.</p></div>
             <div className="flex gap-3"><span className="text-green-500 font-black">3.</span><p>Kopiere den generierten <strong>OBS Link</strong> aus den Modulen als Browser-Quelle in dein Stream-Programm.</p></div>
           </div>
         </div>
 
-        <div className="bg-black/50 border border-white/5 p-8 rounded-3xl space-y-6">
-          <h3 className="text-white text-sm font-black flex items-center gap-2"><Radio size={18} className="text-blue-500" /> SYSTEM STATUS</h3>
+        <div className="bg-black/50 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 w-full">
+          <h3 className="text-white text-xs md:text-sm font-black flex items-center gap-2"><Radio size={18} className="text-blue-500 shrink-0" /> SYSTEM STATUS</h3>
           <div className="space-y-3">
-             <div className="flex justify-between items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">WebSockets (Chat)</span>
-                <span className="text-xs text-green-500 font-black flex items-center gap-2">ONLINE <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div></span>
+             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
+                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">WebSockets (Chat)</span>
+                <span className="text-[10px] md:text-xs text-green-500 font-black flex items-center gap-2">ONLINE <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div></span>
              </div>
-             <div className="flex justify-between items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TTS Engine</span>
-                <span className="text-xs text-green-500 font-black">BEREIT</span>
+             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
+                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TTS Engine</span>
+                <span className="text-[10px] md:text-xs text-green-500 font-black">BEREIT</span>
              </div>
-             <div className="flex justify-between items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5">
-                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TikTok API</span>
-                <span className="text-xs text-green-500 font-black">VERBUNDEN</span>
+             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
+                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TikTok API</span>
+                <span className="text-[10px] md:text-xs text-green-500 font-black">VERBUNDEN</span>
              </div>
           </div>
         </div>
@@ -562,14 +563,14 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   if (viewState === 'intro') {
     return (
-      <div className="p-6 lg:p-10 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center flex-1 w-full">
-        <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8 text-center shadow-2xl w-full relative overflow-hidden">
-          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
-            <Camera size={36} className="text-green-500" />
+      <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center flex-1">
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-3xl space-y-8 text-center shadow-2xl w-full relative overflow-hidden">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
+            <Camera size={32} className="text-green-500" />
           </div>
-          <h2 className="text-2xl text-white font-black tracking-tighter">IRL STREAMING MODE</h2>
-          <div className="text-[11px] text-zinc-400 not-italic font-medium text-left">
-            <div className="space-y-4 bg-black/50 p-6 rounded-2xl border border-white/5">
+          <h2 className="text-xl md:text-2xl text-white font-black tracking-tighter">IRL STREAMING MODE</h2>
+          <div className="text-[10px] md:text-[11px] text-zinc-400 not-italic font-medium text-left">
+            <div className="space-y-4 bg-black/50 p-5 md:p-6 rounded-2xl border border-white/5">
                 <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed"><strong>Einmal tippen:</strong> Blendet das gesamte UI sofort aus/ein.</span></div>
                 <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed"><strong>Gedrückt halten:</strong> Chat poppt groß auf (Hold-to-Peek).</span></div>
                 <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed"><strong>Ghost Mode:</strong> Reduziert die Sichtbarkeit für Zuschauer.</span></div>
@@ -577,8 +578,8 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           </div>
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
           <div className="space-y-4">
-              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
-              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
+              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
+              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[9px] md:text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
           </div>
         </div>
       </div>
@@ -703,6 +704,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   );
 }
 
+// --- ABSOLUT RESPONSIVES SPOTIFY MODUL (MIT MIN-W-0 & OVERFLOW-HIDDEN) ---
 function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
   const [track, setTrack] = useState<any>(null);
   const [loading, setLoading] = useState(isConnected);
@@ -733,63 +735,65 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
   }, [isConnected]);
 
   if (!isConnected) return (
-    <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
-      <SpotifyLogo className="w-16 h-16 text-[#1DB954] animate-pulse" />
+    <div className="h-[70vh] flex flex-col items-center justify-center p-6 md:p-10 text-center space-y-4 italic font-bold uppercase w-full min-w-0">
+      <SpotifyLogo className="w-16 h-16 text-[#1DB954] animate-pulse shrink-0" />
       <h2 className="text-xl text-white">Spotify API Required</h2>
-      <p className="text-[9px] text-zinc-500 max-w-sm">Connect your Spotify Account in Settings to show your currently playing song and allow Chat Requests.</p>
+      <p className="text-[9px] text-zinc-500 max-w-sm px-4">Connect your Spotify Account in Settings to show your currently playing song and allow Chat Requests.</p>
     </div>
   );
 
   return (
-    <div className="p-6 md:p-10 max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-3xl space-y-8 relative overflow-hidden">
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-5 md:p-8 rounded-3xl space-y-6 md:space-y-8 relative overflow-hidden w-full min-w-0 shadow-2xl">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1DB954]/10 to-transparent opacity-30 pointer-events-none"></div>
-        <div className="flex items-center justify-between relative z-10">
-            <h3 className="text-white text-xs not-italic flex items-center gap-2"><SpotifyLogo className="w-4 h-4 text-[#1DB954]" /> Now Playing Widget</h3>
-            <span className="text-[9px] text-[#1DB954] flex items-center gap-1 animate-pulse">LIVE SYNC <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></div></span>
+        <div className="flex items-center justify-between relative z-10 w-full min-w-0">
+            <h3 className="text-white text-[10px] md:text-xs not-italic flex items-center gap-2"><SpotifyLogo className="w-4 h-4 text-[#1DB954] shrink-0" /> Now Playing Widget</h3>
+            <span className="text-[9px] text-[#1DB954] flex items-center gap-1 animate-pulse shrink-0">LIVE SYNC <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></div></span>
         </div>
 
         {loading ? (
-            <div className="flex flex-col items-center justify-center py-10 space-y-4 text-zinc-500">
+            <div className="flex flex-col items-center justify-center py-10 space-y-4 text-zinc-500 w-full">
                 <Loader2 className="animate-spin w-8 h-8 text-[#1DB954]" />
                 <p className="text-[10px]">Loading Player...</p>
             </div>
         ) : track ? (
-            <div className="bg-black/50 border border-white/5 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10 shadow-2xl backdrop-blur-xl text-center sm:text-left">
-                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover mx-auto sm:mx-0" />
-                <div className="flex-1 min-w-0 w-full space-y-2">
-                    <h4 className="text-lg sm:text-xl font-black text-white truncate not-italic">{track.title}</h4>
-                    <p className="text-[10px] sm:text-xs text-[#1DB954] font-bold truncate tracking-widest">{track.artist}</p>
-                    <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden mt-2 sm:mt-4">
+            <div className="bg-black/50 border border-white/5 p-4 sm:p-6 rounded-2xl flex flex-row items-center gap-3 sm:gap-6 relative z-10 shadow-2xl backdrop-blur-xl text-left w-full min-w-0 overflow-hidden">
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover shrink-0" />
+                <div className="flex-1 min-w-0 w-full flex flex-col justify-center">
+                    <h4 className="text-sm sm:text-xl font-black text-white truncate not-italic">{track.title}</h4>
+                    <p className="text-[9px] sm:text-xs text-[#1DB954] font-bold truncate tracking-widest mt-0.5">{track.artist}</p>
+                    <div className="w-full bg-zinc-900 h-1 sm:h-1.5 rounded-full overflow-hidden mt-3 sm:mt-4">
                         <div className="bg-[#1DB954] h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_rgba(29,185,84,0.8)]" style={{ width: `${(track.progressMs / track.durationMs) * 100}%` }}></div>
                     </div>
                 </div>
-                <SpotifyLogo className="w-8 h-8 text-white/10 hidden sm:block absolute right-6 top-6" />
+                <SpotifyLogo className="w-6 h-6 sm:w-8 sm:h-8 text-white/10 hidden sm:block shrink-0 absolute right-4 top-4 sm:right-6 sm:top-6" />
             </div>
         ) : (
-             <div className="bg-black/50 border border-white/5 p-10 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 relative z-10">
-                <Music2 className="w-10 h-10 text-zinc-600 mb-2" />
-                <p className="text-white text-sm font-black">Nichts wird abgespielt</p>
-                <p className="text-zinc-500 text-[10px]">Starte einen Song auf Spotify, um das Widget zu aktivieren.</p>
+             <div className="bg-black/50 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 relative z-10 w-full min-w-0">
+                <Music2 className="w-8 h-8 text-zinc-600 mb-1 shrink-0" />
+                <p className="text-white text-xs md:text-sm font-black">Nichts wird abgespielt</p>
+                <p className="text-zinc-500 text-[9px] md:text-[10px] max-w-[200px] mx-auto">Starte einen Song auf Spotify, um das Widget zu aktivieren.</p>
              </div>
         )}
 
-        <div className="flex flex-col gap-4 relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 gap-3">
-                <div className="space-y-1 text-center sm:text-left">
+        <div className="flex flex-col gap-4 relative z-10 w-full min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 gap-3 w-full min-w-0">
+                <div className="space-y-1 text-center sm:text-left w-full min-w-0">
                     <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center justify-center sm:justify-start gap-2">Zuschauer Song-Requests</span>
-                    <span className="text-[9px] text-zinc-500 not-italic block">Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.</span>
+                    <span className="text-[8px] md:text-[9px] text-zinc-500 not-italic block truncate sm:whitespace-normal">Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.</span>
                 </div>
-                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-5 h-5 accent-[#1DB954] cursor-pointer mx-auto sm:mx-0" />
+                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-5 h-5 accent-[#1DB954] cursor-pointer mx-auto sm:mx-0 shrink-0" />
             </div>
             
-            <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 truncate border border-white/5 whitespace-nowrap overflow-x-auto">{overlayLink}</div>
-                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto"><Copy size={12}/> COPY</button>}
+            <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5 w-full min-w-0 overflow-hidden">
+                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2 shrink-0"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
+                <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0">
+                    <div className="flex-1 min-w-0 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 border border-white/5 break-all whitespace-normal overflow-wrap-anywhere leading-relaxed">
+                        {overlayLink}
+                    </div>
+                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="w-full sm:w-auto shrink-0 bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> OBS LINK KOPIEREN</button>}
                 </div>
-                <span className="text-[9px] text-zinc-500 not-italic">Dieser Link zeigt ausschließlich den Spotify-Player an. Kopiere ihn als Browser-Quelle in OBS.</span>
+                <span className="text-[8px] md:text-[9px] text-zinc-500 not-italic">Dieser Link zeigt ausschließlich den Spotify-Player an. Füge ihn als Browser-Quelle in OBS ein.</span>
             </div>
         </div>
       </div>
@@ -838,20 +842,20 @@ function ModuleTTC() {
   const handleStop = () => { window.speechSynthesis.cancel(); setIsSpeaking(false); };
 
   return (
-    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-6 w-full min-w-0">
         <div className="flex items-center justify-between">
             <h3 className="text-white text-xs not-italic flex items-center gap-2"><MessageSquare size={14} className="text-green-500" /> Text to Chat (Browser TTS)</h3>
             {isSpeaking && <span className="text-[9px] text-green-500 animate-pulse flex items-center gap-1">SPEAKING... <Volume2 size={10}/></span>}
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 w-full min-w-0">
             <select value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)} className="w-full bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none cursor-pointer">
                 {voices.map((v) => (<option key={v.name} value={v.name}>{v.name} ({v.lang})</option>))}
             </select>
             <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full h-24 bg-black border border-zinc-800 p-3 rounded-xl text-xs text-white outline-none resize-none focus:border-green-500/50" />
             <div className="flex gap-3 pt-4">
                 <button onClick={handleSpeak} className="flex-1 bg-white text-black py-3 rounded-xl text-[10px] font-black hover:bg-green-400 transition-all flex items-center justify-center gap-2"><Play size={14} fill="currentColor" /> PREVIEW VOICE</button>
-                <button onClick={handleStop} className="w-16 bg-zinc-900 border border-zinc-800 text-red-500 rounded-xl flex items-center justify-center"><StopCircle size={18} /></button>
+                <button onClick={handleStop} className="w-16 shrink-0 bg-zinc-900 border border-zinc-800 text-red-500 rounded-xl flex items-center justify-center"><StopCircle size={18} /></button>
             </div>
         </div>
       </div>
@@ -866,20 +870,21 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}`;
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, start: 0, end: 10 }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-4 w-full min-w-0">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Plus size={14} /> Add Video Trigger</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
-          <input placeholder="URL (.mp4)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
+          <input placeholder="Code (e.g. 777)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none w-full min-w-0" />
+          <input placeholder="URL (.mp4)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none w-full min-w-0" />
         </div>
         <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-all">Add Trigger</button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 w-full min-w-0">
         {triggers.map((t: any) => (
-          <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl">
-            <span className="text-green-500">{t.code}</span><span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
-            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
+          <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl w-full min-w-0 gap-3">
+            <span className="text-green-500 shrink-0">{t.code}</span>
+            <span className="text-[9px] text-zinc-600 truncate italic flex-1 min-w-0">{t.url}</span>
+            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500 shrink-0"><Trash2 size={16} /></button>
           </div>
         ))}
       </div>
@@ -894,20 +899,21 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
   const link = `${baseUrl}/overlay?u=${username || 'username'}&config=${configString}&type=audio`;
   const add = () => { if (!newCode || !newUrl) return; setTriggers([...triggers, { id: Date.now(), code: newCode, url: newUrl, type: 'audio' }]); setNewCode(""); setNewUrl(""); };
   return (
-    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-4">
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-4 w-full min-w-0">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Music size={14} /> Add Sound Trigger</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input placeholder="Command (e.g. !horn)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
-          <input placeholder="URL (.mp3)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
+          <input placeholder="Command (e.g. !horn)" value={newCode} onChange={e => setNewCode(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none w-full min-w-0" />
+          <input placeholder="URL (.mp3)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none w-full min-w-0" />
         </div>
         <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-all">Add Sound</button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 w-full min-w-0">
         {triggers.map((t: any) => (
-          <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl">
-            <span className="text-blue-500">{t.code}</span><span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
-            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
+          <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl w-full min-w-0 gap-3">
+            <span className="text-blue-500 shrink-0">{t.code}</span>
+            <span className="text-[9px] text-zinc-600 truncate italic flex-1 min-w-0">{t.url}</span>
+            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500 shrink-0"><Trash2 size={16} /></button>
           </div>
         ))}
       </div>
@@ -917,14 +923,14 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
 
 function ModuleFanclub({ isConnected, config, setConfig }: any) {
   if (!isConnected) return (
-    <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase"><Heart size={48} className="text-pink-500 animate-pulse" /><h2 className="text-xl text-white">Auth Required</h2></div>
+    <div className="h-[70vh] flex flex-col items-center justify-center p-6 md:p-10 text-center space-y-4 italic font-bold uppercase w-full min-w-0"><Heart size={48} className="text-pink-500 animate-pulse shrink-0" /><h2 className="text-xl text-white">Auth Required</h2></div>
   );
   return (
-    <div className="p-10 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-2xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-6 w-full min-w-0">
         <h3 className="text-white text-xs not-italic flex items-center gap-2"><Heart size={14} className="text-pink-500" /> Fanclub Alerts</h3>
-        <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5">
-          <span className="text-[10px]">Team Heart Alert</span><input type="checkbox" checked={config.teamHeart} onChange={e => setConfig({...config, teamHeart: e.target.checked})} className="w-4 h-4 accent-pink-500" />
+        <div className="flex items-center justify-between p-4 bg-black rounded-xl border border-white/5 w-full min-w-0">
+          <span className="text-[10px]">Team Heart Alert</span><input type="checkbox" checked={config.teamHeart} onChange={e => setConfig({...config, teamHeart: e.target.checked})} className="w-4 h-4 accent-pink-500 shrink-0" />
         </div>
       </div>
     </div>
@@ -938,48 +944,54 @@ function ModuleSettings({ hasConsent, isConnected, onConnect, isSpotifyConnected
   const resetCookies = () => { localStorage.removeItem("seker_cookie_consent"); window.location.reload(); };
 
   return (
-    <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-10 uppercase italic font-bold">
-      <section className="space-y-4">
+    <div className="p-4 sm:p-6 md:p-12 w-full min-w-0 max-w-5xl mx-auto space-y-8 md:space-y-10 uppercase italic font-bold">
+      <section className="space-y-4 w-full min-w-0">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">AUTHENTICATION CHANNELS</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 w-full min-w-0">
           <AuthCard icon={<Zap className="text-black" />} name="TIKTOK" status={isConnected ? "CONNECTED" : "DISCONNECTED"} active={true} connected={isConnected} onAction={onConnect} />
           <AuthCard icon={<SpotifyLogo className={isSpotifyConnected ? "text-black" : "text-zinc-500"} />} name="SPOTIFY" status={isSpotifyConnected ? "CONNECTED" : "DISCONNECTED"} active={true} connected={isSpotifyConnected} onAction={onSpotifyConnect} />
           <AuthCard icon={<Share2 />} name="DISCORD" status="COMING SOON" active={false} />
           <AuthCard icon={<Monitor />} name="TWITCH" status="COMING SOON" active={false} />
         </div>
       </section>
-      <section className="space-y-4">
+      <section className="space-y-4 w-full min-w-0">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">HARDWARE & QUALITY</h3>
-        <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8">
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-end">
-              <div className="space-y-1">
-                 <h4 className="text-white text-xs font-black flex items-center gap-2"><Gauge size={16} className="text-yellow-500" /> GRAPHICS QUALITY</h4>
-                 <p className="text-[9px] text-zinc-500 uppercase font-bold italic max-w-xs">Lower this value if you experience lag or dropped frames during stream.</p>
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-3xl space-y-8 w-full min-w-0">
+          <div className="flex flex-col gap-4 w-full min-w-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 w-full min-w-0">
+              <div className="space-y-1 w-full min-w-0">
+                 <h4 className="text-white text-xs font-black flex items-center gap-2"><Gauge size={16} className="text-yellow-500 shrink-0" /> GRAPHICS QUALITY</h4>
+                 <p className="text-[9px] text-zinc-500 uppercase font-bold italic max-w-xs break-words whitespace-normal">Lower this value if you experience lag or dropped frames during stream.</p>
               </div>
               <span className="text-xl text-white font-black not-italic">{quality}%</span>
             </div>
             <input type="range" min="10" max="100" step="10" value={quality} onChange={(e) => setQuality(parseInt(e.target.value))} className="w-full accent-green-500 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
           </div>
-          <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-zinc-900 rounded-xl"><Cpu size={18} className="text-blue-500" /></div>
-              <div className="space-y-1">
+          <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full min-w-0">
+            <div className="flex items-center gap-4 w-full min-w-0">
+              <div className="p-3 bg-zinc-900 rounded-xl shrink-0"><Cpu size={18} className="text-blue-500" /></div>
+              <div className="space-y-1 w-full min-w-0">
                  <span className="text-[10px] text-white font-black block">SYSTEM BENCHMARK</span>
-                 <span className="text-[9px] text-zinc-500 block">{testResult || "Check your PC capability"}</span>
+                 <span className="text-[9px] text-zinc-500 block truncate">{testResult || "Check your PC capability"}</span>
               </div>
             </div>
-            <button onClick={runHardwareTest} disabled={testing} className="bg-zinc-800 hover:bg-white hover:text-black text-white px-6 py-3 rounded-xl text-[10px] font-black transition-all min-w-[100px]">
+            <button onClick={runHardwareTest} disabled={testing} className="w-full sm:w-auto bg-zinc-800 hover:bg-white hover:text-black text-white px-6 py-3 rounded-xl text-[10px] font-black transition-all shrink-0">
               {testing ? <Loader2 size={14} className="animate-spin mx-auto"/> : (testResult ? "RE-TEST" : "RUN TEST")}
             </button>
           </div>
         </div>
       </section>
-      <section className="space-y-4">
+      <section className="space-y-4 w-full min-w-0">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">PRIVACY & COOKIES</h3>
-        <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl flex items-center justify-between">
-          <div className="flex items-center gap-3"><Cookie size={18} className={hasConsent ? "text-green-500" : "text-red-500"} /><div><p className="text-xs font-black text-white">Cookie Preferences</p><p className="text-[9px] text-zinc-500 font-bold">Functional Settings: {hasConsent ? "Allowed" : "Declined"}</p></div></div>
-          <button onClick={resetCookies} className="text-[9px] bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-lg hover:text-white transition-colors">Reset Choices</button>
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-5 md:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full min-w-0">
+          <div className="flex items-center gap-3 w-full min-w-0">
+              <Cookie size={18} className={`shrink-0 ${hasConsent ? "text-green-500" : "text-red-500"}`} />
+              <div className="w-full min-w-0">
+                  <p className="text-xs font-black text-white truncate">Cookie Preferences</p>
+                  <p className="text-[9px] text-zinc-500 font-bold truncate">Functional Settings: {hasConsent ? "Allowed" : "Declined"}</p>
+              </div>
+          </div>
+          <button onClick={resetCookies} className="w-full sm:w-auto text-[9px] bg-zinc-900 border border-zinc-800 px-4 py-3 sm:py-2 rounded-lg hover:text-white transition-colors shrink-0">Reset Choices</button>
         </div>
       </section>
     </div>
@@ -988,13 +1000,16 @@ function ModuleSettings({ hasConsent, isConnected, onConnect, isSpotifyConnected
 
 function AuthCard({ icon, name, status, active, connected, onAction }: any) {
   return (
-    <div className={`border p-6 rounded-2xl space-y-4 transition-all flex flex-col justify-between h-40 ${active ? "bg-[#0c0c0e] border-zinc-800 hover:border-zinc-600" : "bg-black/40 border-zinc-900 opacity-60"}`}>
+    <div className={`border p-5 md:p-6 rounded-2xl space-y-4 transition-all flex flex-col justify-between h-36 md:h-40 w-full min-w-0 ${active ? "bg-[#0c0c0e] border-zinc-800 hover:border-zinc-600" : "bg-black/40 border-zinc-900 opacity-60"}`}>
       <div className="flex justify-between items-start">
-        <div className={`p-3 rounded-xl w-10 h-10 flex items-center justify-center ${connected ? "bg-green-500 text-black" : "bg-zinc-900 text-zinc-500"}`}>{icon}</div>
-        {connected && <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,1)]"></div>}
+        <div className={`p-3 rounded-xl w-10 h-10 flex items-center justify-center shrink-0 ${connected ? "bg-green-500 text-black" : "bg-zinc-900 text-zinc-500"}`}>{icon}</div>
+        {connected && <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,1)] shrink-0"></div>}
       </div>
-      <div><h4 className="text-sm text-white font-black tracking-tighter">{name}</h4><p className="text-[9px] text-zinc-500 font-bold">{status}</p></div>
-      {active && <button onClick={onAction} className={`w-full py-2 rounded-lg text-[9px] font-black transition-all ${connected ? "bg-zinc-900 text-zinc-400 hover:text-white" : "bg-white text-black hover:bg-zinc-200"}`}>{connected ? "RE-CONNECT" : "CONNECT"}</button>}
+      <div className="w-full min-w-0">
+          <h4 className="text-sm text-white font-black tracking-tighter truncate">{name}</h4>
+          <p className="text-[9px] text-zinc-500 font-bold truncate">{status}</p>
+      </div>
+      {active && <button onClick={onAction} className={`w-full py-2 rounded-lg text-[9px] font-black transition-all shrink-0 ${connected ? "bg-zinc-900 text-zinc-400 hover:text-white" : "bg-white text-black hover:bg-zinc-200"}`}>{connected ? "RE-CONNECT" : "CONNECT"}</button>}
     </div>
   );
 }
