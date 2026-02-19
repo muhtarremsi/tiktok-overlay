@@ -12,13 +12,14 @@ function SekerLogo({ className }: { className?: string }) {
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans selection:bg-green-500/30">
-      <div className="fixed top-0 left-0 w-full h-20 bg-black/80 backdrop-blur-xl border-b border-white/5 z-50 flex items-center px-6 md:px-16">
-         <Link href="/" className="flex items-center gap-3 text-white hover:text-green-500 transition-colors group">
+      
+      <Link href="/" className="fixed top-0 left-0 w-full h-20 bg-black/80 backdrop-blur-xl border-b border-white/5 z-50 flex items-center px-6 md:px-16 hover:bg-white/5 transition-colors cursor-pointer group">
+         <div className="flex items-center gap-3 text-white">
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <SekerLogo className="w-6 h-6 text-green-500" />
-            <span className="text-lg font-black italic tracking-tighter uppercase">Zurück</span>
-         </Link>
-      </div>
+            <span className="text-lg font-black italic tracking-tighter uppercase">Zurück zur Startseite</span>
+         </div>
+      </Link>
 
       <div className="pt-32 pb-20 px-4 max-w-4xl mx-auto">
          <div className="bg-[#0c0c0e] border border-zinc-800/50 p-8 md:p-12 rounded-3xl shadow-2xl space-y-10 relative overflow-hidden">
