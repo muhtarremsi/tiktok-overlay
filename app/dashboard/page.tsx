@@ -8,7 +8,7 @@ import {
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, GitBranch, Award, CalendarClock
 } from "lucide-react";
 
 function SekerLogo({ className }: { className?: string }) {
@@ -27,7 +27,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("camera"); // Set Camera as default for testing
+  const [activeView, setActiveView] = useState("camera");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
@@ -118,9 +118,18 @@ function DashboardContent() {
             {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
           <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-3 space-y-2 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
-            <div className="flex justify-between items-center text-[10px]"><span>VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
-            <div className="flex justify-between items-center text-[10px]"><span>LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
-            <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span>EXPIRY</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
+            <div className="flex justify-between items-center text-[10px]">
+                <span className="flex items-center gap-1.5"><GitBranch size={12} className="text-green-500" /> VERSION</span>
+                <span className="text-zinc-300 font-mono">{version}</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px]">
+                <span className="flex items-center gap-1.5"><Award size={12} className="text-green-500" /> LICENSE</span>
+                <span className="text-blue-500 font-black">PRO</span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]">
+                <span className="flex items-center gap-1.5"><CalendarClock size={12} className="text-green-500" /> EXPIRY</span>
+                <span className="text-zinc-300 font-normal">{expiryDate}</span>
+            </div>
           </div>
         </div>
         
@@ -167,8 +176,6 @@ function DashboardContent() {
   );
 }
 
-// --- SUB COMPONENTS ---
-
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
@@ -177,16 +184,14 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-// --- FULLSCREEN IRL CAMERA MODULE ---
 function ModuleCamera() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment'); // Default to back camera for IRL
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [mirror, setMirror] = useState(false);
-  const [showUI, setShowUI] = useState(true); // Toggle for transparent overlay
+  const [showUI, setShowUI] = useState(true);
   const [error, setError] = useState("");
 
-  // Start Stream
   const startStream = async () => {
     setError("");
     try {
@@ -203,7 +208,6 @@ function ModuleCamera() {
     }
   };
 
-  // Stop Stream
   const stopStream = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
@@ -218,12 +222,10 @@ function ModuleCamera() {
     setMirror(prev => !prev);
   };
 
-  // Handle stream restart when facing mode changes
   useEffect(() => {
     if (viewState === 'fullscreen') startStream();
   }, [facingMode]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
         if (videoRef.current && videoRef.current.srcObject) {
@@ -233,7 +235,6 @@ function ModuleCamera() {
     };
   }, []);
 
-  // --- INTRO SCREEN ---
   if (viewState === 'intro') {
     return (
       <div className="p-6 lg:p-10 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center h-full">
@@ -269,10 +270,8 @@ function ModuleCamera() {
     );
   }
 
-  // --- FULLSCREEN ACTIVE SCREEN ---
   return (
     <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center">
-        {/* Video Background - Click to toggle UI */}
         <video 
             ref={videoRef} 
             autoPlay 
@@ -282,10 +281,8 @@ function ModuleCamera() {
             className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 cursor-pointer ${mirror ? 'scale-x-[-1]' : ''}`} 
         />
 
-        {/* UI Overlay (Transparent) */}
         <div className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-6 transition-opacity duration-300 ${showUI ? 'opacity-100' : 'opacity-0'}`}>
             
-            {/* Top Bar */}
             <div className="flex justify-between items-start pointer-events-auto">
                 <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM
@@ -296,10 +293,8 @@ function ModuleCamera() {
                 </button>
             </div>
 
-            {/* Bottom Controls & Mock Chat */}
             <div className="flex justify-between items-end pointer-events-auto mb-4">
                 
-                {/* MOCK CHAT (Only visible to streamer, assuming they crop it in OBS or just use it for reading) */}
                 <div className="w-64 max-h-64 overflow-y-auto bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-3 font-sans not-italic text-[11px]">
                     <div className="flex items-center gap-2 text-white/50 mb-2 border-b border-white/10 pb-2"><MessageCircle size={12}/> Chat Overlay (Preview)</div>
                     <div className="text-white"><span className="font-bold text-blue-400">User123:</span> Hallo Stream!</div>
@@ -307,7 +302,6 @@ function ModuleCamera() {
                     <div className="text-white"><span className="font-bold text-yellow-400">SekerFan:</span> <Heart size={10} className="inline text-red-500" fill="currentColor"/></div>
                 </div>
 
-                {/* Camera Controls */}
                 <div className="flex flex-col gap-3">
                     <button onClick={() => setShowUI(false)} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all flex items-center justify-center group relative">
                         <EyeOff size={24} />
@@ -322,7 +316,6 @@ function ModuleCamera() {
                 </div>
             </div>
             
-            {/* Hint Text */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none">
                 <span className="bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] text-white/70 uppercase tracking-widest font-black">
                     Tap screen to hide UI
@@ -332,9 +325,6 @@ function ModuleCamera() {
     </div>
   );
 }
-
-// ... (Other components remain the same: InfoCard, ModuleTTC, ModuleTTV, ModuleSounds, ModuleFanclub, ModuleSettings, AuthCard) ...
-// (I will include them so the copy paste works perfectly)
 
 function InfoCard({ label, value, color = "text-white" }: any) {
   return (
