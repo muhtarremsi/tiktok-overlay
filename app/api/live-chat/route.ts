@@ -50,7 +50,11 @@ export async function GET(req: Request) {
         });
       });
 
-      // Keep-Alive Ping, damit Vercel die Verbindung nicht kappt
+      // NEU: Sofortige Benachrichtigung, wenn der Stream beendet wird!
+      tiktokLiveConnection.on('streamEnd', () => {
+        sendEvent({ type: 'offline' });
+      });
+
       const pingInterval = setInterval(() => {
         sendEvent({ type: 'ping' });
       }, 5000);
@@ -68,7 +72,7 @@ export async function GET(req: Request) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
-      'X-Accel-Buffering': 'no', // <-- DAS FIXXT DAS VERCEL PROBLEM!
+      'X-Accel-Buffering': 'no',
     },
   });
 }

@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030162"; 
+  const version = "0.030163"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -106,16 +106,31 @@ function DashboardContent() {
   }, [ttvTriggers, soundTriggers, targetUser, perfQuality, spotifyConfig, hasFunctionalConsent]);
 
   useEffect(() => {
+    let pollTimer: any;
     const checkUser = async () => {
-      if (!targetUser || targetUser.length < 3) { setStatus(targetUser ? 'too_short' : 'idle'); return; }
-      setStatus('checking');
+      if (!targetUser || targetUser.length < 3) return;
       try {
         const res = await fetch(`/api/status?u=${targetUser}`);
         setStatus(res.ok ? 'online' : 'offline');
       } catch (e) { setStatus('offline'); }
     };
-    const timer = setTimeout(checkUser, 800);
-    return () => clearTimeout(timer);
+
+    const debounceTimer = setTimeout(() => {
+      if (!targetUser || targetUser.length < 3) {
+        setStatus(targetUser ? 'too_short' : 'idle');
+        return;
+      }
+      setStatus('checking');
+      checkUser().then(() => {
+        // Fragt alle 15 Sekunden im Hintergrund den Status ab
+        pollTimer = setInterval(checkUser, 15000);
+      });
+    }, 800);
+
+    return () => {
+      clearTimeout(debounceTimer);
+      if (pollTimer) clearInterval(pollTimer);
+    };
   }, [targetUser]);
 
   useEffect(() => {
@@ -147,6 +162,10 @@ function DashboardContent() {
                 setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋", profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'error') {
                 setChatStatus(`Fehler: ${data.message}`);
+                eventSource?.close();
+            } else if (data.type === 'offline') {
+                setStatus('offline');
+                setChatStatus('Stream wurde beendet.');
                 eventSource?.close();
             }
         };
