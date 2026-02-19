@@ -8,8 +8,17 @@ import {
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2
 } from "lucide-react";
+
+// Eigenes Spotify SVG Logo
+function SpotifyLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zM20.16 9.6C15.96 7.08 9.24 6.96 5.4 8.16c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.32-1.32 11.64-1.2 16.56 1.74.54.36.72 1.02.36 1.56-.36.539-1.08.719-1.5.36z"/>
+    </svg>
+  );
+}
 
 function SekerLogo({ className }: { className?: string }) {
   return (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34.44 36.04" className={className} fill="currentColor"><path d="M27.26,2.42c2.04,2.03,2.91,4.78,2.41,7.64-.21,1.23-.77,2.43-1.45,3.47.77.44,1.52.93,2.2,1.51,8.1,6.96,3.1,20.52-7.35,20.99h-12.16c-5.82-.32-10.53-5.18-10.92-10.95v-4.43s.03-.04.03-.04h7.25c.46-.05.8-.04,1.2-.3.95-.65,1.02-2.07.11-2.78-.47-.37-.9-.32-1.45-.43-3.42-.69-6.24-3.35-6.94-6.79C-.86,5.12,2.71.47,7.91,0h13.89c2.07.12,4,.97,5.46,2.42ZM16.65,17.21v-5.5l.1-.05c1.54-.06,3.15.09,4.68,0,1.43-.08,2.63-1.12,2.92-2.52.37-1.81-.95-3.62-2.79-3.77h-13.28c-3.6.42-3.89,5.47-.26,6.25,1.29.28,2.19.45,3.35,1.14,5.77,3.44,3.86,12.13-2.71,13.23-.96.16-1.86,0-2.76.1-.05,0-.08,0-.11.05.82,2.36,3,4.1,5.51,4.27h11.67c4.61-.34,7.24-5.47,5.17-9.55-1.06-2.1-3.2-3.4-5.54-3.58l-5.91-.02s-.06-.05-.06-.06Z"/></svg>);
@@ -27,9 +36,10 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("camera");
+  const [activeView, setActiveView] = useState("spotify"); // Zum direkten Testen auf Spotify gesetzt
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
+  const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
@@ -38,7 +48,7 @@ function DashboardContent() {
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
 
-  const version = "0.030138"; 
+  const version = "0.030139"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -61,7 +71,9 @@ function DashboardContent() {
         if (savedPerf) setPerfQuality(parseInt(savedPerf));
     }
     setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
-    if (searchParams.get("connected")) setIsTikTokConnected(true);
+    setIsSpotifyConnected(document.cookie.includes("spotify_connected=true"));
+    if (searchParams.get("connected") === "tiktok") setIsTikTokConnected(true);
+    if (searchParams.get("connected") === "spotify") setIsSpotifyConnected(true);
   }, [searchParams]);
 
   useEffect(() => {
@@ -93,6 +105,17 @@ function DashboardContent() {
         router.refresh();
     } else {
         window.location.href = "/api/auth/login";
+    }
+  };
+
+  const handleSpotifyConnect = () => {
+    if (isSpotifyConnected) {
+        document.cookie = "spotify_connected=; Max-Age=0; path=/;";
+        document.cookie = "spotify_refresh_token=; Max-Age=0; path=/;";
+        setIsSpotifyConnected(false);
+        router.refresh();
+    } else {
+        window.location.href = "/api/auth/spotify/login";
     }
   };
 
@@ -151,6 +174,7 @@ function DashboardContent() {
           <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Camera size={16} />} label="IRL CAM" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<Music2 size={16} />} label="SPOTIFY" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
         </nav>
         
         <div className="flex-1"></div>
@@ -186,7 +210,8 @@ function DashboardContent() {
           {activeView === "ttc" && <ModuleTTC />}
           {activeView === "camera" && <ModuleCamera targetUser={targetUser} />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
-          {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
+          {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} />}
+          {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} isSpotifyConnected={isSpotifyConnected} onSpotifyConnect={handleSpotifyConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
         </div>
       </main>
     </div>
@@ -201,22 +226,102 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-// --- NEW SMART CAMERA MODULE ---
+// --- NEW SPOTIFY MODULE ---
+function ModuleSpotify({ isConnected }: { isConnected: boolean }) {
+  const [track, setTrack] = useState<any>(null);
+  const [loading, setLoading] = useState(isConnected);
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const fetchNowPlaying = async () => {
+      try {
+        const res = await fetch('/api/spotify/now-playing');
+        const data = await res.json();
+        if (data.isPlaying) {
+          setTrack(data);
+        } else {
+          setTrack(null);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 5000); // Update every 5 seconds
+    return () => clearInterval(interval);
+  }, [isConnected]);
+
+  if (!isConnected) return (
+    <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
+      <SpotifyLogo className="w-16 h-16 text-[#1DB954] animate-pulse" />
+      <h2 className="text-xl text-white">Spotify API Required</h2>
+      <p className="text-[9px] text-zinc-500 max-w-sm">Connect your Spotify Account in Settings to show your currently playing song on stream.</p>
+    </div>
+  );
+
+  return (
+    <div className="p-10 max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8 relative overflow-hidden">
+        
+        {/* Subtle Background Glow based on cover (simulated with green for now) */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1DB954]/10 to-transparent opacity-30 pointer-events-none"></div>
+
+        <div className="flex items-center justify-between relative z-10">
+            <h3 className="text-white text-xs not-italic flex items-center gap-2"><SpotifyLogo className="w-4 h-4 text-[#1DB954]" /> Now Playing Widget</h3>
+            <span className="text-[9px] text-[#1DB954] flex items-center gap-1 animate-pulse">LIVE SYNC <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></div></span>
+        </div>
+
+        {loading ? (
+            <div className="flex flex-col items-center justify-center py-10 space-y-4 text-zinc-500">
+                <Loader2 className="animate-spin w-8 h-8 text-[#1DB954]" />
+                <p className="text-[10px]">Loading Player...</p>
+            </div>
+        ) : track ? (
+            <div className="bg-black/50 border border-white/5 p-6 rounded-2xl flex items-center gap-6 relative z-10 shadow-2xl backdrop-blur-xl">
+                {/* Cover Art */}
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-24 h-24 rounded-xl shadow-lg border border-white/10 object-cover" />
+                
+                {/* Track Info */}
+                <div className="flex-1 min-w-0 space-y-2">
+                    <h4 className="text-xl font-black text-white truncate not-italic">{track.title}</h4>
+                    <p className="text-xs text-[#1DB954] font-bold truncate tracking-widest">{track.artist}</p>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden mt-4">
+                        <div className="bg-[#1DB954] h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_rgba(29,185,84,0.8)]" style={{ width: `${(track.progressMs / track.durationMs) * 100}%` }}></div>
+                    </div>
+                </div>
+
+                <SpotifyLogo className="w-8 h-8 text-white/10 hidden sm:block" />
+            </div>
+        ) : (
+             <div className="bg-black/50 border border-white/5 p-10 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 relative z-10">
+                <Music2 className="w-10 h-10 text-zinc-600 mb-2" />
+                <p className="text-white text-sm font-black">Nichts wird abgespielt</p>
+                <p className="text-zinc-500 text-[10px]">Starte einen Song auf Spotify, um das Widget zu aktivieren.</p>
+             </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ... other components (ModuleCamera, ModuleTTC, ModuleTTV, ModuleSounds, ModuleFanclub) remain the same
 function ModuleCamera({ targetUser }: { targetUser: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const holdTimer = useRef<NodeJS.Timeout | null>(null);
-  
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user'); 
   const [mirror, setMirror] = useState(true);
-  
-  // Smart Toggle States
   const [showUI, setShowUI] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
-  
   const [error, setError] = useState("");
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
@@ -294,22 +399,13 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
 
   useEffect(() => { return () => stopStream(); }, []);
 
-  // SMART TAP & HOLD LOGIC
   const handlePointerDown = (e: React.PointerEvent) => {
-      holdTimer.current = setTimeout(() => {
-          setIsHolding(true);
-      }, 250); // Nach 250ms wird es als "Gedrückt halten" gewertet
+      holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
   };
-
   const handlePointerUp = () => {
       if (holdTimer.current) clearTimeout(holdTimer.current);
-      if (isHolding) {
-          setIsHolding(false); // Losgelassen nach dem Halten -> Chat wieder weg
-      } else {
-          setShowUI(prev => !prev); // Kurzer Tap -> Alles ein/ausblenden
-      }
+      if (isHolding) { setIsHolding(false); } else { setShowUI(prev => !prev); }
   };
-
   const handlePointerCancel = () => {
       if (holdTimer.current) clearTimeout(holdTimer.current);
       if (isHolding) setIsHolding(false);
@@ -323,34 +419,27 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
             <Camera size={36} className="text-green-500" />
           </div>
           <h2 className="text-2xl text-white font-black tracking-tighter">IRL STREAMING MODE</h2>
-          
           <div className="text-[11px] text-zinc-400 not-italic font-medium text-left">
             <p className="mb-4 text-center">Optimiere deinen Mobile Gaming Stream mit der smarten Steuerung:</p>
             <div className="space-y-4 bg-black/50 p-6 rounded-2xl border border-white/5">
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed"><strong>Einmal tippen:</strong> Blendet das gesamte UI (Chat, Buttons) sofort aus oder wieder ein.</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed"><strong>Gedrückt halten:</strong> Egal ob das UI versteckt ist, solange du drückst, poppt der Chat groß auf (Hold-to-Peek).</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed"><strong>Ghost Mode:</strong> Reduziert die Chat-Sichtbarkeit für Zuschauer durch Kompression.</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed"><strong>Einmal tippen:</strong> Blendet das gesamte UI sofort aus/ein.</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed"><strong>Gedrückt halten:</strong> Chat poppt groß auf (Hold-to-Peek).</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed"><strong>Ghost Mode:</strong> Reduziert die Sichtbarkeit für Zuschauer.</span></div>
             </div>
           </div>
-          
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
-          
           <div className="space-y-4">
               <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
-              
-              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest pt-2">
-                 <HelpCircle size={14} /> Ausführliche Anleitung lesen
-              </Link>
+              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // Calculate chat visibility dynamically
-  let chatOpacityClass = "opacity-0 scale-95 pointer-events-none"; // Standard hidden
+  let chatOpacityClass = "opacity-0 scale-95 pointer-events-none"; 
   if (isHolding) {
-      chatOpacityClass = "opacity-100 scale-105 pointer-events-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]"; // Popped out and large
+      chatOpacityClass = "opacity-100 scale-105 pointer-events-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]"; 
   } else if (showUI) {
       chatOpacityClass = ghostMode ? "opacity-10 pointer-events-auto" : "opacity-100 pointer-events-auto";
   }
@@ -365,45 +454,24 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
         onPointerLeave={handlePointerCancel}
         onPointerCancel={handlePointerCancel}
     >
-        <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline 
-            muted 
-            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} 
-        />
-        
-        {/* Absolute Container für die UI Elemente (ignoriert pointer events fürs tippen/halten, außer auf den buttons selbst) */}
+        <video ref={videoRef} autoPlay playsInline muted className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} />
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
-            
-            {/* Header */}
             <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={e => e.stopPropagation()}>
+                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM</div>
                     <span className="text-[8px] text-green-400 not-italic uppercase tracking-wider mt-1">{chatStatus}</span>
                 </div>
-                <button onClick={stopStream} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
+                <button onClick={(e) => { e.stopPropagation(); stopStream(); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
             </div>
-            
-            {/* Bottom Row */}
             <div className="flex justify-between items-end mb-4 w-full">
-                
-                {/* LIVE CHAT BOX */}
-                <div 
-                    ref={chatRef} 
-                    onPointerDown={e => e.stopPropagation()} // Chat markieren blockiert das Halten nicht
-                    className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 scrollbar-hide ${chatOpacityClass} origin-bottom-left`}
-                >
+                <div ref={chatRef} onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 scrollbar-hide ${chatOpacityClass} origin-bottom-left`}>
                     {chatMessages.length === 0 ? (<div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>) : (chatMessages.map(msg => (<div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-1"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>)))}
                 </div>
-                
-                {/* Camera Controls */}
                 <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <button onClick={() => setGhostMode(!ghostMode)} onPointerDown={e => e.stopPropagation()} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
-                    <button onClick={() => setMirror(!mirror)} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
-                    <button onClick={() => { setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setGhostMode(!ghostMode); }} onPointerDown={e => e.stopPropagation()} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setMirror(!mirror); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -586,22 +654,20 @@ function ModuleFanclub({ isConnected, config, setConfig }: any) {
   );
 }
 
-function ModuleSettings({ hasConsent, isConnected, onConnect, quality, setQuality, version, expiry }: any) {
+function ModuleSettings({ hasConsent, isConnected, onConnect, isSpotifyConnected, onSpotifyConnect, quality, setQuality, version, expiry }: any) {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState("");
   const runHardwareTest = () => { setTesting(true); setTestResult(""); setTimeout(() => { setTesting(false); setTestResult("EXCELLENT"); }, 2000); };
-  
-  const resetCookies = () => {
-      localStorage.removeItem("seker_cookie_consent");
-      window.location.reload();
-  };
+  const resetCookies = () => { localStorage.removeItem("seker_cookie_consent"); window.location.reload(); };
 
   return (
     <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-10 uppercase italic font-bold">
       <section className="space-y-4">
         <h3 className="text-zinc-500 text-[10px] tracking-[3px] font-black not-italic px-1">AUTHENTICATION CHANNELS</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           <AuthCard icon={<Zap className="text-black" />} name="TIKTOK" status={isConnected ? "CONNECTED" : "DISCONNECTED"} active={true} connected={isConnected} onAction={onConnect} />
+          {/* SPOTIFY AUTH CARD IN SETTINGS */}
+          <AuthCard icon={<SpotifyLogo className={isSpotifyConnected ? "text-black" : "text-zinc-500"} />} name="SPOTIFY" status={isSpotifyConnected ? "CONNECTED" : "DISCONNECTED"} active={true} connected={isSpotifyConnected} onAction={onSpotifyConnect} />
           <AuthCard icon={<Share2 />} name="DISCORD" status="COMING SOON" active={false} />
           <AuthCard icon={<Monitor />} name="TWITCH" status="COMING SOON" active={false} />
         </div>
@@ -678,7 +744,7 @@ function AuthCard({ icon, name, status, active, connected, onAction }: any) {
   return (
     <div className={`border p-6 rounded-2xl space-y-4 transition-all flex flex-col justify-between h-40 ${active ? "bg-[#0c0c0e] border-zinc-800 hover:border-zinc-600" : "bg-black/40 border-zinc-900 opacity-60"}`}>
       <div className="flex justify-between items-start">
-        <div className={`p-3 rounded-xl ${connected ? "bg-green-500 text-black" : "bg-zinc-900 text-zinc-500"}`}>{icon}</div>
+        <div className={`p-3 rounded-xl w-10 h-10 flex items-center justify-center ${connected ? "bg-green-500 text-black" : "bg-zinc-900 text-zinc-500"}`}>{icon}</div>
         {connected && <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,1)]"></div>}
       </div>
       <div>
