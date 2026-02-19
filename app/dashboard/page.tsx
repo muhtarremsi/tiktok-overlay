@@ -8,7 +8,8 @@ import {
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2, Copy
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2, Copy,
+  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video
 } from "lucide-react";
 
 function SpotifyLogo({ className }: { className?: string }) {
@@ -52,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030143"; 
+  const version = "0.030144"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -183,11 +184,12 @@ function DashboardContent() {
         <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col p-5 overflow-y-auto scrollbar-hide ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center mb-6 text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
           <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
         </div>
         <button className="absolute top-4 right-4 lg:hidden text-zinc-500" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
+        
         <div className="mb-6 space-y-2 not-italic">
           <label className="text-[9px] text-zinc-500 font-black uppercase tracking-widest ml-1">Live Target</label>
           <div className="relative">
@@ -205,24 +207,45 @@ function DashboardContent() {
             {status === 'online' && <span className="text-[9px] text-green-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Radio size={8} /> Online</span>}
             {status === 'too_short' && <span className="text-[9px] text-blue-500 flex items-center gap-1 font-bold uppercase tracking-wider"><Info size={8} /> 3+ Chars</span>}
           </div>
-          <div className="bg-[#0c0c0e] border border-zinc-800/50 rounded-xl p-3 space-y-2 font-bold uppercase tracking-widest text-[9px] text-zinc-500 mt-2">
-            <div className="flex justify-between items-center text-[10px]"><span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-green-500" /> VERSION</span><span className="text-zinc-300 font-mono">{version}</span></div>
-            <div className="flex justify-between items-center text-[10px]"><span className="flex items-center gap-1.5"><Key size={14} className="text-green-500" /> LICENSE</span><span className="text-blue-500 font-black">PRO</span></div>
-            <div className="flex justify-between items-center pt-2 border-t border-white/5 text-[10px]"><span className="flex items-center gap-1.5"><CalendarDays size={14} className="text-green-500" /> EXPIRY</span><span className="text-zinc-300 font-normal">{expiryDate}</span></div>
-          </div>
         </div>
         
-        <nav className="space-y-1">
-          <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Camera size={16} />} label="IRL CAM" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Music2 size={16} />} label="SPOTIFY" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
+        {/* NEUE NAVIGATION MIT UNTERMENÜS */}
+        <nav className="space-y-4 pb-10">
+            <div>
+                <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK OVERLAYS</div>
+                <div className="space-y-1">
+                    <MenuFolder label="TEXT TO" icon={<MessageSquare size={16}/>} defaultOpen={true}>
+                        <SidebarSubItem icon={<Volume2 size={14}/>} label="Voice" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
+                        <SidebarSubItem icon={<Video size={14}/>} label="Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
+                    </MenuFolder>
+                    
+                    <MenuFolder label="ALERTS" icon={<Zap size={16}/>} defaultOpen={true}>
+                        <SidebarSubItem icon={<Music size={14}/>} label="Sound" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
+                    </MenuFolder>
+                </div>
+            </div>
+
+            <div>
+                <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">STREAMING & TOOLS</div>
+                <div className="space-y-1">
+                    <SidebarItem icon={<Camera size={16} />} label="IRL Cam" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
+                    <SidebarItem icon={<Heart size={16} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
+                    <SidebarItem icon={<SpotifyLogo className="w-4 h-4"/>} label="Spotify" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
+                </div>
+            </div>
+
+            <div>
+                <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic flex items-center gap-2">COMING SOON</div>
+                <div className="space-y-1 opacity-50">
+                    <SidebarItem icon={<Gamepad2 size={16} />} label="Mini Games" active={activeView === "games"} onClick={() => setActiveView("games")} />
+                    <SidebarItem icon={<Bot size={16} />} label="Chat Bot" active={activeView === "bot"} onClick={() => setActiveView("bot")} />
+                    <SidebarItem icon={<Trophy size={16} />} label="Leaderboard" active={activeView === "leaderboard"} onClick={() => setActiveView("leaderboard")} />
+                </div>
+            </div>
         </nav>
         
         <div className="flex-1"></div>
-        <div className="pt-4 space-y-2 border-t border-white/5 not-italic">
+        <div className="pt-4 space-y-2 border-t border-white/5 not-italic shrink-0">
            <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
            <div className="flex items-center justify-between px-3 py-2 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div><span className="font-mono">EN</span>
@@ -251,18 +274,53 @@ function DashboardContent() {
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
           {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} />}
           {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} isSpotifyConnected={isSpotifyConnected} onSpotifyConnect={handleSpotifyConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
+          
+          {/* PLACEHOLDER FÜR FUTURE MODULE */}
+          {(activeView === "games" || activeView === "bot" || activeView === "leaderboard") && <ModuleComingSoon name={activeView} />}
         </div>
       </main>
     </div>
   );
 }
 
+// --- NAVIGATION COMPONENTS ---
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
       {icon} {label}
     </button>
   );
+}
+
+function SidebarSubItem({ icon, label, active, onClick }: any) {
+  return (
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[10px] uppercase transition-all tracking-widest font-bold ${active ? "text-green-500 bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"}`}>
+      {icon} {label}
+    </button>
+  );
+}
+
+function MenuFolder({ label, icon, defaultOpen, children }: any) {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+    return (
+        <div className="space-y-1">
+            <button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-zinc-400 hover:text-white transition-colors group cursor-pointer border-2 border-transparent">
+                <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest">{icon} {label}</div>
+                {isOpen ? <ChevronDown size={14} className="text-zinc-600" /> : <ChevronRight size={14} className="text-zinc-600 group-hover:translate-x-0.5 transition-transform"/>}
+            </button>
+            {isOpen && <div className="space-y-1 pl-4 border-l-2 border-white/5 ml-5">{children}</div>}
+        </div>
+    )
+}
+
+function ModuleComingSoon({ name }: { name: string }) {
+    return (
+        <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
+            <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center animate-pulse"><Code2 className="text-zinc-600" size={32}/></div>
+            <h2 className="text-2xl text-white">IN ENTWICKLUNG</h2>
+            <p className="text-[10px] text-zinc-500 max-w-sm">Das Modul "{name}" wird in einem zukünftigen Update veröffentlicht.</p>
+        </div>
+    );
 }
 
 // --- SPOTIFY MODULE WITH OBS LINK ---
@@ -328,7 +386,6 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
              </div>
         )}
 
-        {/* SONG REQUEST SETTINGS */}
         <div className="flex flex-col gap-4 relative z-10">
             <div className="flex items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5">
                 <div className="space-y-1">
@@ -338,7 +395,6 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
                 <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-4 h-4 accent-[#1DB954] cursor-pointer" />
             </div>
             
-            {/* OBS LINK GENERATOR */}
             <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5">
                 <span className="text-[10px] font-black text-white uppercase tracking-wider block flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
                 <div className="flex gap-2">
@@ -353,7 +409,7 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
   );
 }
 
-// --- UPDATED CAMERA MODULE (Bugfixes & Draggable Spotify Player) ---
+// --- UPDATED CAMERA MODULE (With CSS Filters Carousel) ---
 function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -369,7 +425,19 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [isHolding, setIsHolding] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
-  // Spotify Data for Camera Overlay
+  // NEW: Filters State
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("");
+  
+  const CAMERA_FILTERS = [
+      { id: 'normal', name: 'Normal', css: '' },
+      { id: 'bw', name: 'Schwarzweiß', css: 'grayscale(100%) contrast(110%)' },
+      { id: 'warm', name: 'Warm', css: 'sepia(40%) saturate(140%) contrast(110%)' },
+      { id: 'cold', name: 'Kalt', css: 'saturate(120%) hue-rotate(15deg) contrast(110%)' },
+      { id: 'vintage', name: 'Vintage', css: 'sepia(80%) contrast(120%) brightness(90%)' },
+      { id: 'cyber', name: 'Neon', css: 'hue-rotate(90deg) saturate(200%) contrast(120%)' }
+  ];
+
   const [track, setTrack] = useState<any>(null);
   const [spotifyPos, setSpotifyPos] = useState({ x: 20, y: 120 });
   const isDraggingSpotify = useRef(false);
@@ -404,7 +472,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   useEffect(() => { if (viewState === 'fullscreen') startStream(); }, [facingMode]);
   useEffect(() => { return () => stopStream(); }, []);
 
-  // Fetch Spotify if enabled in Camera
   useEffect(() => {
     if (!isSpotifyConnected || !spotifyConfig.showInCamera || viewState !== 'fullscreen') return;
     const fetchNowPlaying = async () => {
@@ -420,13 +487,16 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
     return () => clearInterval(interval);
   }, [isSpotifyConnected, spotifyConfig.showInCamera, viewState]);
 
-  // Event Handlers for Smart Tap
   const handlePointerDown = (e: React.PointerEvent) => { 
-      if (showSettings) return; // Ignore tap logic if settings open
+      if (showSettings || showFilters) return; 
       holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
   };
   const handlePointerUp = () => {
-      if (showSettings) return;
+      if (showSettings || showFilters) {
+          if(showSettings) setShowSettings(false);
+          if(showFilters) setShowFilters(false);
+          return;
+      }
       if (holdTimer.current) clearTimeout(holdTimer.current);
       if (isHolding) { setIsHolding(false); } else { setShowUI(prev => !prev); }
   };
@@ -435,13 +505,11 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       if (isHolding) setIsHolding(false);
   };
 
-  // Prevent event bubbling from controls (Fixes the flicker/disappear bug)
   const stopEvent = (e: React.SyntheticEvent) => {
       e.stopPropagation();
       if (e.type !== 'pointerdown') e.preventDefault();
   };
 
-  // Draggable Spotify Logic
   const handleSpotifyPointerDown = (e: React.PointerEvent) => {
       stopEvent(e);
       isDraggingSpotify.current = true;
@@ -452,9 +520,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           setSpotifyPos({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
       }
   };
-  const handleGlobalPointerUp = () => {
-      isDraggingSpotify.current = false;
-  };
+  const handleGlobalPointerUp = () => { isDraggingSpotify.current = false; };
 
   if (viewState === 'intro') {
     return (
@@ -483,7 +549,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
 
   let chatOpacityClass = "opacity-0 scale-95 pointer-events-none"; 
   if (isHolding) { chatOpacityClass = "opacity-100 scale-105 pointer-events-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]"; } 
-  else if (showUI) { chatOpacityClass = ghostMode ? "opacity-10 pointer-events-auto" : "opacity-100 pointer-events-auto"; }
+  else if (showUI && !showFilters && !showSettings) { chatOpacityClass = ghostMode ? "opacity-10 pointer-events-auto" : "opacity-100 pointer-events-auto"; }
 
   return (
     <div 
@@ -496,18 +562,17 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         onPointerCancel={handlePointerCancel}
         onPointerMove={handleGlobalPointerMove}
     >
-        <video ref={videoRef} autoPlay playsInline muted className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} />
+        <video 
+            ref={videoRef} 
+            autoPlay playsInline muted 
+            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} 
+            style={{ filter: activeFilter || 'none' }} // APPLY CAMERA FILTER HERE
+        />
         
-        {/* DRAGGABLE SPOTIFY MINI WIDGET */}
-        {spotifyConfig.showInCamera && track && (showUI || isHolding) && (
+        {spotifyConfig.showInCamera && track && (showUI || isHolding) && !showFilters && !showSettings && (
             <div 
                 className="absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl cursor-move transition-opacity duration-300"
-                style={{ 
-                    left: spotifyPos.x, top: spotifyPos.y, 
-                    transform: `scale(${spotifyConfig.cameraScale / 100})`, 
-                    transformOrigin: 'top left',
-                    opacity: ghostMode && !isHolding ? 0.2 : 1 
-                }}
+                style={{ left: spotifyPos.x, top: spotifyPos.y, transform: `scale(${spotifyConfig.cameraScale / 100})`, transformOrigin: 'top left', opacity: ghostMode && !isHolding ? 0.2 : 1 }}
                 onPointerDown={handleSpotifyPointerDown}
                 onPointerUp={(e) => { stopEvent(e); handleGlobalPointerUp(); }}
             >
@@ -519,10 +584,27 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
+        {/* FILTER CAROUSEL OVERLAY */}
+        {showFilters && (
+            <div className="absolute inset-x-0 bottom-24 z-30 flex justify-center pointer-events-auto" onPointerDown={stopEvent}>
+                <div className="w-full max-w-sm px-4 relative">
+                    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-6 px-10" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
+                        {CAMERA_FILTERS.map(f => (
+                            <button 
+                                key={f.id} onClick={(e) => { stopEvent(e); setActiveFilter(f.css); }} 
+                                className={`snap-center shrink-0 w-20 h-24 rounded-2xl border-2 flex flex-col items-center justify-end p-2 transition-all duration-300 ${activeFilter === f.css ? 'border-green-500 scale-110 shadow-[0_0_30px_rgba(34,197,94,0.3)] bg-black/60' : 'border-white/10 bg-black/40 hover:bg-white/10 scale-95'}`}
+                            >
+                                <span className="text-[10px] font-black uppercase text-white drop-shadow-md pb-2">{f.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div className="text-center mt-4 text-[9px] text-zinc-500 uppercase tracking-widest font-black animate-pulse">Wische für Filter</div>
+                </div>
+            </div>
+        )}
+
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 z-10">
-            
-            {/* Header / Top */}
-            <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
                     <div className="flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM</div>
                     <span className="text-[8px] text-green-400 not-italic uppercase tracking-wider mt-1">{chatStatus}</span>
@@ -530,7 +612,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 <button onClick={(e) => { stopEvent(e); stopStream(); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
             </div>
             
-            {/* Settings Overlay */}
             {showSettings && (
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex items-center justify-center pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
                     <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl w-80 space-y-6">
@@ -538,7 +619,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                             <h3 className="text-white text-xs font-black flex items-center gap-2"><Settings size={16}/> IRL Einstellungen</h3>
                             <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white"><X size={20}/></button>
                         </div>
-                        
                         <div className="space-y-4 not-italic">
                             <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5">
                                 <span className="text-[10px] text-white font-bold flex items-center gap-2 uppercase tracking-wider"><SpotifyLogo className="w-4 h-4 text-[#1DB954]"/> Mini Widget</span>
@@ -553,21 +633,31 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 </div>
             )}
 
-            {/* Bottom Row */}
             <div className="flex justify-between items-end mb-4 w-full">
                 <div ref={chatRef} onPointerDown={stopEvent} onClick={stopEvent} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 scrollbar-hide ${chatOpacityClass} origin-bottom-left`}>
                     {chatMessages.length === 0 ? (<div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>) : (chatMessages.map((msg: any) => (<div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-1"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>)))}
                 </div>
                 
-                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    {/* FILTER ICON */}
+                    <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter ? "text-purple-400" : ""} /></button>
                     <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
-                    
                     <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
                 </div>
             </div>
         </div>
+    </div>
+  );
+}
+
+// ... Unveränderte Sub-Module
+function InfoCard({ label, value, color = "text-white" }: any) {
+  return (
+    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
+      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
+      <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
     </div>
   );
 }
@@ -649,6 +739,13 @@ function ModuleTTV({ username, baseUrl, triggers, setTriggers }: any) {
           </div>
         ))}
       </div>
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-2xl space-y-3 not-italic">
+        <label className="text-[9px] text-zinc-500 uppercase tracking-widest font-black">OBS Master Link</label>
+        <div className="flex flex-col gap-3">
+          <div className="bg-black p-4 rounded text-[9px] font-mono text-zinc-500 break-all border border-white/5">{link}</div>
+          <button onClick={() => navigator.clipboard.writeText(link)} className="bg-white text-black py-3 rounded-lg text-[10px] font-black uppercase">Copy Link</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -668,6 +765,14 @@ function ModuleSounds({ username, baseUrl, triggers, setTriggers }: any) {
           <input placeholder="URL (.mp3)" value={newUrl} onChange={e => setNewUrl(e.target.value)} className="bg-black border border-zinc-800 p-3 rounded text-xs text-white outline-none" />
         </div>
         <button onClick={add} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-all">Add Sound</button>
+      </div>
+      <div className="space-y-2">
+        {triggers.map((t: any) => (
+          <div key={t.id} className="flex items-center justify-between bg-[#0c0c0e] border border-zinc-800 p-4 rounded-xl">
+            <span className="text-blue-500">{t.code}</span><span className="text-[9px] text-zinc-600 truncate max-w-[200px] italic">{t.url}</span>
+            <button onClick={() => setTriggers(triggers.filter((x: any) => x.id !== t.id))} className="text-zinc-600 hover:text-red-500"><Trash2 size={16} /></button>
+          </div>
+        ))}
       </div>
     </div>
   );
