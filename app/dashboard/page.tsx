@@ -55,7 +55,7 @@ function DashboardContent() {
   const [giftsList, setGiftsList] = useState<any[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030186"; 
+  const version = "0.030187"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -872,7 +872,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
                 <span className="text-[8px] text-green-400 font-bold uppercase tracking-wider truncate max-w-[150px]">{chatStatus}</span>
             </div>
             
-            <div className="flex border-b border-white/5 bg-black/40 shrink-0 pointer-events-auto" onPointerDown={stopEvent}>
+            <div className="flex border-b border-white/5 bg-black/40 shrink-0 pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent}>
                 <button onClick={() => setActiveTab('chat')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'chat' ? 'text-white border-b-2 border-green-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Chat</button>
                 <button onClick={() => setActiveTab('likes')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'likes' ? 'text-pink-500 border-b-2 border-pink-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Likes</button>
                 <button onClick={() => setActiveTab('gifts')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'gifts' ? 'text-yellow-500 border-b-2 border-yellow-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Gifts</button>
@@ -880,9 +880,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
             
             <div 
                 className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" 
-                onPointerDown={stopEvent} 
-                onWheel={stopEvent}
-                onScroll={handleScroll}
+                onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}
             >
                 {activeTab === 'chat' && (
                     <>
