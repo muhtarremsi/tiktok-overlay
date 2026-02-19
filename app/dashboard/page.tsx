@@ -8,7 +8,7 @@ import {
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, GitBranch, Award, CalendarClock
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, GitBranch, Award, CalendarClock, Ghost, Hand
 } from "lucide-react";
 
 function SekerLogo({ className }: { className?: string }) {
@@ -37,7 +37,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030123"; 
+  const version = "0.030124"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -167,7 +167,7 @@ function DashboardContent() {
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
-          {activeView === "camera" && <ModuleCamera />}
+          {activeView === "camera" && <ModuleCamera targetUser={targetUser} />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
           {activeView === "settings" && <ModuleSettings isConnected={isTikTokConnected} onConnect={handleTikTokConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
         </div>
@@ -184,30 +184,35 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-function ModuleCamera() {
+// --- FULLSCREEN IRL CAMERA MODULE WITH REAL CHAT & GHOST MODE ---
+function ModuleCamera({ targetUser }: { targetUser: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [mirror, setMirror] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user'); // Default = Selfie Camera
+  const [mirror, setMirror] = useState(true);
   const [showUI, setShowUI] = useState(true);
+  const [ghostMode, setGhostMode] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
   const [error, setError] = useState("");
+  
+  // Chat State
+  const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
+  const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
+  // Start Stream
   const startStream = async () => {
     setError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+      if (videoRef.current) { videoRef.current.srcObject = stream; }
       setViewState('fullscreen');
     } catch (err: any) {
-      console.error(err);
       setError("Kamerazugriff verweigert. Bitte erlaube den Zugriff im Browser.");
     }
   };
 
+  // Stop Stream
   const stopStream = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
@@ -217,22 +222,44 @@ function ModuleCamera() {
     setViewState('intro');
   };
 
-  const switchCamera = () => {
-    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-    setMirror(prev => !prev);
-  };
+  // Connect to TikTok Live Chat via SSE
+  useEffect(() => {
+    if (viewState !== 'fullscreen' || !targetUser || targetUser.length < 3) return;
+    
+    setChatStatus("Verbinde mit TikTok Live...");
+    const eventSource = new EventSource(`/api/live-chat?u=${targetUser}`);
+
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'connected') {
+            setChatStatus(`Live verbunden mit @${targetUser}`);
+        } else if (data.type === 'chat') {
+            setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment }]);
+        } else if (data.type === 'error') {
+            setChatStatus(`Fehler: ${data.message}`);
+        }
+    };
+
+    eventSource.onerror = () => {
+        setChatStatus("Verbindung getrennt. Versuche Reconnect...");
+    };
+
+    return () => eventSource.close();
+  }, [viewState, targetUser]);
+
+  // Auto-scroll chat
+  useEffect(() => {
+      if (chatRef.current) {
+          chatRef.current.scrollTop = chatRef.current.scrollHeight;
+      }
+  }, [chatMessages]);
 
   useEffect(() => {
     if (viewState === 'fullscreen') startStream();
   }, [facingMode]);
 
   useEffect(() => {
-    return () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-            tracks.forEach(track => track.stop());
-        }
-    };
+    return () => stopStream(); // Cleanup on unmount
   }, []);
 
   if (viewState === 'intro') {
@@ -247,45 +274,54 @@ function ModuleCamera() {
           
           <div className="space-y-4 text-[11px] text-zinc-400 not-italic font-medium leading-relaxed max-w-md mx-auto">
             <p>
-              Für das ultimative IRL-Erlebnis empfehlen wir, über den <strong>TikTok Gaming-Modus</strong> deines Smartphones zu streamen. So funktioniert's:
+              Da TikTok im Gaming-Modus den <strong>gesamten Bildschirm</strong> überträgt, haben wir den <strong>Ghost-Chat</strong> entwickelt:
             </p>
             <ol className="text-left space-y-2 bg-black/50 p-6 rounded-2xl border border-white/5">
-                <li className="flex gap-3"><span className="text-green-500 font-black">1.</span> Starte hier gleich den Vollbild-Kameramodus.</li>
-                <li className="flex gap-3"><span className="text-green-500 font-black">2.</span> Öffne danach die TikTok App und starte einen "Mobile Gaming" Live-Stream.</li>
-                <li className="flex gap-3"><span className="text-green-500 font-black">3.</span> Wechsle zurück in dieses Fenster. Dein Kamera-Feed inkl. unsichtbarem Chat-Overlay wird nun direkt übertragen!</li>
+                <li className="flex gap-3"><span className="text-green-500 font-black">1.</span> Gib dein Live-Target in die Sidebar ein (aktuell: <span className="text-white">{targetUser || 'fehlt'}</span>).</li>
+                <li className="flex gap-3"><span className="text-green-500 font-black">2.</span> Starte die Kamera. Nutze den <strong>Ghost Mode <Ghost size={12} className="inline"/></strong> um den Chat für Zuschauer (durch Kompression) unsichtbar zu machen.</li>
+                <li className="flex gap-3"><span className="text-green-500 font-black">3.</span> Oder nutze <strong>Hold-to-Peek <Hand size={12} className="inline"/></strong>: Halte den Bildschirm gedrückt, um den Chat kurz einzublenden.</li>
             </ol>
-            <p className="text-[9px] text-zinc-600 mt-4">
-              *Tippe während des Streams auf den Bildschirm, um das Einstellungs-Overlay ein- oder auszublenden.<br/>
-              Durch das Starten akzeptierst du unsere <Link href="/privacy" target="_blank" className="underline hover:text-white">Datenschutzrichtlinien</Link> und <Link href="/terms" target="_blank" className="underline hover:text-white">Nutzungsbedingungen</Link>.
-            </p>
           </div>
 
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
 
           <button onClick={startStream} className="w-full bg-green-500 text-black py-5 rounded-2xl text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2">
-             <Play size={16} fill="currentColor" /> WEITER & KAMERA STARTEN
+             <Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN
           </button>
         </div>
       </div>
     );
   }
 
+  // Determine chat visibility based on modes
+  const isChatVisible = showUI && (!ghostMode || isHolding);
+  const chatOpacityClass = ghostMode && !isHolding ? 'opacity-10' : 'opacity-100'; // 10% opacity for stealth
+
   return (
-    <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center"
+         onPointerDown={() => ghostMode && setIsHolding(true)}
+         onPointerUp={() => setIsHolding(false)}
+         onPointerLeave={() => setIsHolding(false)}>
+        
+        {/* Video Background */}
         <video 
             ref={videoRef} 
             autoPlay 
             playsInline 
             muted 
-            onClick={() => setShowUI(!showUI)}
-            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 cursor-pointer ${mirror ? 'scale-x-[-1]' : ''}`} 
+            onClick={() => !ghostMode && setShowUI(!showUI)}
+            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} 
         />
 
+        {/* UI Overlay */}
         <div className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-6 transition-opacity duration-300 ${showUI ? 'opacity-100' : 'opacity-0'}`}>
             
             <div className="flex justify-between items-start pointer-events-auto">
-                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM
+                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex flex-col">
+                    <div className="flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM
+                    </div>
+                    <span className="text-[8px] text-green-400 not-italic">{chatStatus}</span>
                 </div>
                 
                 <button onClick={stopStream} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors">
@@ -293,34 +329,47 @@ function ModuleCamera() {
                 </button>
             </div>
 
-            <div className="flex justify-between items-end pointer-events-auto mb-4">
+            <div className="flex justify-between items-end pointer-events-auto mb-4 w-full">
                 
-                <div className="w-64 max-h-64 overflow-y-auto bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-3 font-sans not-italic text-[11px]">
-                    <div className="flex items-center gap-2 text-white/50 mb-2 border-b border-white/10 pb-2"><MessageCircle size={12}/> Chat Overlay (Preview)</div>
-                    <div className="text-white"><span className="font-bold text-blue-400">User123:</span> Hallo Stream!</div>
-                    <div className="text-white"><span className="font-bold text-pink-400">GamerGirl:</span> Echt coole Qualität!</div>
-                    <div className="text-white"><span className="font-bold text-yellow-400">SekerFan:</span> <Heart size={10} className="inline text-red-500" fill="currentColor"/></div>
+                {/* LIVE CHAT BOX */}
+                <div 
+                    ref={chatRef}
+                    className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/60 backdrop-blur-sm border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 ${chatOpacityClass}`}
+                >
+                    {chatMessages.length === 0 ? (
+                        <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>
+                    ) : (
+                        chatMessages.map(msg => (
+                            <div key={msg.id} className="text-white leading-tight break-words">
+                                <span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span>
+                                <span className="font-medium drop-shadow-md">{msg.comment}</span>
+                            </div>
+                        ))
+                    )}
                 </div>
 
+                {/* Camera Controls */}
                 <div className="flex flex-col gap-3">
-                    <button onClick={() => setShowUI(false)} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all flex items-center justify-center group relative">
-                        <EyeOff size={24} />
-                        <span className="absolute right-full mr-4 bg-black/80 px-3 py-1 rounded-lg text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Hide UI</span>
+                    <button onClick={() => setGhostMode(!ghostMode)} className={`p-4 rounded-full border transition-all flex items-center justify-center relative ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}>
+                        <Ghost size={24} />
                     </button>
                     <button onClick={() => setMirror(!mirror)} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all">
                         <FlipHorizontal size={24} />
                     </button>
-                    <button onClick={switchCamera} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all">
+                    <button onClick={() => { setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all">
                         <RefreshCw size={24} />
                     </button>
                 </div>
             </div>
             
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none">
-                <span className="bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] text-white/70 uppercase tracking-widest font-black">
-                    Tap screen to hide UI
-                </span>
-            </div>
+            {ghostMode && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none opacity-50">
+                    <Hand size={48} className="text-white/30 mx-auto mb-2" />
+                    <span className="bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] text-white/70 uppercase tracking-widest font-black">
+                        Hold screen to peek
+                    </span>
+                </div>
+            )}
         </div>
     </div>
   );
