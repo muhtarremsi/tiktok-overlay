@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030177"; 
+  const version = "0.030178"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -524,7 +524,14 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [error, setError] = useState("");
 
   useEffect(() => {
-      setChatState(prev => ({ ...prev, y: window.innerHeight - 350 }));
+      const setInitialPos = () => {
+          let ch = window.innerHeight;
+          if (cameraContainerRef.current) ch = cameraContainerRef.current.clientHeight;
+          // Setzt Y exakt so, dass 20px Abstand zum unteren Rand bleiben (analog zu X=20px)
+          setChatState(prev => ({ ...prev, y: Math.max(20, ch - prev.h - 20) }));
+      };
+      setInitialPos();
+      setTimeout(setInitialPos, 150); // Sicherheit für Layout-Berechnung
   }, []);
 
   const startStream = async () => {
@@ -669,10 +676,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
               let nx = initial.x + dx;
               let ny = initial.y + dy;
               
-              if (nx < 0) nx = 0;
-              if (ny < 0) ny = 0;
-              if (nx > cw - approxW) nx = cw - approxW;
-              if (ny > ch - approxH) ny = ch - approxH;
+              if (nx < 20) nx = 20;
+              if (ny < 20) ny = 20;
+              if (nx > cw - approxW - 20) nx = cw - approxW - 20;
+              if (ny > ch - approxH - 20) ny = ch - approxH - 20;
 
               if(type === 'spotify') setSpotifyState(prev => ({...prev, x: nx, y: ny}));
               if(type === 'chat') setChatState(prev => ({...prev, x: nx, y: ny}));
