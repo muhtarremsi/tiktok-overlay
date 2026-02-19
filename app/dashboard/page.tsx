@@ -9,7 +9,7 @@ import {
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
   Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2, Copy,
-  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video, Gift
+  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video, Gift, Home
 } from "lucide-react";
 
 function SpotifyLogo({ className }: { className?: string }) {
@@ -36,7 +36,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("camera"); 
+  const [activeView, setActiveView] = useState("home"); // Standardansicht ist jetzt "home" (Overview)
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030150"; 
+  const version = "0.030151"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -81,10 +81,19 @@ function DashboardContent() {
         if (savedPerf) setPerfQuality(parseInt(savedPerf));
         if (savedSpotify) setSpotifyConfig(JSON.parse(savedSpotify));
     }
+    
     setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
     setIsSpotifyConnected(document.cookie.includes("spotify_connected=true"));
-    if (searchParams.get("connected") === "tiktok") setIsTikTokConnected(true);
-    if (searchParams.get("connected") === "spotify") setIsSpotifyConnected(true);
+    
+    // Intelligente Weiterleitung nach dem Login
+    if (searchParams.get("connected") === "tiktok") {
+        setIsTikTokConnected(true);
+        setActiveView("settings");
+    }
+    if (searchParams.get("connected") === "spotify") {
+        setIsSpotifyConnected(true);
+        setActiveView("spotify");
+    }
   }, [searchParams]);
 
   useEffect(() => {
@@ -226,7 +235,14 @@ function DashboardContent() {
         >
             <div className="h-4"></div>
             <nav className="space-y-6 pb-10">
-                {/* TIKTOK HAUPTKATEGORIE */}
+                {/* NEU: DASHBOARD KATEGORIE */}
+                <div>
+                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">DASHBOARD</div>
+                    <div className="space-y-1">
+                        <SidebarItem icon={<Home size={16} />} label="Overview" active={activeView === "home"} onClick={() => {setActiveView("home"); setSidebarOpen(false);}} />
+                    </div>
+                </div>
+
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK</div>
                     <div className="space-y-1">
@@ -241,7 +257,6 @@ function DashboardContent() {
                             <SidebarSubItem icon={<LogIn size={14}/>} label="Entry" active={activeView === "entry"} onClick={() => {setActiveView("entry"); setSidebarOpen(false);}} />
                         </MenuFolder>
 
-                        {/* Standalone Tools direkt unter TIKTOK */}
                         <div className="pt-2 space-y-1">
                             <SidebarItem icon={<Camera size={16} />} label="IRL Cam" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
                             <SidebarItem icon={<Heart size={16} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
@@ -250,7 +265,6 @@ function DashboardContent() {
                     </div>
                 </div>
 
-                {/* COMING SOON HAUPTKATEGORIE */}
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic flex items-center gap-2">COMING SOON</div>
                     <div className="space-y-1 opacity-50">
@@ -279,11 +293,14 @@ function DashboardContent() {
         </header>
 
         <div className="flex-1 overflow-y-auto relative z-0 flex flex-col">
-          {!hasFunctionalConsent && activeView !== 'settings' && activeView !== 'camera' && (
+          {!hasFunctionalConsent && activeView !== 'settings' && activeView !== 'camera' && activeView !== 'home' && (
               <div className="mx-6 lg:mx-10 mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] flex items-center gap-3 font-black tracking-widest animate-pulse">
                   <Cookie size={16} /> ACHTUNG: FUNKTIONALE COOKIES SIND DEAKTIVIERT. TRIGGER WERDEN NICHT GESPEICHERT!
               </div>
           )}
+          {/* NEUES HOME/OVERVIEW MODUL */}
+          {activeView === "home" && <ModuleHome targetUser={targetUser} isSpotifyConnected={isSpotifyConnected} ttvCount={ttvTriggers.length} soundCount={soundTriggers.length} setActiveView={setActiveView} />}
+          
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
@@ -329,7 +346,6 @@ function MenuFolder({ label, icon, defaultOpen, children }: any) {
 }
 
 function ModuleComingSoon({ name }: { name: string }) {
-    // Schönerer Display-Name für Platzhalter
     const displayName = name === "entry" ? "Entry Alerts" : name === "gifts" ? "Gift Alerts" : name;
 
     return (
@@ -339,6 +355,57 @@ function ModuleComingSoon({ name }: { name: string }) {
             <p className="text-[10px] text-zinc-500 max-w-sm">Das Modul "{displayName}" wird in einem zukünftigen Update veröffentlicht.</p>
         </div>
     );
+}
+
+// --- NEUES DASHBOARD (HOME) MODUL ---
+function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setActiveView }: any) {
+  return (
+    <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 md:p-12 rounded-3xl space-y-4 relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+        <h2 className="text-3xl md:text-5xl text-white font-black tracking-tighter relative z-10">WILLKOMMEN ZURÜCK</h2>
+        <p className="text-xs text-zinc-400 not-italic font-medium relative z-10 max-w-lg">
+          Dein zentrales Control Panel für interaktive TikTok Live Streams. Konfiguriere deine Overlays oder starte den Mobile IRL Modus.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <InfoCard label="LIVE TARGET" value={targetUser ? `@${targetUser}` : "NICHT GESETZT"} color={targetUser ? "text-green-500" : "text-red-500"} />
+        <InfoCard label="SPOTIFY API" value={isSpotifyConnected ? "VERBUNDEN" : "OFFLINE"} color={isSpotifyConnected ? "text-[#1DB954]" : "text-zinc-500"} />
+        <InfoCard label="VIDEO TRIGGERS" value={ttvCount.toString()} color="text-blue-500" />
+        <InfoCard label="SOUND ALERTS" value={soundCount.toString()} color="text-purple-500" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-black/50 border border-white/5 p-8 rounded-3xl space-y-6">
+          <h3 className="text-white text-sm font-black flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> QUICK START GUIDE</h3>
+          <div className="space-y-4 text-xs text-zinc-400 not-italic font-medium">
+            <div className="flex gap-3"><span className="text-green-500 font-black">1.</span><p>Trage dein <strong>Live Target</strong> oben links in die Seitenleiste ein, damit der Chat gelesen wird.</p></div>
+            <div className="flex gap-3"><span className="text-green-500 font-black">2.</span><p>Erstelle <button onClick={() => setActiveView('ttv')} className="text-white underline hover:text-green-500">Video-Triggers</button> oder <button onClick={() => setActiveView('sounds')} className="text-white underline hover:text-green-500">Sound-Alerts</button>.</p></div>
+            <div className="flex gap-3"><span className="text-green-500 font-black">3.</span><p>Kopiere den generierten <strong>OBS Link</strong> aus den Modulen als Browser-Quelle in dein Stream-Programm.</p></div>
+          </div>
+        </div>
+
+        <div className="bg-black/50 border border-white/5 p-8 rounded-3xl space-y-6">
+          <h3 className="text-white text-sm font-black flex items-center gap-2"><Radio size={18} className="text-blue-500" /> SYSTEM STATUS</h3>
+          <div className="space-y-3">
+             <div className="flex justify-between items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">WebSockets (Chat)</span>
+                <span className="text-xs text-green-500 font-black flex items-center gap-2">ONLINE <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div></span>
+             </div>
+             <div className="flex justify-between items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TTS Engine</span>
+                <span className="text-xs text-green-500 font-black">BEREIT</span>
+             </div>
+             <div className="flex justify-between items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TikTok API</span>
+                <span className="text-xs text-green-500 font-black">VERBUNDEN</span>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) {
@@ -727,9 +794,9 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
 
 function InfoCard({ label, value, color = "text-white" }: any) {
   return (
-    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
+    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1 flex flex-col justify-center h-full">
       <p className="text-[9px] text-zinc-600 font-black">{label}</p>
-      <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
+      <p className={`text-xs font-mono font-bold truncate ${color}`}>{value}</p>
     </div>
   );
 }
