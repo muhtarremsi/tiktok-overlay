@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030181"; 
+  const version = "0.030182"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -522,6 +522,19 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [chatState, setChatState] = useState({ x: 20, y: 400, w: 320, h: 280, scale: 1 });
 
   const [error, setError] = useState("");
+  const [cameraCount, setCameraCount] = useState(0);
+
+  useEffect(() => {
+      const getCameraCount = async () => {
+          try {
+              const devices = await navigator.mediaDevices.enumerateDevices();
+              setCameraCount(devices.filter(d => d.kind === 'videoinput').length);
+          } catch (e) {}
+      };
+      getCameraCount();
+      navigator.mediaDevices.addEventListener('devicechange', getCameraCount);
+      return () => navigator.mediaDevices.removeEventListener('devicechange', getCameraCount);
+  }, []);
 
   useEffect(() => {
       const setInitialPos = () => {
@@ -952,7 +965,9 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                     <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                    {cameraCount > 1 && (
+                        <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                    )}
                 </div>
             </div>
         </div>
