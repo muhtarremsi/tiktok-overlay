@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import AuthModal from "@/components/AuthModal";
-import FAQSection from "@/components/FAQ"; // <-- Import der neuen Komponente
 import { checkSession } from "@/app/actions/auth";
 
 function SekerLogo({ className }: { className?: string }) {
@@ -30,16 +29,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 relative flex flex-col">
-      {/* Video Background mit Overlay */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden z-0 bg-black pointer-events-none">
-        <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover object-center md:object-[80%_45%] opacity-40 scale-100 md:scale-[1.5] transition-transform duration-[2000ms] blur-sm">
+    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-green-500/30 overflow-hidden relative flex flex-col">
+      <div className="absolute inset-0 w-full h-full overflow-hidden z-0 bg-black">
+        <video autoPlay loop muted playsInline className="absolute top-0 left-0 w-full h-full object-cover object-center md:object-[80%_45%] opacity-60 scale-100 md:scale-[1.5] transition-transform duration-[2000ms]">
           <source src="https://cdn.discordapp.com/attachments/1462540433463709815/1473564428401377291/Videoerstellung_Frau_mit_animierten_Emojis.mp4?ex=6996ab51&is=699559d1&hm=e1ba37180af42fd701bab80b293938ed5f917a45fd481d131d8b19dc3c9dca4a&" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/50 to-[#09090b] z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/80 via-[#09090b]/30 to-[#09090b] z-10"></div>
       </div>
 
-      {/* Header Logo */}
       <div className="absolute top-6 left-6 md:left-16 z-30">
         <div className="flex items-center gap-2 cursor-pointer opacity-90 hover:opacity-100 transition-opacity" onClick={() => window.location.reload()}>
           <SekerLogo className="text-green-500 w-6 h-6" />
@@ -47,51 +44,43 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative flex-1 flex flex-col z-20 overflow-y-auto pb-20">
-        <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 text-center">
-            <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full pt-20">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030128 FAQ Update
-            </div>
+      <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030129 Layout Restored
+          </div>
 
-            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
-                INTERACTIVE <br /> OVERLAYS
-            </h1>
-            
-            <p className="text-zinc-400 text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed max-w-2xl mx-auto">
-                Boost your TikTok Live with custom video triggers, real-time interactions and IRL tools. Powered by Sekerbaba.
-            </p>
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">
+            INTERACTIVE <br /> OVERLAYS
+          </h1>
+          
+          <p className="text-zinc-400 text-xs md:text-sm font-bold uppercase tracking-widest leading-relaxed" style={{ marginLeft: '4em', marginRight: '4em' }}>
+            Boost your TikTok Live with custom video triggers and real-time interactions. Powered by Sekerbaba Tools.
+          </p>
 
-            <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
-                <button 
-                onClick={handleOpenDashboard} 
-                className="relative bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] text-xs md:text-sm hover:scale-105 hover:bg-green-400"
-                >
-                Open Dashboard
-                </button>
-            </div>
-            </div>
-        </div>
+          <div className="pt-6 md:pt-8 w-full flex flex-col items-center gap-6">
+            <button 
+              onClick={handleOpenDashboard} 
+              className="relative bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(34,197,94,0.3)] text-xs md:text-sm hover:scale-105 hover:bg-green-400"
+            >
+              Open Dashboard
+            </button>
 
-        {/* FAQ SECTION EINGEFÜGT */}
-        <div className="px-4 py-16 relative z-30">
-            <FAQSection />
-        </div>
-
-        {/* Footer Links */}
-        <div className="pb-10 w-full flex flex-col items-center gap-6 z-30">
             <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-[10px] text-zinc-500 font-bold uppercase tracking-widest w-full px-4">
-                <Link href="/privacy" className="hover:text-green-500 transition-colors whitespace-nowrap">Privacy Policy</Link>
-                <span className="text-zinc-800 hidden md:inline">•</span>
-                <Link href="/terms" className="hover:text-green-500 transition-colors whitespace-nowrap">Terms of Service</Link>
-                <span className="text-zinc-800 hidden md:inline">•</span>
-                <Link href="/licenses" className="hover:text-green-500 transition-colors whitespace-nowrap">Licenses</Link>
+               <Link href="/privacy" className="hover:text-green-500 transition-colors whitespace-nowrap">Privacy Policy</Link>
+               <span className="text-zinc-800 hidden md:inline">•</span>
+               <Link href="/terms" className="hover:text-green-500 transition-colors whitespace-nowrap">Terms of Service</Link>
+               <span className="text-zinc-800 hidden md:inline">•</span>
+               <Link href="/licenses" className="hover:text-green-500 transition-colors whitespace-nowrap">Licenses</Link>
             </div>
-            <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest opacity-60">
-            &copy; 2026 SEKERBABA. ALL RIGHTS RESERVED.
-            </p>
+          </div>
         </div>
+      </div>
+
+      <div className="absolute bottom-6 w-full text-center z-20 px-4">
+        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest opacity-60">
+          &copy; 2026 SEKERBABA. ALL RIGHTS RESERVED.
+        </p>
       </div>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
