@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030178"; 
+  const version = "0.030179"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -527,12 +527,16 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       const setInitialPos = () => {
           let ch = window.innerHeight;
           if (cameraContainerRef.current) ch = cameraContainerRef.current.clientHeight;
-          // Setzt Y exakt so, dass 20px Abstand zum unteren Rand bleiben (analog zu X=20px)
           setChatState(prev => ({ ...prev, y: Math.max(20, ch - prev.h - 20) }));
       };
-      setInitialPos();
-      setTimeout(setInitialPos, 150); // Sicherheit für Layout-Berechnung
-  }, []);
+      
+      // FIX: Position erst berechnen, sobald die Kamera ("fullscreen") sichtbar ist
+      if (viewState === 'fullscreen') {
+          setInitialPos();
+          // Leichtes Delay, damit das DOM-Element sicher fertig berechnet ist
+          setTimeout(setInitialPos, 200); 
+      }
+  }, [viewState]);
 
   const startStream = async () => {
     setError("");
