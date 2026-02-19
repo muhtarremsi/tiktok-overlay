@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030158"; 
+  const version = "0.030159"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -133,7 +133,7 @@ function DashboardContent() {
             if (data.type === 'connected') {
                 setChatStatus(`Live verbunden: @${targetUser}`);
             } else if (data.type === 'chat') {
-                setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment }]);
+                setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment, profilePictureUrl: data.profilePictureUrl }]);
                 if (spotifyConfigRef.current.allowRequests) {
                     const commentLower = data.comment.toLowerCase().trim();
                     if (commentLower.startsWith('!play ')) {
@@ -144,7 +144,7 @@ function DashboardContent() {
                     }
                 }
             } else if (data.type === 'member') {
-                setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋" }]);
+                setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋", profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'error') {
                 setChatStatus(`Fehler: ${data.message}`);
                 eventSource?.close();
