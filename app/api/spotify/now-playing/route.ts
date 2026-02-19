@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0; // Verhindert Caching auf Server-Seite
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -26,6 +27,7 @@ export async function GET() {
         grant_type: "refresh_token",
         refresh_token: refreshToken,
       }),
+      cache: "no-store", // Zwingt frischen Fetch
     });
 
     const tokenData = await tokenResponse.json();
@@ -33,6 +35,7 @@ export async function GET() {
 
     const npResponse = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
       headers: { Authorization: "Bearer " + tokenData.access_token },
+      cache: "no-store", // Zwingt frischen Fetch
     });
 
     if (npResponse.status === 204 || npResponse.status > 400) {

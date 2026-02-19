@@ -8,7 +8,7 @@ import {
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2, Copy
 } from "lucide-react";
 
 function SpotifyLogo({ className }: { className?: string }) {
@@ -44,16 +44,15 @@ function DashboardContent() {
   const [ttvTriggers, setTtvTriggers] = useState<any[]>([]);
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
   const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
-  const [spotifyConfig, setSpotifyConfig] = useState({ allowRequests: false });
+  const [spotifyConfig, setSpotifyConfig] = useState({ allowRequests: false, showInCamera: true, cameraScale: 100 });
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
 
-  // GLOBAL CHAT STATE (Lifted up so Spotify listener works globally)
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030140"; 
+  const version = "0.030143"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -110,7 +109,6 @@ function DashboardContent() {
     return () => clearTimeout(timer);
   }, [targetUser]);
 
-  // GLOBAL LIVE CHAT CONNECTION & COMMAND LISTENER
   useEffect(() => {
     if (status !== 'online' || !targetUser || targetUser.length < 3) return;
     setChatStatus("Verbinde mit TikTok...");
@@ -127,8 +125,6 @@ function DashboardContent() {
                 setChatStatus(`Live verbunden: @${targetUser}`);
             } else if (data.type === 'chat') {
                 setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment }]);
-                
-                // --- SPOTIFY COMMAND LOGIC ---
                 if (spotifyConfigRef.current.allowRequests) {
                     const commentLower = data.comment.toLowerCase().trim();
                     if (commentLower.startsWith('!play ')) {
@@ -138,7 +134,6 @@ function DashboardContent() {
                         fetch('/api/spotify/command', { method: 'POST', body: JSON.stringify({ action: 'skip' }) });
                     }
                 }
-                
             } else if (data.type === 'member') {
                 setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋" }]);
             } else if (data.type === 'error') {
@@ -252,9 +247,9 @@ function DashboardContent() {
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
-          {activeView === "camera" && <ModuleCamera targetUser={targetUser} chatMessages={chatMessages} chatStatus={chatStatus} />}
+          {activeView === "camera" && <ModuleCamera targetUser={targetUser} chatMessages={chatMessages} chatStatus={chatStatus} spotifyConfig={spotifyConfig} setSpotifyConfig={setSpotifyConfig} isSpotifyConnected={isSpotifyConnected} />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
-          {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} config={spotifyConfig} setConfig={setSpotifyConfig} />}
+          {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} />}
           {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} isSpotifyConnected={isSpotifyConnected} onSpotifyConnect={handleSpotifyConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
         </div>
       </main>
@@ -270,16 +265,17 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-// --- SPOTIFY MODULE WITH TOGGLE ---
-function ModuleSpotify({ isConnected, config, setConfig }: any) {
+// --- SPOTIFY MODULE WITH OBS LINK ---
+function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
   const [track, setTrack] = useState<any>(null);
   const [loading, setLoading] = useState(isConnected);
+  const overlayLink = `${baseUrl}/spotify-overlay`;
 
   useEffect(() => {
     if (!isConnected) return;
     const fetchNowPlaying = async () => {
       try {
-        const res = await fetch('/api/spotify/now-playing');
+        const res = await fetch('/api/spotify/now-playing?t=' + Date.now());
         const data = await res.json();
         if (data.isPlaying) setTrack(data);
         else setTrack(null);
@@ -333,31 +329,52 @@ function ModuleSpotify({ isConnected, config, setConfig }: any) {
         )}
 
         {/* SONG REQUEST SETTINGS */}
-        <div className="flex items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 relative z-10">
-          <div className="space-y-1">
-            <span className="text-[10px] font-black text-white uppercase tracking-wider block flex items-center gap-2">Zuschauer Song-Requests</span>
-            <span className="text-[9px] text-zinc-500 not-italic block">Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.</span>
-          </div>
-          <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-4 h-4 accent-[#1DB954] cursor-pointer" />
+        <div className="flex flex-col gap-4 relative z-10">
+            <div className="flex items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5">
+                <div className="space-y-1">
+                    <span className="text-[10px] font-black text-white uppercase tracking-wider block">Zuschauer Song-Requests</span>
+                    <span className="text-[9px] text-zinc-500 not-italic block">Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.</span>
+                </div>
+                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-4 h-4 accent-[#1DB954] cursor-pointer" />
+            </div>
+            
+            {/* OBS LINK GENERATOR */}
+            <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5">
+                <span className="text-[10px] font-black text-white uppercase tracking-wider block flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
+                <div className="flex gap-2">
+                    <div className="flex-1 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 truncate border border-white/5">{overlayLink}</div>
+                    <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="bg-[#1DB954] text-black px-4 rounded-lg text-[10px] font-black uppercase flex items-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> COPY</button>
+                </div>
+                <span className="text-[9px] text-zinc-500 not-italic">Dieser Link zeigt ausschließlich den Spotify-Player mit transparentem Hintergrund an.</span>
+            </div>
         </div>
-
       </div>
     </div>
   );
 }
 
-// --- UPDATED CAMERA MODULE (Receives Global Chat Props) ---
-function ModuleCamera({ targetUser, chatMessages, chatStatus }: any) {
+// --- UPDATED CAMERA MODULE (Bugfixes & Draggable Spotify Player) ---
+function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
   const holdTimer = useRef<NodeJS.Timeout | null>(null);
+  
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user'); 
   const [mirror, setMirror] = useState(true);
+  
   const [showUI, setShowUI] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Spotify Data for Camera Overlay
+  const [track, setTrack] = useState<any>(null);
+  const [spotifyPos, setSpotifyPos] = useState({ x: 20, y: 120 });
+  const isDraggingSpotify = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+
   const [error, setError] = useState("");
 
   const startStream = async () => {
@@ -387,14 +404,56 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus }: any) {
   useEffect(() => { if (viewState === 'fullscreen') startStream(); }, [facingMode]);
   useEffect(() => { return () => stopStream(); }, []);
 
-  const handlePointerDown = (e: React.PointerEvent) => { holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); };
+  // Fetch Spotify if enabled in Camera
+  useEffect(() => {
+    if (!isSpotifyConnected || !spotifyConfig.showInCamera || viewState !== 'fullscreen') return;
+    const fetchNowPlaying = async () => {
+      try {
+        const res = await fetch('/api/spotify/now-playing?t=' + Date.now());
+        const data = await res.json();
+        if (data.isPlaying) setTrack(data);
+        else setTrack(null);
+      } catch (err) {}
+    };
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 4000); 
+    return () => clearInterval(interval);
+  }, [isSpotifyConnected, spotifyConfig.showInCamera, viewState]);
+
+  // Event Handlers for Smart Tap
+  const handlePointerDown = (e: React.PointerEvent) => { 
+      if (showSettings) return; // Ignore tap logic if settings open
+      holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
+  };
   const handlePointerUp = () => {
+      if (showSettings) return;
       if (holdTimer.current) clearTimeout(holdTimer.current);
       if (isHolding) { setIsHolding(false); } else { setShowUI(prev => !prev); }
   };
   const handlePointerCancel = () => {
       if (holdTimer.current) clearTimeout(holdTimer.current);
       if (isHolding) setIsHolding(false);
+  };
+
+  // Prevent event bubbling from controls (Fixes the flicker/disappear bug)
+  const stopEvent = (e: React.SyntheticEvent) => {
+      e.stopPropagation();
+      if (e.type !== 'pointerdown') e.preventDefault();
+  };
+
+  // Draggable Spotify Logic
+  const handleSpotifyPointerDown = (e: React.PointerEvent) => {
+      stopEvent(e);
+      isDraggingSpotify.current = true;
+      dragOffset.current = { x: e.clientX - spotifyPos.x, y: e.clientY - spotifyPos.y };
+  };
+  const handleGlobalPointerMove = (e: React.PointerEvent) => {
+      if (isDraggingSpotify.current) {
+          setSpotifyPos({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
+      }
+  };
+  const handleGlobalPointerUp = () => {
+      isDraggingSpotify.current = false;
   };
 
   if (viewState === 'intro') {
@@ -435,37 +494,80 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus }: any) {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerCancel}
         onPointerCancel={handlePointerCancel}
+        onPointerMove={handleGlobalPointerMove}
     >
         <video ref={videoRef} autoPlay playsInline muted className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} />
-        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
-            <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+        
+        {/* DRAGGABLE SPOTIFY MINI WIDGET */}
+        {spotifyConfig.showInCamera && track && (showUI || isHolding) && (
+            <div 
+                className="absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl cursor-move transition-opacity duration-300"
+                style={{ 
+                    left: spotifyPos.x, top: spotifyPos.y, 
+                    transform: `scale(${spotifyConfig.cameraScale / 100})`, 
+                    transformOrigin: 'top left',
+                    opacity: ghostMode && !isHolding ? 0.2 : 1 
+                }}
+                onPointerDown={handleSpotifyPointerDown}
+                onPointerUp={(e) => { stopEvent(e); handleGlobalPointerUp(); }}
+            >
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Cover" className="w-10 h-10 rounded-md shadow-lg object-cover pointer-events-none" />
+                <div className="min-w-0 pr-2 pointer-events-none">
+                    <h4 className="text-xs font-black text-white truncate max-w-[120px] not-italic leading-tight">{track.title}</h4>
+                    <p className="text-[9px] text-[#1DB954] font-bold truncate tracking-widest leading-tight">{track.artist}</p>
+                </div>
+            </div>
+        )}
+
+        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 z-10">
+            
+            {/* Header / Top */}
+            <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding && !showSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
                     <div className="flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM</div>
                     <span className="text-[8px] text-green-400 not-italic uppercase tracking-wider mt-1">{chatStatus}</span>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); stopStream(); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
+                <button onClick={(e) => { stopEvent(e); stopStream(); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
             </div>
+            
+            {/* Settings Overlay */}
+            {showSettings && (
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex items-center justify-center pointer-events-auto" onPointerDown={stopEvent} onClick={stopEvent}>
+                    <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl w-80 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-white text-xs font-black flex items-center gap-2"><Settings size={16}/> IRL Einstellungen</h3>
+                            <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white"><X size={20}/></button>
+                        </div>
+                        
+                        <div className="space-y-4 not-italic">
+                            <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5">
+                                <span className="text-[10px] text-white font-bold flex items-center gap-2 uppercase tracking-wider"><SpotifyLogo className="w-4 h-4 text-[#1DB954]"/> Mini Widget</span>
+                                <input type="checkbox" checked={spotifyConfig.showInCamera} onChange={e => setSpotifyConfig({...spotifyConfig, showInCamera: e.target.checked})} className="w-4 h-4 accent-[#1DB954]" />
+                            </div>
+                            <div className="bg-black/50 p-4 rounded-xl border border-white/5 space-y-2">
+                                <div className="flex justify-between text-[9px] text-zinc-500 font-bold uppercase tracking-wider"><span>Widget Größe</span><span>{spotifyConfig.cameraScale}%</span></div>
+                                <input type="range" min="50" max="150" step="10" value={spotifyConfig.cameraScale} onChange={e => setSpotifyConfig({...spotifyConfig, cameraScale: parseInt(e.target.value)})} className="w-full accent-[#1DB954] h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Bottom Row */}
             <div className="flex justify-between items-end mb-4 w-full">
-                <div ref={chatRef} onPointerDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 scrollbar-hide ${chatOpacityClass} origin-bottom-left`}>
+                <div ref={chatRef} onPointerDown={stopEvent} onClick={stopEvent} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 scrollbar-hide ${chatOpacityClass} origin-bottom-left`}>
                     {chatMessages.length === 0 ? (<div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>) : (chatMessages.map((msg: any) => (<div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-1"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>)))}
                 </div>
-                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                    <button onClick={(e) => { e.stopPropagation(); setGhostMode(!ghostMode); }} onPointerDown={e => e.stopPropagation()} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); setMirror(!mirror); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                
+                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
+                    
+                    <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
                 </div>
             </div>
         </div>
-    </div>
-  );
-}
-
-// ... Unveränderte Sub-Module (TTC, TTV, Sounds, Fanclub, Settings)
-function InfoCard({ label, value, color = "text-white" }: any) {
-  return (
-    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
-      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
-      <p className={`text-xs font-mono font-bold ${color}`}>{value}</p>
     </div>
   );
 }
