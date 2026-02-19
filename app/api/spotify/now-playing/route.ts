@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0; // Verhindert Caching auf Server-Seite
+export const revalidate = 0;
 
-export async function GET() {
+export async function GET(req: Request) {
+  // 1. Zuerst schauen, ob OBS den Token über die URL mitgibt (?rt=XXXX)
+  const url = new URL(req.url);
+  const rtParam = url.searchParams.get("rt");
+
+  // 2. Ansonsten Fallback auf das normale Browser-Cookie
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("spotify_refresh_token")?.value;
+  const refreshToken = rtParam || cookieStore.get("spotify_refresh_token")?.value;
 
   if (!refreshToken) {
     return NextResponse.json({ isPlaying: false, message: "Not authenticated" }, { status: 401 });
@@ -27,7 +32,7 @@ export async function GET() {
         grant_type: "refresh_token",
         refresh_token: refreshToken,
       }),
-      cache: "no-store", // Zwingt frischen Fetch
+      cache: "no-store",
     });
 
     const tokenData = await tokenResponse.json();
@@ -35,7 +40,7 @@ export async function GET() {
 
     const npResponse = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
       headers: { Authorization: "Bearer " + tokenData.access_token },
-      cache: "no-store", // Zwingt frischen Fetch
+      cache: "no-store",
     });
 
     if (npResponse.status === 204 || npResponse.status > 400) {

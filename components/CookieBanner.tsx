@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, ChevronDown, Check } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export type CookiePreferences = {
   essential: boolean;
@@ -10,6 +11,7 @@ export type CookiePreferences = {
 };
 
 export default function CookieBanner() {
+  const pathname = usePathname();
   const [showBanner, setShowBanner] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [preferences, setPreferences] = useState<CookiePreferences>({
@@ -19,6 +21,9 @@ export default function CookieBanner() {
   });
 
   useEffect(() => {
+    // Verstecke das Banner IMMER in OBS / Live Studio Overlays
+    if (window.location.pathname.includes('overlay')) return;
+
     const savedConsent = localStorage.getItem("seker_cookie_consent");
     if (!savedConsent) {
       setShowBanner(true);
@@ -34,6 +39,8 @@ export default function CookieBanner() {
     window.location.reload();
   };
 
+  // Zweiter Sicherheits-Check für Overlays
+  if (pathname?.includes('overlay')) return null;
   if (!showBanner) return null;
 
   return (
@@ -41,7 +48,6 @@ export default function CookieBanner() {
       
       <div className="bg-[#0c0c0e] border border-white/10 rounded-3xl shadow-2xl w-full max-w-2xl pointer-events-auto overflow-hidden animate-in slide-in-from-bottom-10">
         
-        {/* Main Text */}
         <div className="p-6 md:p-8 space-y-4">
             <div className="flex items-center gap-3 text-white">
                 <ShieldCheck className="text-green-500" size={24} />
@@ -61,7 +67,6 @@ export default function CookieBanner() {
             </div>
         </div>
 
-        {/* Accordion Toggle Bar - Klickbar auf ganzer Breite */}
         <button 
             onClick={() => setShowDetails(!showDetails)}
             className="w-full bg-black/50 border-t border-white/5 p-4 flex items-center justify-between text-zinc-400 hover:text-white transition-colors group cursor-pointer focus:outline-none"
@@ -70,7 +75,6 @@ export default function CookieBanner() {
             <ChevronDown size={16} className={`transition-transform duration-300 ease-in-out ${showDetails ? 'rotate-180 text-green-500' : 'group-hover:text-white'}`} />
         </button>
 
-        {/* Ausklappbares Menü (Accordion) */}
         <div className={`grid transition-all duration-300 ease-in-out bg-black/80 ${showDetails ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
             <div className="overflow-hidden">
                 <div className="p-6 space-y-4 border-t border-white/5">

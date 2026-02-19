@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Music2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
-export default function SpotifyOverlay() {
+function SpotifyPlayer() {
+  const searchParams = useSearchParams();
+  const rt = searchParams.get("rt"); // Liest den Token aus der OBS URL
   const [track, setTrack] = useState<any>(null);
 
   useEffect(() => {
     const fetchNowPlaying = async () => {
       try {
-        // Cache-Buster hinzugefügt (?t=...) damit auch OBS immer neu lädt
-        const res = await fetch('/api/spotify/now-playing?t=' + Date.now());
+        // Sendet den Token an die API mit
+        const res = await fetch(`/api/spotify/now-playing?rt=${rt || ''}&t=${Date.now()}`);
         const data = await res.json();
         if (data.isPlaying) setTrack(data);
         else setTrack(null);
@@ -18,15 +21,14 @@ export default function SpotifyOverlay() {
     };
 
     fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 3000); // Alle 3 Sek aktualisieren
+    const interval = setInterval(fetchNowPlaying, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [rt]);
 
-  if (!track) return null; // Zeigt nichts an, wenn keine Musik läuft (perfekt für OBS)
+  if (!track) return null;
 
   return (
     <div className="w-screen h-screen flex items-end justify-start p-8 bg-transparent overflow-hidden selection:bg-transparent">
-      {/* Nackter, stylischer Player für OBS */}
       <div className="bg-black/80 border border-white/10 p-6 rounded-2xl flex items-center gap-6 shadow-2xl backdrop-blur-md w-[450px] animate-in fade-in slide-in-from-bottom-5">
           <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-24 h-24 rounded-xl shadow-lg object-cover" />
           
@@ -41,4 +43,12 @@ export default function SpotifyOverlay() {
       </div>
     </div>
   );
+}
+
+export default function SpotifyOverlay() {
+    return (
+        <Suspense fallback={null}>
+            <SpotifyPlayer />
+        </Suspense>
+    );
 }

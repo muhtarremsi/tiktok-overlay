@@ -34,8 +34,9 @@ export async function GET(req: Request) {
 
     const res = NextResponse.redirect(new URL("/dashboard?connected=spotify", req.url));
     
+    // WICHTIG: httpOnly ist jetzt false, damit das Dashboard den Link für OBS generieren kann!
     res.cookies.set("spotify_refresh_token", data.refresh_token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24 * 30, 
