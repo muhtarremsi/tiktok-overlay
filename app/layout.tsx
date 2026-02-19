@@ -6,8 +6,8 @@ import CookieBanner from "@/components/CookieBanner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SEKERBABA | Interactive Overlays",
-  description: "Boost your TikTok Live with custom video triggers.",
+  title: "Sekerbaba | Interactive Overlays",
+  description: "Boost your TikTok Live with custom video triggers and real-time interactions.",
 };
 
 export default function RootLayout({

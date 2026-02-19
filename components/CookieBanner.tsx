@@ -1,63 +1,98 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Cookie, X } from "lucide-react";
+import { ShieldCheck, X, Check, Settings2 } from "lucide-react";
+
+export type CookiePreferences = {
+  essential: boolean; // Immer true
+  functional: boolean;
+  analytics: boolean;
+};
 
 export default function CookieBanner() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [preferences, setPreferences] = useState<CookiePreferences>({
+    essential: true,
+    functional: false,
+    analytics: false,
+  });
 
   useEffect(() => {
-    // Prüfen, ob Consent schon da ist
-    const consent = localStorage.getItem("seker_cookie_consent");
-    if (!consent) {
-      // Kleine Verzögerung für schöne Animation
-      const timer = setTimeout(() => setIsVisible(true), 1000);
-      return () => clearTimeout(timer);
+    const savedConsent = localStorage.getItem("seker_cookie_consent");
+    if (!savedConsent) {
+      setShowBanner(true);
+    } else {
+      setPreferences(JSON.parse(savedConsent));
     }
   }, []);
 
-  const handleAccept = () => {
-    // Speichert "accepted" und das Datum
-    const data = { value: "accepted", timestamp: new Date().getTime() };
-    localStorage.setItem("seker_cookie_consent", JSON.stringify(data));
-    setIsVisible(false);
+  const handleSave = (newPrefs: CookiePreferences) => {
+    localStorage.setItem("seker_cookie_consent", JSON.stringify(newPrefs));
+    setPreferences(newPrefs);
+    setShowBanner(false);
+    // Reload to apply settings globally
+    window.location.reload();
   };
 
-  const handleDecline = () => {
-    // Speichert "declined"
-    const data = { value: "declined", timestamp: new Date().getTime() };
-    localStorage.setItem("seker_cookie_consent", JSON.stringify(data));
-    setIsVisible(false);
-  };
+  const acceptAll = () => handleSave({ essential: true, functional: true, analytics: true });
+  const rejectAll = () => handleSave({ essential: true, functional: false, analytics: false });
 
-  if (!isVisible) return null;
+  if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:bottom-6 md:w-96 z-[100] p-6 md:rounded-2xl bg-black/90 backdrop-blur-xl border-t md:border border-white/10 shadow-2xl transition-all duration-500 animate-in slide-in-from-bottom-10 fade-in-20">
-      <div className="flex items-start gap-4 mb-4">
-        <div className="p-2 bg-green-500/10 rounded-lg text-green-500">
-          <Cookie size={20} />
+    <div className="fixed bottom-0 left-0 w-full z-[999] p-4 flex justify-center items-end pointer-events-none">
+      <div className="bg-[#0c0c0e] border border-white/10 p-6 rounded-2xl shadow-2xl max-w-4xl w-full pointer-events-auto flex flex-col gap-6 animate-in slide-in-from-bottom-10">
+        
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
+              <ShieldCheck className="text-green-500" size={18} /> Deine Privatsphäre
+            </h3>
+            <p className="text-zinc-400 text-[11px] leading-relaxed max-w-2xl">
+              Wir verwenden Cookies und lokale Speicher (Local Storage), um Funktionen wie das Speichern deiner Overlay-Trigger zu ermöglichen und die Sicherheit (reCAPTCHA) zu gewährleisten. Du kannst selbst entscheiden, welche Daten du teilen möchtest.
+            </p>
+          </div>
         </div>
-        <div className="space-y-1">
-          <h4 className="text-xs font-black uppercase tracking-wider text-white">Privacy & Cookies</h4>
-          <p className="text-[10px] text-zinc-400 leading-relaxed font-bold">
-            We use cookies to ensure you get the best experience across all pages (Dashboard, Licenses, etc.). Valid for 30 days or until cache clear.
-          </p>
+
+        {showDetails && (
+          <div className="space-y-3 bg-black/50 p-4 rounded-xl border border-white/5 text-[11px]">
+            <div className="flex items-center justify-between py-2 border-b border-white/5">
+              <div>
+                <span className="text-white font-bold block">Essenzielle Cookies (Erforderlich)</span>
+                <span className="text-zinc-500">Für Login, Sessions und reCAPTCHA v3 Sicherheit.</span>
+              </div>
+              <Check className="text-zinc-600" size={16} />
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-white/5">
+              <div>
+                <span className="text-white font-bold block">Funktionale Speicherung</span>
+                <span className="text-zinc-500">Speichert deine angelegten TTV/Sound-Trigger im Browser. Wenn abgelehnt, werden Trigger nach Neuladen gelöscht.</span>
+              </div>
+              <input type="checkbox" checked={preferences.functional} onChange={(e) => setPreferences({...preferences, functional: e.target.checked})} className="accent-green-500 w-4 h-4" />
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <span className="text-white font-bold block">Analytics (Optional)</span>
+                <span className="text-zinc-500">Hilft uns, Abstürze zu finden und die App zu verbessern.</span>
+              </div>
+              <input type="checkbox" checked={preferences.analytics} onChange={(e) => setPreferences({...preferences, analytics: e.target.checked})} className="accent-green-500 w-4 h-4" />
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button onClick={acceptAll} className="flex-1 bg-green-500 text-black py-3 rounded-xl text-xs font-black uppercase hover:bg-green-400 transition-colors">
+            Alle Akzeptieren
+          </button>
+          <button onClick={rejectAll} className="flex-1 bg-zinc-900 border border-zinc-800 text-white py-3 rounded-xl text-xs font-black uppercase hover:bg-zinc-800 transition-colors">
+            Nur Essenziell
+          </button>
+          <button onClick={() => showDetails ? handleSave(preferences) : setShowDetails(true)} className="flex-1 bg-black border border-white/10 text-zinc-300 py-3 rounded-xl text-xs font-black uppercase hover:text-white transition-colors flex items-center justify-center gap-2">
+            <Settings2 size={14} /> {showDetails ? "Auswahl Speichern" : "Anpassen"}
+          </button>
         </div>
-      </div>
-      <div className="flex gap-3">
-        <button 
-          onClick={handleDecline} 
-          className="flex-1 py-2.5 rounded-lg border border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:bg-white/5 transition-colors"
-        >
-          Decline
-        </button>
-        <button 
-          onClick={handleAccept} 
-          className="flex-1 py-2.5 rounded-lg bg-green-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-green-400 hover:scale-105 transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)]"
-        >
-          Accept
-        </button>
+
       </div>
     </div>
   );
