@@ -8,7 +8,7 @@ import {
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle
 } from "lucide-react";
 
 function SekerLogo({ className }: { className?: string }) {
@@ -38,13 +38,11 @@ function DashboardContent() {
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
 
-  const version = "0.030127"; 
+  const version = "0.030137"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
-    
-    // Check Cookie Consent
     const consentRaw = localStorage.getItem("seker_cookie_consent");
     let functionalAllowed = false;
     if (consentRaw) {
@@ -52,7 +50,6 @@ function DashboardContent() {
         functionalAllowed = consent.functional;
         setHasFunctionalConsent(functionalAllowed);
     }
-
     if (functionalAllowed) {
         const savedTTV = localStorage.getItem("seker_ttv");
         const savedSounds = localStorage.getItem("seker_sounds");
@@ -63,7 +60,6 @@ function DashboardContent() {
         if (savedTarget) setTargetUser(savedTarget);
         if (savedPerf) setPerfQuality(parseInt(savedPerf));
     }
-    
     setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
     if (searchParams.get("connected")) setIsTikTokConnected(true);
   }, [searchParams]);
@@ -179,7 +175,7 @@ function DashboardContent() {
           <div className="hidden lg:block" />
         </header>
 
-        <div className="flex-1 overflow-y-auto relative z-0">
+        <div className="flex-1 overflow-y-auto relative z-0 flex flex-col">
           {!hasFunctionalConsent && activeView !== 'settings' && activeView !== 'camera' && (
               <div className="mx-6 lg:mx-10 mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] flex items-center gap-3 font-black tracking-widest animate-pulse">
                   <Cookie size={16} /> ACHTUNG: FUNKTIONALE COOKIES SIND DEAKTIVIERT. TRIGGER WERDEN NICHT GESPEICHERT!
@@ -205,6 +201,7 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
+// --- UPDATED CAMERA MODULE (Mobile Fullscreen, Desktop Embedded, Selection Disabled) ---
 function ModuleCamera({ targetUser }: { targetUser: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -294,22 +291,31 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
 
   if (viewState === 'intro') {
     return (
-      <div className="p-6 lg:p-10 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center h-full">
-        <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8 text-center shadow-2xl w-full">
+      <div className="p-6 lg:p-10 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center flex-1 w-full">
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8 text-center shadow-2xl w-full relative overflow-hidden">
           <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
             <Camera size={36} className="text-green-500" />
           </div>
           <h2 className="text-2xl text-white font-black tracking-tighter">IRL STREAMING MODE</h2>
+          
           <div className="text-[11px] text-zinc-400 not-italic font-medium text-left">
-            <p className="mb-4 text-center">Da TikTok im Gaming-Modus den gesamten Bildschirm überträgt, nutze den Ghost-Chat:</p>
+            <p className="mb-4 text-center">Optimiere deinen Mobile Gaming Stream mit versteckten Overlays.</p>
             <div className="space-y-4 bg-black/50 p-6 rounded-2xl border border-white/5">
                 <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed">Gib dein Live-Target in die Sidebar ein (aktuell: <strong className="text-white">@{targetUser || 'fehlt'}</strong>).</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed">Starte die Kamera. Nutze den <strong className="text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/20 inline-flex items-center gap-1"><Ghost size={12}/> GHOST MODE</strong> um den Chat unsichtbar zu machen.</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed">Oder nutze <strong className="text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/20 inline-flex items-center gap-1"><Hand size={12}/> HOLD-TO-PEEK</strong>: Halte den Bildschirm gedrückt.</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed">Starte die Kamera. Nutze den <strong className="text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/20 inline-flex items-center gap-1"><Ghost size={12}/> GHOST MODE</strong> um den Chat für Zuschauer unsichtbar zu machen.</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed">Oder nutze <strong className="text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/20 inline-flex items-center gap-1"><Hand size={12}/> HOLD-TO-PEEK</strong>: Halte den Bildschirm gedrückt, um den Chat kurz einzublenden.</span></div>
             </div>
           </div>
+          
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
-          <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
+          
+          <div className="space-y-4">
+              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
+              
+              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest pt-2">
+                 <HelpCircle size={14} /> Ausführliche Anleitung lesen
+              </Link>
+          </div>
         </div>
       </div>
     );
@@ -318,8 +324,30 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
   const chatOpacityClass = ghostMode && !isHolding ? 'opacity-10' : 'opacity-100';
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center" onPointerDown={() => ghostMode && setIsHolding(true)} onPointerUp={() => setIsHolding(false)} onPointerLeave={() => setIsHolding(false)}>
-        <video ref={videoRef} autoPlay playsInline muted onClick={() => !ghostMode && setShowUI(!showUI)} className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} />
+    // FIX: Desktop View Anpassung (md:relative md:inset-auto md:h-full md:rounded-3xl)
+    // FIX: select-none und Inline Styles verhindern das blaue Markieren
+    <div 
+        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 bg-black overflow-hidden flex items-center justify-center select-none md:flex-1"
+        style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', userSelect: 'none' }}
+        onContextMenu={(e) => e.preventDefault()}
+        onPointerDown={() => ghostMode && setIsHolding(true)}
+        onPointerUp={() => setIsHolding(false)}
+        onPointerLeave={() => setIsHolding(false)}
+        onTouchStart={(e) => {
+            // Verhindert das Standard-Lupe/Markieren Verhalten auf iOS
+            if (ghostMode) setIsHolding(true);
+        }}
+        onTouchEnd={() => setIsHolding(false)}
+    >
+        <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            onClick={() => !ghostMode && setShowUI(!showUI)}
+            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} 
+        />
+        
         <div className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-6 transition-opacity duration-300 ${showUI ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex justify-between items-start pointer-events-auto">
                 <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg">
@@ -328,8 +356,9 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
                 </div>
                 <button onClick={stopStream} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors"><X size={20} /></button>
             </div>
+            
             <div className="flex justify-between items-end pointer-events-auto mb-4 w-full">
-                <div ref={chatRef} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-opacity duration-300 ${chatOpacityClass}`}>
+                <div ref={chatRef} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-opacity duration-300 ${chatOpacityClass} scrollbar-hide`}>
                     {chatMessages.length === 0 ? (<div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>) : (chatMessages.map(msg => (<div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-1"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>)))}
                 </div>
                 <div className="flex flex-col gap-3">
@@ -338,6 +367,7 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
                     <button onClick={() => { setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>
                 </div>
             </div>
+            
             {ghostMode && (
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none transition-opacity duration-500 ${isHolding ? 'opacity-0' : 'opacity-70'}`}>
                     <Hand size={48} className="text-white/50 mx-auto mb-3" />
@@ -349,6 +379,7 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
   );
 }
 
+// ... rest of the components remain exactly the same
 function InfoCard({ label, value, color = "text-white" }: any) {
   return (
     <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
@@ -605,7 +636,7 @@ function ModuleSettings({ hasConsent, isConnected, onConnect, quality, setQualit
                     <p className="text-[9px] text-zinc-500 font-bold">Powered by zerodytrash (MIT License)</p>
                  </div>
               </div>
-              <Link href="/licenses" target="_blank" className="text-[9px] text-zinc-400 hover:text-white underline">View Source</Link>
+              <Link href="/license" target="_blank" className="text-[9px] text-zinc-400 hover:text-white underline">View Source</Link>
            </div>
         </div>
       </section>
