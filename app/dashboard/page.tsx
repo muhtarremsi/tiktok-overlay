@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030171"; 
+  const version = "0.030172"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -780,7 +780,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
     <div 
         ref={cameraContainerRef}
         // HIER IST DER FIX: md:h-[calc(100vh-6rem)] erzwingt eine feste Höhe auf dem Desktop!
-        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:h-[calc(100dvh-6rem)] md:min-h-[500px] md:rounded-3xl md:border md:border-zinc-800 md:shadow-2xl bg-black overflow-hidden flex items-center justify-center select-none cursor-pointer w-full"
+        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:h-[calc(100dvh-6rem)] md:min-h-[500px] md:w-[calc(100%-3rem)] md:rounded-3xl md:border md:border-zinc-800 md:shadow-2xl bg-black overflow-hidden flex items-center justify-center select-none cursor-pointer w-full"
         style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={handleRootPointerDown}
