@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Spotify credentials missing in .env" }, { status: 500 });
   }
 
-  const scope = "user-read-currently-playing user-read-playback-state";
+  const scope = "user-read-currently-playing user-read-playback-state user-modify-playback-state";
   const authUrl = new URL("https://accounts.spotify.com/authorize");
   
   authUrl.searchParams.append("response_type", "code");
