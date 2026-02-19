@@ -36,7 +36,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("home"); // Standardansicht ist jetzt "home" (Overview)
+  const [activeView, setActiveView] = useState("home"); 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030151"; 
+  const version = "0.030153"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -85,7 +85,6 @@ function DashboardContent() {
     setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
     setIsSpotifyConnected(document.cookie.includes("spotify_connected=true"));
     
-    // Intelligente Weiterleitung nach dem Login
     if (searchParams.get("connected") === "tiktok") {
         setIsTikTokConnected(true);
         setActiveView("settings");
@@ -235,7 +234,6 @@ function DashboardContent() {
         >
             <div className="h-4"></div>
             <nav className="space-y-6 pb-10">
-                {/* NEU: DASHBOARD KATEGORIE */}
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">DASHBOARD</div>
                     <div className="space-y-1">
@@ -298,9 +296,7 @@ function DashboardContent() {
                   <Cookie size={16} /> ACHTUNG: FUNKTIONALE COOKIES SIND DEAKTIVIERT. TRIGGER WERDEN NICHT GESPEICHERT!
               </div>
           )}
-          {/* NEUES HOME/OVERVIEW MODUL */}
           {activeView === "home" && <ModuleHome targetUser={targetUser} isSpotifyConnected={isSpotifyConnected} ttvCount={ttvTriggers.length} soundCount={soundTriggers.length} setActiveView={setActiveView} />}
-          
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
@@ -357,7 +353,6 @@ function ModuleComingSoon({ name }: { name: string }) {
     );
 }
 
-// --- NEUES DASHBOARD (HOME) MODUL ---
 function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setActiveView }: any) {
   return (
     <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8 uppercase italic font-bold">
@@ -446,10 +441,12 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [showSettings, setShowSettings] = useState(false);
   
   const [showFilters, setShowFilters] = useState(false);
+  const [isClosingFilters, setIsClosingFilters] = useState(false);
   const [activeFilter, setActiveFilter] = useState("");
   
   const CAMERA_FILTERS = [
       { id: 'normal', name: 'Normal', css: '' },
+      { id: 'soft', name: 'Weich', css: 'blur(1px) brightness(110%) contrast(105%) saturate(110%)' },
       { id: 'bw', name: 'Vintage', css: 'grayscale(100%) contrast(120%)' },
       { id: 'warm', name: 'Warm', css: 'sepia(40%) saturate(140%) contrast(110%)' },
       { id: 'cold', name: 'Kalt', css: 'saturate(120%) hue-rotate(15deg) contrast(110%)' },
@@ -506,6 +503,14 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
     return () => clearInterval(interval);
   }, [isSpotifyConnected, spotifyConfig.showInCamera, viewState]);
 
+  const closeFiltersMenu = () => {
+      setIsClosingFilters(true);
+      setTimeout(() => {
+          setShowFilters(false);
+          setIsClosingFilters(false);
+      }, 200);
+  };
+
   const handlePointerDown = (e: React.PointerEvent) => { 
       if (showSettings || showFilters) return; 
       holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
@@ -513,7 +518,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const handlePointerUp = () => {
       if (showSettings || showFilters) {
           if(showSettings) setShowSettings(false);
-          if(showFilters) setShowFilters(false);
+          if(showFilters && !isClosingFilters) closeFiltersMenu();
           return;
       }
       if (holdTimer.current) clearTimeout(holdTimer.current);
@@ -620,8 +625,8 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         )}
 
         {showFilters && (
-            <div className="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-                <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={(e) => e.stopPropagation()}>
+            <div className={`absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-200 ${isClosingFilters ? 'opacity-0 translate-y-10' : 'opacity-100 animate-in fade-in slide-in-from-bottom-10'}`}>
+                <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={stopEvent}>
                     <div className="flex flex-col items-center gap-6 w-full max-w-sm">
                         <div className="flex gap-6 overflow-x-auto w-full px-10 py-4 snap-x snap-mandatory scrollbar-hide items-center justify-start" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
                             {CAMERA_FILTERS.map(f => (
@@ -630,12 +635,12 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                                     stream={activeStream} 
                                     filterCss={f.css} 
                                     isActive={activeFilter === f.css} 
-                                    onClick={() => setActiveFilter(f.css)} 
+                                    onClick={() => { setActiveFilter(f.css); closeFiltersMenu(); }} 
                                     name={f.name} 
                                 />
                             ))}
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); setShowFilters(false); }} onPointerDown={(e) => e.stopPropagation()} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110"><X size={20}/></button>
+                        <button onClick={(e) => { stopEvent(e); closeFiltersMenu(); }} onPointerDown={stopEvent} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110"><X size={20}/></button>
                     </div>
                 </div>
             </div>
@@ -751,7 +756,7 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
             </div>
         ) : track ? (
             <div className="bg-black/50 border border-white/5 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10 shadow-2xl backdrop-blur-xl text-center sm:text-left">
-                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover" />
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover mx-auto sm:mx-0" />
                 <div className="flex-1 min-w-0 w-full space-y-2">
                     <h4 className="text-lg sm:text-xl font-black text-white truncate not-italic">{track.title}</h4>
                     <p className="text-[10px] sm:text-xs text-[#1DB954] font-bold truncate tracking-widest">{track.artist}</p>
@@ -779,7 +784,7 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
             </div>
             
             <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-white uppercase tracking-wider block flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
+                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 truncate border border-white/5 whitespace-nowrap overflow-x-auto">{overlayLink}</div>
                     {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto"><Copy size={12}/> COPY</button>}
