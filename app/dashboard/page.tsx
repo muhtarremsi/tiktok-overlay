@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030155"; 
+  const version = "0.030156"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -283,9 +283,8 @@ function DashboardContent() {
         </div>
       </aside>
 
-      {/* overflow-x-hidden am Main-Container verhindert horizontales Scrollen strikt! */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative overflow-x-hidden">
-        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 z-10 relative">
+        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 z-10 relative shrink-0">
           <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}><Menu size={24} /></button>
           <div className="flex items-center gap-2 font-black italic lg:hidden"><SekerLogo className="w-5 h-5 text-green-500" /> SEKERBABA</div>
           <div className="hidden lg:block" />
@@ -293,7 +292,7 @@ function DashboardContent() {
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-0 flex flex-col w-full min-w-0">
           {!hasFunctionalConsent && activeView !== 'settings' && activeView !== 'camera' && activeView !== 'home' && (
-              <div className="mx-4 sm:mx-6 lg:mx-10 mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] flex items-center gap-3 font-black tracking-widest animate-pulse">
+              <div className="mx-4 sm:mx-6 lg:mx-10 mt-6 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 text-[10px] flex items-center gap-3 font-black tracking-widest animate-pulse shrink-0">
                   <Cookie size={16} className="shrink-0" /> ACHTUNG: FUNKTIONALE COOKIES SIND DEAKTIVIERT. TRIGGER WERDEN NICHT GESPEICHERT!
               </div>
           )}
@@ -398,6 +397,112 @@ function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setA
                 <span className="text-[10px] md:text-xs text-green-500 font-black">VERBUNDEN</span>
              </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- ABSOLUTE BULLETPROOF RESPONSIVE SPOTIFY MODULE ---
+function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
+  const [track, setTrack] = useState<any>(null);
+  const [loading, setLoading] = useState(isConnected);
+  const [rtToken, setRtToken] = useState("");
+
+  useEffect(() => {
+    if (isConnected) {
+        const match = document.cookie.match(new RegExp('(^| )spotify_refresh_token=([^;]+)'));
+        if (match) setRtToken(match[2]);
+    }
+  }, [isConnected]);
+
+  const overlayLink = rtToken ? `${baseUrl}/spotify-overlay?rt=${rtToken}` : `${baseUrl}/spotify-overlay (Bitte Spotify Re-Connecten!)`;
+
+  useEffect(() => {
+    if (!isConnected) return;
+    const fetchNowPlaying = async () => {
+      try {
+        const res = await fetch('/api/spotify/now-playing?t=' + Date.now());
+        const data = await res.json();
+        if (data.isPlaying) setTrack(data);
+        else setTrack(null);
+      } catch (err) { } finally { setLoading(false); }
+    };
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 5000); 
+    return () => clearInterval(interval);
+  }, [isConnected]);
+
+  if (!isConnected) return (
+    <div className="h-[70vh] flex flex-col items-center justify-center p-6 md:p-10 text-center space-y-4 italic font-bold uppercase w-full min-w-0">
+      <SpotifyLogo className="w-16 h-16 text-[#1DB954] animate-pulse shrink-0" />
+      <h2 className="text-xl text-white">Spotify API Required</h2>
+      <p className="text-[9px] text-zinc-500 max-w-sm px-4">Connect your Spotify Account in Settings to show your currently playing song and allow Chat Requests.</p>
+    </div>
+  );
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-10 w-full max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-4 sm:p-8 rounded-3xl space-y-6 relative overflow-hidden w-full">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1DB954]/10 to-transparent opacity-30 pointer-events-none"></div>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between relative z-10 w-full">
+            <h3 className="text-white text-[10px] sm:text-xs not-italic flex items-center gap-2"><SpotifyLogo className="w-4 h-4 text-[#1DB954] shrink-0" /> Now Playing Widget</h3>
+            <span className="text-[9px] text-[#1DB954] flex items-center gap-1 animate-pulse shrink-0">LIVE SYNC <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></div></span>
+        </div>
+
+        {/* Player Box (GARANTIERT OHNE OVERFLOW) */}
+        {loading ? (
+            <div className="flex flex-col items-center justify-center py-10 space-y-4 text-zinc-500 w-full">
+                <Loader2 className="animate-spin w-8 h-8 text-[#1DB954]" />
+                <p className="text-[10px]">Loading Player...</p>
+            </div>
+        ) : track ? (
+            <div className="bg-black/50 border border-white/5 p-4 sm:p-6 rounded-2xl flex flex-row items-center gap-3 sm:gap-6 relative z-10 shadow-2xl backdrop-blur-xl w-full overflow-hidden">
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover shrink-0" />
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <h4 className="text-sm sm:text-xl font-black text-white truncate not-italic w-full">{track.title}</h4>
+                    <p className="text-[9px] sm:text-xs text-[#1DB954] font-bold truncate tracking-widest mt-0.5 w-full">{track.artist}</p>
+                    <div className="w-full bg-zinc-900 h-1 sm:h-1.5 rounded-full overflow-hidden mt-3 sm:mt-4">
+                        <div className="bg-[#1DB954] h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_rgba(29,185,84,0.8)]" style={{ width: `${(track.progressMs / track.durationMs) * 100}%` }}></div>
+                    </div>
+                </div>
+                <SpotifyLogo className="w-6 h-6 sm:w-8 sm:h-8 text-white/10 hidden sm:block shrink-0 absolute right-4 top-4 sm:right-6 sm:top-6" />
+            </div>
+        ) : (
+             <div className="bg-black/50 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 relative z-10 w-full">
+                <Music2 className="w-8 h-8 text-zinc-600 mb-1 shrink-0" />
+                <p className="text-white text-xs md:text-sm font-black">Nichts wird abgespielt</p>
+                <p className="text-zinc-500 text-[9px] md:text-[10px] max-w-[200px] mx-auto">Starte einen Song auf Spotify, um das Widget zu aktivieren.</p>
+             </div>
+        )}
+
+        <div className="flex flex-col gap-4 relative z-10 w-full">
+            
+            {/* Request Toggle */}
+            <div className="flex flex-row items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 gap-3 w-full">
+                <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-black text-white uppercase tracking-wider block">Zuschauer Song-Requests</span>
+                    <span className="text-[8px] sm:text-[9px] text-zinc-500 not-italic block mt-1 break-words whitespace-normal leading-snug">
+                        Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.
+                    </span>
+                </div>
+                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-5 h-5 accent-[#1DB954] cursor-pointer shrink-0" />
+            </div>
+            
+            {/* OBS Link */}
+            <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5 w-full">
+                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2 shrink-0"><Monitor size={14}/> OBS / Live Studio Link</span>
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
+                    <div className="flex-1 min-w-0 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 border border-white/5 break-words whitespace-normal break-all leading-relaxed">
+                        {overlayLink}
+                    </div>
+                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="w-full sm:w-auto shrink-0 bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> COPY</button>}
+                </div>
+                <span className="text-[8px] sm:text-[9px] text-zinc-500 not-italic whitespace-normal break-words leading-snug">Dieser Link zeigt ausschließlich den Spotify-Player an. Füge ihn als Browser-Quelle in OBS ein.</span>
+            </div>
+            
         </div>
       </div>
     </div>
@@ -617,7 +722,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 onPointerDown={handleSpotifyPointerDown}
                 onPointerUp={(e) => { stopEvent(e); handleGlobalPointerUp(); }}
             >
-                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Cover" className="w-10 h-10 rounded-md shadow-lg object-cover pointer-events-none" />
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Cover" className="w-10 h-10 rounded-md shadow-lg object-cover pointer-events-none shrink-0" />
                 <div className="min-w-0 pr-2 pointer-events-none">
                     <h4 className="text-xs font-black text-white truncate max-w-[120px] not-italic leading-tight">{track.title}</h4>
                     <p className="text-[9px] text-[#1DB954] font-bold truncate tracking-widest leading-tight">{track.artist}</p>
@@ -672,7 +777,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                             <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5">
                                 <div className="space-y-1">
                                     <span className="text-[10px] text-white font-bold block uppercase tracking-wider">Immer sichtbar</span>
-                                    <span className="text-[8px] text-zinc-500 font-bold block">Auch wenn UI versteckt wird</span>
+                                    <span className="text-[8px] text-zinc-500 font-bold block">Auch wenn UI versteckt</span>
                                 </div>
                                 <input type="checkbox" checked={spotifyConfig.alwaysOn} onChange={e => setSpotifyConfig({...spotifyConfig, alwaysOn: e.target.checked})} className="w-4 h-4 accent-[#1DB954]" />
                             </div>
@@ -700,103 +805,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                 </div>
             </div>
         </div>
-    </div>
-  );
-}
-
-// --- ABSOLUT RESPONSIVES SPOTIFY MODUL (MIT MIN-W-0 & OVERFLOW-HIDDEN) ---
-function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
-  const [track, setTrack] = useState<any>(null);
-  const [loading, setLoading] = useState(isConnected);
-  const [rtToken, setRtToken] = useState("");
-
-  useEffect(() => {
-    if (isConnected) {
-        const match = document.cookie.match(new RegExp('(^| )spotify_refresh_token=([^;]+)'));
-        if (match) setRtToken(match[2]);
-    }
-  }, [isConnected]);
-
-  const overlayLink = rtToken ? `${baseUrl}/spotify-overlay?rt=${rtToken}` : `${baseUrl}/spotify-overlay (Bitte Spotify Re-Connecten!)`;
-
-  useEffect(() => {
-    if (!isConnected) return;
-    const fetchNowPlaying = async () => {
-      try {
-        const res = await fetch('/api/spotify/now-playing?t=' + Date.now());
-        const data = await res.json();
-        if (data.isPlaying) setTrack(data);
-        else setTrack(null);
-      } catch (err) { } finally { setLoading(false); }
-    };
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 5000); 
-    return () => clearInterval(interval);
-  }, [isConnected]);
-
-  if (!isConnected) return (
-    <div className="h-[70vh] flex flex-col items-center justify-center p-6 md:p-10 text-center space-y-4 italic font-bold uppercase w-full min-w-0">
-      <SpotifyLogo className="w-16 h-16 text-[#1DB954] animate-pulse shrink-0" />
-      <h2 className="text-xl text-white">Spotify API Required</h2>
-      <p className="text-[9px] text-zinc-500 max-w-sm px-4">Connect your Spotify Account in Settings to show your currently playing song and allow Chat Requests.</p>
-    </div>
-  );
-
-  return (
-    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-5 md:p-8 rounded-3xl space-y-6 md:space-y-8 relative overflow-hidden w-full min-w-0 shadow-2xl">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1DB954]/10 to-transparent opacity-30 pointer-events-none"></div>
-        <div className="flex items-center justify-between relative z-10 w-full min-w-0">
-            <h3 className="text-white text-[10px] md:text-xs not-italic flex items-center gap-2"><SpotifyLogo className="w-4 h-4 text-[#1DB954] shrink-0" /> Now Playing Widget</h3>
-            <span className="text-[9px] text-[#1DB954] flex items-center gap-1 animate-pulse shrink-0">LIVE SYNC <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></div></span>
-        </div>
-
-        {loading ? (
-            <div className="flex flex-col items-center justify-center py-10 space-y-4 text-zinc-500 w-full">
-                <Loader2 className="animate-spin w-8 h-8 text-[#1DB954]" />
-                <p className="text-[10px]">Loading Player...</p>
-            </div>
-        ) : track ? (
-            <div className="bg-black/50 border border-white/5 p-4 sm:p-6 rounded-2xl flex flex-row items-center gap-3 sm:gap-6 relative z-10 shadow-2xl backdrop-blur-xl text-left w-full min-w-0 overflow-hidden">
-                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover shrink-0" />
-                <div className="flex-1 min-w-0 w-full flex flex-col justify-center">
-                    <h4 className="text-sm sm:text-xl font-black text-white truncate not-italic">{track.title}</h4>
-                    <p className="text-[9px] sm:text-xs text-[#1DB954] font-bold truncate tracking-widest mt-0.5">{track.artist}</p>
-                    <div className="w-full bg-zinc-900 h-1 sm:h-1.5 rounded-full overflow-hidden mt-3 sm:mt-4">
-                        <div className="bg-[#1DB954] h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_rgba(29,185,84,0.8)]" style={{ width: `${(track.progressMs / track.durationMs) * 100}%` }}></div>
-                    </div>
-                </div>
-                <SpotifyLogo className="w-6 h-6 sm:w-8 sm:h-8 text-white/10 hidden sm:block shrink-0 absolute right-4 top-4 sm:right-6 sm:top-6" />
-            </div>
-        ) : (
-             <div className="bg-black/50 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 relative z-10 w-full min-w-0">
-                <Music2 className="w-8 h-8 text-zinc-600 mb-1 shrink-0" />
-                <p className="text-white text-xs md:text-sm font-black">Nichts wird abgespielt</p>
-                <p className="text-zinc-500 text-[9px] md:text-[10px] max-w-[200px] mx-auto">Starte einen Song auf Spotify, um das Widget zu aktivieren.</p>
-             </div>
-        )}
-
-        <div className="flex flex-col gap-4 relative z-10 w-full min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 gap-3 w-full min-w-0">
-                <div className="space-y-1 text-center sm:text-left w-full min-w-0">
-                    <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center justify-center sm:justify-start gap-2">Zuschauer Song-Requests</span>
-                    <span className="text-[8px] md:text-[9px] text-zinc-500 not-italic block truncate sm:whitespace-normal">Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.</span>
-                </div>
-                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-5 h-5 accent-[#1DB954] cursor-pointer mx-auto sm:mx-0 shrink-0" />
-            </div>
-            
-            <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5 w-full min-w-0 overflow-hidden">
-                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2 shrink-0"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
-                <div className="flex flex-col sm:flex-row gap-2 w-full min-w-0">
-                    <div className="flex-1 min-w-0 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 border border-white/5 break-all whitespace-normal overflow-wrap-anywhere leading-relaxed">
-                        {overlayLink}
-                    </div>
-                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="w-full sm:w-auto shrink-0 bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> OBS LINK KOPIEREN</button>}
-                </div>
-                <span className="text-[8px] md:text-[9px] text-zinc-500 not-italic">Dieser Link zeigt ausschließlich den Spotify-Player an. Füge ihn als Browser-Quelle in OBS ein.</span>
-            </div>
-        </div>
-      </div>
     </div>
   );
 }
