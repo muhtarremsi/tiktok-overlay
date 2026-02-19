@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030164"; 
+  const version = "0.030165"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -108,6 +108,13 @@ function DashboardContent() {
     let pollTimer: any;
     let wipeTimer: any;
     
+    // WICHTIG: Sofortiges Zurücksetzen ausserhalb des Timers (verhindert den 1-Sekunden-Lag)
+    if (!targetUser) {
+        setStatus('idle');
+    } else if (targetUser.length > 0 && targetUser.length < 3) {
+        setStatus('too_short');
+    }
+
     const checkUser = async (userToCheck: string) => {
       if (!userToCheck || userToCheck.length < 3) return;
       try {
@@ -118,20 +125,24 @@ function DashboardContent() {
         } else {
             setStatus('offline');
             localStorage.removeItem("seker_target");
-            wipeTimer = setTimeout(() => setTargetUser(""), 3000); // Feld nach 3s leeren
+            // 5 Sekunden Timer & synchrones Leeren
+            wipeTimer = setTimeout(() => { 
+                setTargetUser(""); 
+                setStatus('idle'); 
+            }, 5000);
         }
       } catch (e) { 
           setStatus('offline'); 
           localStorage.removeItem("seker_target");
-          wipeTimer = setTimeout(() => setTargetUser(""), 3000);
+          wipeTimer = setTimeout(() => { 
+              setTargetUser(""); 
+              setStatus('idle'); 
+          }, 5000);
       }
     };
 
     const debounceTimer = setTimeout(() => {
-      if (!targetUser || targetUser.length < 3) {
-        setStatus(targetUser ? 'too_short' : 'idle');
-        return;
-      }
+      if (!targetUser || targetUser.length < 3) return;
       setStatus('checking');
       checkUser(targetUser).then(() => {
         pollTimer = setInterval(() => checkUser(targetUser), 15000);
@@ -179,7 +190,10 @@ function DashboardContent() {
                 setStatus('offline');
                 setChatStatus('Stream wurde beendet.');
                 localStorage.removeItem("seker_target");
-                setTimeout(() => setTargetUser(""), 3000);
+                setTimeout(() => { 
+                    setTargetUser(""); 
+                    setStatus('idle'); 
+                }, 5000);
                 eventSource?.close();
             }
         };
