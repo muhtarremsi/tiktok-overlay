@@ -9,7 +9,7 @@ import {
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
   Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2, Copy,
-  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video
+  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video, Gift
 } from "lucide-react";
 
 function SpotifyLogo({ className }: { className?: string }) {
@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030149"; 
+  const version = "0.030150"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -226,26 +226,31 @@ function DashboardContent() {
         >
             <div className="h-4"></div>
             <nav className="space-y-6 pb-10">
+                {/* TIKTOK HAUPTKATEGORIE */}
                 <div>
-                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK OVERLAYS</div>
+                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK</div>
                     <div className="space-y-1">
                         <MenuFolder label="TEXT TO" icon={<MessageSquare size={16}/>} defaultOpen={true}>
                             <SidebarSubItem icon={<Volume2 size={14}/>} label="Voice" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
                             <SidebarSubItem icon={<Video size={14}/>} label="Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
                         </MenuFolder>
+                        
                         <MenuFolder label="ALERTS" icon={<Zap size={16}/>} defaultOpen={true}>
-                            <SidebarSubItem icon={<Music size={14}/>} label="Sound" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
+                            <SidebarSubItem icon={<Music size={14}/>} label="Sounds" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
+                            <SidebarSubItem icon={<Gift size={14}/>} label="Gifts" active={activeView === "gifts"} onClick={() => {setActiveView("gifts"); setSidebarOpen(false);}} />
+                            <SidebarSubItem icon={<LogIn size={14}/>} label="Entry" active={activeView === "entry"} onClick={() => {setActiveView("entry"); setSidebarOpen(false);}} />
                         </MenuFolder>
+
+                        {/* Standalone Tools direkt unter TIKTOK */}
+                        <div className="pt-2 space-y-1">
+                            <SidebarItem icon={<Camera size={16} />} label="IRL Cam" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
+                            <SidebarItem icon={<Heart size={16} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
+                            <SidebarItem icon={<SpotifyLogo className="w-4 h-4"/>} label="Spotify" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">STREAMING & TOOLS</div>
-                    <div className="space-y-1">
-                        <SidebarItem icon={<Camera size={16} />} label="IRL Cam" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
-                        <SidebarItem icon={<Heart size={16} />} label="Fan Club" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
-                        <SidebarItem icon={<SpotifyLogo className="w-4 h-4"/>} label="Spotify" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
-                    </div>
-                </div>
+
+                {/* COMING SOON HAUPTKATEGORIE */}
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic flex items-center gap-2">COMING SOON</div>
                     <div className="space-y-1 opacity-50">
@@ -286,7 +291,8 @@ function DashboardContent() {
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
           {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} />}
           {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} isSpotifyConnected={isSpotifyConnected} onSpotifyConnect={handleSpotifyConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
-          {(activeView === "games" || activeView === "bot" || activeView === "leaderboard") && <ModuleComingSoon name={activeView} />}
+          
+          {(activeView === "games" || activeView === "bot" || activeView === "leaderboard" || activeView === "gifts" || activeView === "entry") && <ModuleComingSoon name={activeView} />}
         </div>
       </main>
     </div>
@@ -323,11 +329,14 @@ function MenuFolder({ label, icon, defaultOpen, children }: any) {
 }
 
 function ModuleComingSoon({ name }: { name: string }) {
+    // Schönerer Display-Name für Platzhalter
+    const displayName = name === "entry" ? "Entry Alerts" : name === "gifts" ? "Gift Alerts" : name;
+
     return (
         <div className="h-[70vh] flex flex-col items-center justify-center p-10 text-center space-y-4 italic font-bold uppercase">
             <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center animate-pulse"><Code2 className="text-zinc-600" size={32}/></div>
             <h2 className="text-2xl text-white">IN ENTWICKLUNG</h2>
-            <p className="text-[10px] text-zinc-500 max-w-sm">Das Modul "{name}" wird in einem zukünftigen Update veröffentlicht.</p>
+            <p className="text-[10px] text-zinc-500 max-w-sm">Das Modul "{displayName}" wird in einem zukünftigen Update veröffentlicht.</p>
         </div>
     );
 }
@@ -703,7 +712,7 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
             </div>
             
             <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
+                <span className="text-[10px] font-black text-white uppercase tracking-wider block flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
                 <div className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 truncate border border-white/5 whitespace-nowrap overflow-x-auto">{overlayLink}</div>
                     {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto"><Copy size={12}/> COPY</button>}
