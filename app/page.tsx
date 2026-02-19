@@ -47,7 +47,7 @@ export default function Home() {
       <div className="relative flex-1 flex flex-col justify-center items-center px-4 text-center z-20">
         <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-400 text-[9px] font-bold uppercase tracking-widest backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030147 Sidebar Mask Fix
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> v0.030149 Tailwind Fixes
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter leading-[0.9] uppercase drop-shadow-2xl break-words w-full">

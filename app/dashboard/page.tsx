@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030147"; 
+  const version = "0.030149"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -184,10 +184,8 @@ function DashboardContent() {
         <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm animate-in fade-in" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* VERÄNDERTE SIDEBAR STRUKTUR (FLEX COL) */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-black border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col h-full ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
-        {/* FIXED HEADER BEREICH */}
         <div className="p-5 shrink-0 space-y-6">
             <div className="flex items-center text-white not-italic font-black tracking-tight cursor-pointer" onClick={() => router.push('/')}>
             <SekerLogo className="w-5 h-5 mr-2 text-green-500" /> SEKERBABA
@@ -219,7 +217,6 @@ function DashboardContent() {
             </div>
         </div>
 
-        {/* SCROLLBARER MIDDLE BEREICH (NAV) MIT FADE-EFFEKT */}
         <div 
             className="flex-1 overflow-y-auto scrollbar-hide px-5" 
             style={{ 
@@ -227,9 +224,7 @@ function DashboardContent() {
                 maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' 
             }}
         >
-            {/* Kleiner Padding-Puffer für weiches Scrollen oben */}
             <div className="h-4"></div>
-            
             <nav className="space-y-6 pb-10">
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK OVERLAYS</div>
@@ -238,13 +233,11 @@ function DashboardContent() {
                             <SidebarSubItem icon={<Volume2 size={14}/>} label="Voice" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
                             <SidebarSubItem icon={<Video size={14}/>} label="Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
                         </MenuFolder>
-                        
                         <MenuFolder label="ALERTS" icon={<Zap size={16}/>} defaultOpen={true}>
                             <SidebarSubItem icon={<Music size={14}/>} label="Sound" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
                         </MenuFolder>
                     </div>
                 </div>
-
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">STREAMING & TOOLS</div>
                     <div className="space-y-1">
@@ -253,7 +246,6 @@ function DashboardContent() {
                         <SidebarItem icon={<SpotifyLogo className="w-4 h-4"/>} label="Spotify" active={activeView === "spotify"} onClick={() => {setActiveView("spotify"); setSidebarOpen(false);}} />
                     </div>
                 </div>
-
                 <div>
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic flex items-center gap-2">COMING SOON</div>
                     <div className="space-y-1 opacity-50">
@@ -265,7 +257,6 @@ function DashboardContent() {
             </nav>
         </div>
         
-        {/* FIXED FOOTER BEREICH */}
         <div className="p-5 shrink-0 pt-4 space-y-2 border-t border-white/5 not-italic z-10 bg-black">
            <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
            <div className="flex items-center justify-between px-3 py-2 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
@@ -302,7 +293,6 @@ function DashboardContent() {
   );
 }
 
-// --- NAVIGATION COMPONENTS ---
 function SidebarItem({ icon, label, active, onClick }: any) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${active ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}>
@@ -342,7 +332,6 @@ function ModuleComingSoon({ name }: { name: string }) {
     );
 }
 
-// --- ECHTE LIVE-VORSCHAU KOMPONENTE FÜR FILTER ---
 function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) {
     const videoRef = useRef<HTMLVideoElement>(null);
     useEffect(() => {
@@ -352,7 +341,11 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
     }, [stream]);
 
     return (
-        <button onClick={onClick} className="relative flex flex-col items-center gap-3 shrink-0 group transition-all duration-300 pointer-events-auto">
+        <button 
+            onPointerDown={(e) => { e.stopPropagation(); onClick(); }} 
+            onClick={(e) => { e.stopPropagation(); onClick(); }}
+            className="relative flex flex-col items-center gap-3 shrink-0 group transition-all duration-300 pointer-events-auto"
+        >
             <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${isActive ? 'border-green-500 scale-110 shadow-[0_0_20px_rgba(34,197,94,0.5)]' : 'border-white/10 scale-100 opacity-60 group-hover:opacity-100'}`}>
                 <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ filter: filterCss }} />
             </div>
@@ -361,7 +354,6 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
     );
 }
 
-// --- UPDATED CAMERA MODULE (Live-Filter, Bounding Box, Always On Spotify) ---
 function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -467,7 +459,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       dragOffset.current = { x: e.clientX - spotifyPos.x, y: e.clientY - spotifyPos.y };
   };
   
-  // BOUNDING BOX LOGIC FÜR SPOTIFY PLAYER
   const handleGlobalPointerMove = (e: React.PointerEvent) => {
       if (isDraggingSpotify.current) {
           let nx = e.clientX - dragOffset.current.x;
@@ -513,12 +504,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
     );
   }
 
-  // CHAT OPACITY LOGIC
   let chatOpacityClass = "opacity-0 scale-95 pointer-events-none"; 
   if (isHolding) { chatOpacityClass = "opacity-100 scale-105 pointer-events-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]"; } 
   else if (showUI && !showFilters && !showSettings) { chatOpacityClass = ghostMode ? "opacity-10 pointer-events-auto" : "opacity-100 pointer-events-auto"; }
 
-  // SPOTIFY VISIBILITY (ALWAYS ON LOGIC)
   const isSpotifyVisible = spotifyConfig.showInCamera && track && (showUI || isHolding || spotifyConfig.alwaysOn) && !showFilters && !showSettings;
 
   return (
@@ -539,7 +528,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             style={{ filter: activeFilter || 'none' }} 
         />
         
-        {/* SPOTIFY PLAYER MIT ALWAYS ON */}
         {isSpotifyVisible && (
             <div 
                 className="absolute z-20 bg-black/70 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl cursor-move transition-opacity duration-300"
@@ -555,17 +543,23 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             </div>
         )}
 
-        {/* ECHTE LIVE FILTER VORSCHAU */}
         {showFilters && (
             <div className="absolute inset-0 z-30 flex flex-col justify-end pointer-events-none bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-                <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={stopEvent}>
+                <div className="w-full flex justify-center pb-8 pointer-events-auto" onPointerDown={(e) => e.stopPropagation()}>
                     <div className="flex flex-col items-center gap-6 w-full max-w-sm">
                         <div className="flex gap-6 overflow-x-auto w-full px-10 py-4 snap-x snap-mandatory scrollbar-hide items-center justify-start" style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
                             {CAMERA_FILTERS.map(f => (
-                                <LiveFilterPreview key={f.id} stream={activeStream} filterCss={f.css} isActive={activeFilter === f.css} onClick={(e: any) => { stopEvent(e); setActiveFilter(f.css); }} name={f.name} />
+                                <LiveFilterPreview 
+                                    key={f.id} 
+                                    stream={activeStream} 
+                                    filterCss={f.css} 
+                                    isActive={activeFilter === f.css} 
+                                    onClick={() => setActiveFilter(f.css)} 
+                                    name={f.name} 
+                                />
                             ))}
                         </div>
-                        <button onClick={() => setShowFilters(false)} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110"><X size={20}/></button>
+                        <button onClick={(e) => { e.stopPropagation(); setShowFilters(false); }} onPointerDown={(e) => e.stopPropagation()} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110"><X size={20}/></button>
                     </div>
                 </div>
             </div>
@@ -593,7 +587,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
                                 <input type="checkbox" checked={spotifyConfig.showInCamera} onChange={e => setSpotifyConfig({...spotifyConfig, showInCamera: e.target.checked})} className="w-4 h-4 accent-[#1DB954]" />
                             </div>
                             
-                            {/* ALWAYS ON TOGGLE */}
                             <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5">
                                 <div className="space-y-1">
                                     <span className="text-[10px] text-white font-bold block uppercase tracking-wider">Immer sichtbar</span>
@@ -667,8 +660,8 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
   );
 
   return (
-    <div className="p-10 max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl space-y-8 relative overflow-hidden">
+    <div className="p-6 md:p-10 max-w-3xl mx-auto space-y-6 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-3xl space-y-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#1DB954]/10 to-transparent opacity-30 pointer-events-none"></div>
         <div className="flex items-center justify-between relative z-10">
             <h3 className="text-white text-xs not-italic flex items-center gap-2"><SpotifyLogo className="w-4 h-4 text-[#1DB954]" /> Now Playing Widget</h3>
@@ -681,16 +674,16 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
                 <p className="text-[10px]">Loading Player...</p>
             </div>
         ) : track ? (
-            <div className="bg-black/50 border border-white/5 p-6 rounded-2xl flex items-center gap-6 relative z-10 shadow-2xl backdrop-blur-xl">
-                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-24 h-24 rounded-xl shadow-lg border border-white/10 object-cover" />
-                <div className="flex-1 min-w-0 space-y-2">
-                    <h4 className="text-xl font-black text-white truncate not-italic">{track.title}</h4>
-                    <p className="text-xs text-[#1DB954] font-bold truncate tracking-widest">{track.artist}</p>
-                    <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden mt-4">
+            <div className="bg-black/50 border border-white/5 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10 shadow-2xl backdrop-blur-xl text-center sm:text-left">
+                <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Album Cover" className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl shadow-lg border border-white/10 object-cover" />
+                <div className="flex-1 min-w-0 w-full space-y-2">
+                    <h4 className="text-lg sm:text-xl font-black text-white truncate not-italic">{track.title}</h4>
+                    <p className="text-[10px] sm:text-xs text-[#1DB954] font-bold truncate tracking-widest">{track.artist}</p>
+                    <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden mt-2 sm:mt-4">
                         <div className="bg-[#1DB954] h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_rgba(29,185,84,0.8)]" style={{ width: `${(track.progressMs / track.durationMs) * 100}%` }}></div>
                     </div>
                 </div>
-                <SpotifyLogo className="w-8 h-8 text-white/10 hidden sm:block" />
+                <SpotifyLogo className="w-8 h-8 text-white/10 hidden sm:block absolute right-6 top-6" />
             </div>
         ) : (
              <div className="bg-black/50 border border-white/5 p-10 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 relative z-10">
@@ -701,19 +694,19 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
         )}
 
         <div className="flex flex-col gap-4 relative z-10">
-            <div className="flex items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5">
-                <div className="space-y-1">
-                    <span className="text-[10px] font-black text-white uppercase tracking-wider block">Zuschauer Song-Requests</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 gap-3">
+                <div className="space-y-1 text-center sm:text-left">
+                    <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center justify-center sm:justify-start gap-2">Zuschauer Song-Requests</span>
                     <span className="text-[9px] text-zinc-500 not-italic block">Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.</span>
                 </div>
-                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-4 h-4 accent-[#1DB954] cursor-pointer" />
+                <input type="checkbox" checked={config.allowRequests} onChange={e => setConfig({...config, allowRequests: e.target.checked})} className="w-5 h-5 accent-[#1DB954] cursor-pointer mx-auto sm:mx-0" />
             </div>
             
             <div className="flex flex-col gap-3 p-4 bg-black/60 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-white uppercase tracking-wider block flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
-                <div className="flex gap-2">
-                    <div className="flex-1 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 truncate border border-white/5 overflow-x-auto whitespace-nowrap">{overlayLink}</div>
-                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="bg-[#1DB954] text-black px-4 rounded-lg text-[10px] font-black uppercase flex items-center gap-2 hover:scale-105 transition-transform"><Copy size={12}/> COPY</button>}
+                <span className="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2"><Monitor size={14}/> OBS / Live Studio Overlay Link</span>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1 bg-black p-3 rounded-lg text-[9px] font-mono text-zinc-500 truncate border border-white/5 whitespace-nowrap overflow-x-auto">{overlayLink}</div>
+                    {rtToken && <button onClick={() => navigator.clipboard.writeText(overlayLink)} className="bg-[#1DB954] text-black px-4 py-3 sm:py-0 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 transition-transform w-full sm:w-auto"><Copy size={12}/> COPY</button>}
                 </div>
                 <span className="text-[9px] text-zinc-500 not-italic">Dieser Link zeigt ausschließlich den Spotify-Player an. Kopiere ihn als Browser-Quelle in OBS.</span>
             </div>
