@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030180"; 
+  const version = "0.030181"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -544,7 +544,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
       setActiveStream(stream);
       setViewState('fullscreen');
-      setMirror(facingMode === 'user');
+      
     } catch (err: any) { setError(`Kamerafehler: ${err.message || 'Zugriff verweigert'}`); }
   };
 
