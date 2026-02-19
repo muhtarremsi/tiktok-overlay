@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030174"; 
+  const version = "0.030175"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -731,17 +731,24 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       e.stopPropagation();
   };
 
-  const filterDrag = useRef({ isDown: false, startY: 0, scrollTop: 0 });
+  const filterDrag = useRef({ isDown: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0 });
   const handleFilterPointerDown = (e: React.PointerEvent) => {
       e.stopPropagation();
-      filterDrag.current = { isDown: true, startY: e.pageY - (filtersScrollRef.current?.offsetTop || 0), scrollTop: filtersScrollRef.current?.scrollTop || 0 };
+      filterDrag.current = { 
+          isDown: true, 
+          startX: e.pageX - (filtersScrollRef.current?.offsetLeft || 0),
+          startY: e.pageY - (filtersScrollRef.current?.offsetTop || 0), 
+          scrollLeft: filtersScrollRef.current?.scrollLeft || 0,
+          scrollTop: filtersScrollRef.current?.scrollTop || 0 
+      };
   };
   const handleFilterPointerMove = (e: React.PointerEvent) => {
       if (!filterDrag.current.isDown || !filtersScrollRef.current) return;
       e.preventDefault();
+      const x = e.pageX - filtersScrollRef.current.offsetLeft;
       const y = e.pageY - filtersScrollRef.current.offsetTop;
-      const walk = (y - filterDrag.current.startY) * 2; 
-      filtersScrollRef.current.scrollTop = filterDrag.current.scrollTop - walk;
+      filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - ((x - filterDrag.current.startX) * 2);
+      filtersScrollRef.current.scrollTop = filterDrag.current.scrollTop - ((y - filterDrag.current.startY) * 2);
   };
   const handleFilterPointerUp = (e: React.PointerEvent) => {
       e.stopPropagation();
@@ -858,19 +865,22 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         )}
 
         {showFilters && (
-            <div className={`absolute inset-0 z-30 flex justify-end items-center pointer-events-none bg-gradient-to-l from-black/80 via-black/20 to-transparent transition-all duration-300 ease-out ${isClosingFilters ? 'opacity-0 translate-x-10' : 'opacity-100 animate-in fade-in slide-in-from-right-10'}`}>
-                <div className="h-full flex items-center pr-4 sm:pr-8 pointer-events-auto" onPointerDown={stopEvent}>
-                    <div className="flex flex-row items-center gap-6 h-full max-h-[80vh]">
-                        <button onClick={(e) => { stopEvent(e); closeFiltersMenu(); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110 shrink-0"><X size={20}/></button>
+            <div className={`absolute inset-0 z-30 flex flex-col justify-end md:flex-row md:justify-end md:items-center pointer-events-none bg-gradient-to-t md:bg-gradient-to-l from-black/80 via-black/20 to-transparent transition-all duration-300 ease-out ${isClosingFilters ? 'opacity-0 translate-y-10 md:translate-y-0 md:translate-x-10' : 'opacity-100 animate-in fade-in slide-in-from-bottom-10 md:slide-in-from-right-10'}`}>
+                <style>{`
+                  .filter-mask { -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); }
+                  @media (min-width: 768px) { .filter-mask { -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); } }
+                `}</style>
+                <div className="w-full pb-8 md:pb-0 md:w-auto md:h-full flex justify-center md:items-center md:pr-6 pointer-events-auto" onPointerDown={stopEvent}>
+                    <div className="flex flex-col md:flex-row items-center gap-6 w-full max-w-sm md:max-w-none md:h-full md:max-h-[80vh]">
+                        <button onClick={(e) => { stopEvent(e); closeFiltersMenu(); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110 shrink-0 order-last md:order-first"><X size={20}/></button>
                         <div 
                             ref={filtersScrollRef}
                             onPointerDown={handleFilterPointerDown}
                             onPointerMove={handleFilterPointerMove}
                             onPointerUp={handleFilterPointerUp}
                             onPointerLeave={handleFilterPointerUp}
-                            onWheel={(e) => { if (filtersScrollRef.current) filtersScrollRef.current.scrollTop += e.deltaY; }}
-                            className="flex flex-col gap-6 overflow-y-auto h-full px-4 py-10 snap-y snap-mandatory scrollbar-hide items-center justify-start cursor-grab active:cursor-grabbing" 
-                            style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)', maskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)' }}
+                            onWheel={(e) => { if (filtersScrollRef.current) { filtersScrollRef.current.scrollTop += e.deltaY; filtersScrollRef.current.scrollLeft += e.deltaY; } }}
+                            className="flex flex-row md:flex-col gap-6 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto w-full md:w-auto md:h-full px-10 py-4 md:px-4 md:py-10 snap-x md:snap-y snap-mandatory scrollbar-hide items-center justify-start cursor-grab active:cursor-grabbing filter-mask" 
                         >
                             {CAMERA_FILTERS.map(f => (
                                 <LiveFilterPreview 
