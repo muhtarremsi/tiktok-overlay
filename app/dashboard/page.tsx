@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { logout, checkSession } from "@/app/actions/auth";
+import Link from "next/link";
 import { 
   Type, Settings, Plus, Trash2, X, Menu,
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
-  Camera, RefreshCw, FlipHorizontal
+  Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle
 } from "lucide-react";
 
 function SekerLogo({ className }: { className?: string }) {
@@ -26,7 +27,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("ttv");
+  const [activeView, setActiveView] = useState("camera"); // Set Camera as default for testing
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [status, setStatus] = useState<'idle' | 'checking' | 'online' | 'offline' | 'too_short'>('idle');
@@ -36,7 +37,7 @@ function DashboardContent() {
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
 
-  const version = "0.030122"; 
+  const version = "0.030123"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -127,7 +128,7 @@ function DashboardContent() {
           <SidebarItem icon={<Type size={16} />} label="TTV - VIDEO" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Volume2 size={16} />} label="SOUND ALERTS" active={activeView === "sounds"} onClick={() => {setActiveView("sounds"); setSidebarOpen(false);}} />
           <SidebarItem icon={<MessageSquare size={16} />} label="TTC - SPEECH" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
-          <SidebarItem icon={<Camera size={16} />} label="LIVE CAM" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
+          <SidebarItem icon={<Camera size={16} />} label="IRL CAM" active={activeView === "camera"} onClick={() => {setActiveView("camera"); setSidebarOpen(false);}} />
           <SidebarItem icon={<Heart size={16} />} label="FANCLUB" active={activeView === "fanclub"} onClick={() => {setActiveView("fanclub"); setSidebarOpen(false);}} />
         </nav>
         
@@ -144,8 +145,8 @@ function DashboardContent() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
-        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20">
+      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative">
+        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 z-10 relative">
           <button className="lg:hidden text-white hover:text-green-500 transition-colors" onClick={() => setSidebarOpen(true)}>
             <Menu size={24} />
           </button>
@@ -153,12 +154,7 @@ function DashboardContent() {
           <div className="hidden lg:block" />
         </header>
 
-        <div className="px-6 pt-6 pb-2">
-           <div className="text-[10px] uppercase font-black tracking-widest text-zinc-600 flex items-center gap-2">
-              <span>APP</span> <span className="text-zinc-800">/</span> <span className="text-white text-xs">{activeView}</span>
-           </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto relative z-0">
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
@@ -181,24 +177,17 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
+// --- FULLSCREEN IRL CAMERA MODULE ---
 function ModuleCamera() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streaming, setStreaming] = useState(false);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
-  const [mirror, setMirror] = useState(true);
+  const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment'); // Default to back camera for IRL
+  const [mirror, setMirror] = useState(false);
+  const [showUI, setShowUI] = useState(true); // Toggle for transparent overlay
   const [error, setError] = useState("");
 
-  const stopStream = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-      tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setStreaming(false);
-    }
-  };
-
+  // Start Stream
   const startStream = async () => {
-    stopStream(); 
     setError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -206,13 +195,22 @@ function ModuleCamera() {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setStreaming(true);
       }
+      setViewState('fullscreen');
     } catch (err: any) {
       console.error(err);
-      setError("Camera access denied. Please allow camera permissions in browser.");
-      setStreaming(false);
+      setError("Kamerazugriff verweigert. Bitte erlaube den Zugriff im Browser.");
     }
+  };
+
+  // Stop Stream
+  const stopStream = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setViewState('intro');
   };
 
   const switchCamera = () => {
@@ -220,50 +218,123 @@ function ModuleCamera() {
     setMirror(prev => !prev);
   };
 
+  // Handle stream restart when facing mode changes
   useEffect(() => {
-    if (streaming) startStream();
+    if (viewState === 'fullscreen') startStream();
   }, [facingMode]);
 
+  // Cleanup on unmount
   useEffect(() => {
-    return () => stopStream();
+    return () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+            tracks.forEach(track => track.stop());
+        }
+    };
   }, []);
 
-  return (
-    <div className="p-6 lg:p-10 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-2xl space-y-6">
-        <div className="flex items-center justify-between">
-            <h3 className="text-white text-xs not-italic flex items-center gap-2"><Camera size={14} className="text-red-500" /> Live Camera Feed</h3>
-            {streaming && <span className="text-[9px] text-red-500 animate-pulse flex items-center gap-1">REC <span className="w-2 h-2 rounded-full bg-red-500"></span></span>}
-        </div>
+  // --- INTRO SCREEN ---
+  if (viewState === 'intro') {
+    return (
+      <div className="p-6 lg:p-10 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center h-full">
+        <div className="bg-[#0c0c0e] border border-zinc-800 p-10 rounded-3xl space-y-8 text-center shadow-2xl">
+          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20">
+            <Camera size={36} className="text-green-500" />
+          </div>
+          
+          <h2 className="text-3xl text-white font-black tracking-tighter">IRL STREAMING MODE</h2>
+          
+          <div className="space-y-4 text-[11px] text-zinc-400 not-italic font-medium leading-relaxed max-w-md mx-auto">
+            <p>
+              Für das ultimative IRL-Erlebnis empfehlen wir, über den <strong>TikTok Gaming-Modus</strong> deines Smartphones zu streamen. So funktioniert's:
+            </p>
+            <ol className="text-left space-y-2 bg-black/50 p-6 rounded-2xl border border-white/5">
+                <li className="flex gap-3"><span className="text-green-500 font-black">1.</span> Starte hier gleich den Vollbild-Kameramodus.</li>
+                <li className="flex gap-3"><span className="text-green-500 font-black">2.</span> Öffne danach die TikTok App und starte einen "Mobile Gaming" Live-Stream.</li>
+                <li className="flex gap-3"><span className="text-green-500 font-black">3.</span> Wechsle zurück in dieses Fenster. Dein Kamera-Feed inkl. unsichtbarem Chat-Overlay wird nun direkt übertragen!</li>
+            </ol>
+            <p className="text-[9px] text-zinc-600 mt-4">
+              *Tippe während des Streams auf den Bildschirm, um das Einstellungs-Overlay ein- oder auszublenden.<br/>
+              Durch das Starten akzeptierst du unsere <Link href="/privacy" target="_blank" className="underline hover:text-white">Datenschutzrichtlinien</Link> und <Link href="/terms" target="_blank" className="underline hover:text-white">Nutzungsbedingungen</Link>.
+            </p>
+          </div>
 
-        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 flex items-center justify-center">
-            {!streaming && !error && <p className="text-zinc-600 text-[10px]">Camera is off</p>}
-            {error && <p className="text-red-500 text-[10px]">{error}</p>}
-            <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                muted 
-                className={`w-full h-full object-cover transition-transform ${mirror ? 'scale-x-[-1]' : ''}`} 
-            />
-        </div>
+          {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button onClick={streaming ? stopStream : startStream} className={`py-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 ${streaming ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-white text-black hover:bg-green-400"}`}>
-                {streaming ? <><StopCircle size={16} /> STOP CAM</> : <><Play size={16} /> START CAM</>}
-            </button>
-            <button onClick={switchCamera} disabled={!streaming} className="py-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl text-[10px] font-black hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2">
-                <RefreshCw size={16} className={streaming ? "animate-spin-once" : ""} /> SWITCH
-            </button>
-            <button onClick={() => setMirror(!mirror)} disabled={!streaming} className="py-3 bg-zinc-900 border border-zinc-800 text-white rounded-xl text-[10px] font-black hover:bg-zinc-800 disabled:opacity-50 flex items-center justify-center gap-2">
-                <FlipHorizontal size={16} /> MIRROR
-            </button>
+          <button onClick={startStream} className="w-full bg-green-500 text-black py-5 rounded-2xl text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2">
+             <Play size={16} fill="currentColor" /> WEITER & KAMERA STARTEN
+          </button>
         </div>
       </div>
-      <p className="text-center text-[9px] text-zinc-600">Works best on Mobile (iOS Safari & Android Chrome)</p>
+    );
+  }
+
+  // --- FULLSCREEN ACTIVE SCREEN ---
+  return (
+    <div className="fixed inset-0 z-[100] bg-black overflow-hidden flex items-center justify-center">
+        {/* Video Background - Click to toggle UI */}
+        <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            onClick={() => setShowUI(!showUI)}
+            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 cursor-pointer ${mirror ? 'scale-x-[-1]' : ''}`} 
+        />
+
+        {/* UI Overlay (Transparent) */}
+        <div className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-6 transition-opacity duration-300 ${showUI ? 'opacity-100' : 'opacity-0'}`}>
+            
+            {/* Top Bar */}
+            <div className="flex justify-between items-start pointer-events-auto">
+                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM
+                </div>
+                
+                <button onClick={stopStream} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors">
+                    <X size={20} />
+                </button>
+            </div>
+
+            {/* Bottom Controls & Mock Chat */}
+            <div className="flex justify-between items-end pointer-events-auto mb-4">
+                
+                {/* MOCK CHAT (Only visible to streamer, assuming they crop it in OBS or just use it for reading) */}
+                <div className="w-64 max-h-64 overflow-y-auto bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-3 font-sans not-italic text-[11px]">
+                    <div className="flex items-center gap-2 text-white/50 mb-2 border-b border-white/10 pb-2"><MessageCircle size={12}/> Chat Overlay (Preview)</div>
+                    <div className="text-white"><span className="font-bold text-blue-400">User123:</span> Hallo Stream!</div>
+                    <div className="text-white"><span className="font-bold text-pink-400">GamerGirl:</span> Echt coole Qualität!</div>
+                    <div className="text-white"><span className="font-bold text-yellow-400">SekerFan:</span> <Heart size={10} className="inline text-red-500" fill="currentColor"/></div>
+                </div>
+
+                {/* Camera Controls */}
+                <div className="flex flex-col gap-3">
+                    <button onClick={() => setShowUI(false)} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all flex items-center justify-center group relative">
+                        <EyeOff size={24} />
+                        <span className="absolute right-full mr-4 bg-black/80 px-3 py-1 rounded-lg text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Hide UI</span>
+                    </button>
+                    <button onClick={() => setMirror(!mirror)} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all">
+                        <FlipHorizontal size={24} />
+                    </button>
+                    <button onClick={switchCamera} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all">
+                        <RefreshCw size={24} />
+                    </button>
+                </div>
+            </div>
+            
+            {/* Hint Text */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center pointer-events-none">
+                <span className="bg-black/50 backdrop-blur-md px-4 py-1.5 rounded-full text-[9px] text-white/70 uppercase tracking-widest font-black">
+                    Tap screen to hide UI
+                </span>
+            </div>
+        </div>
     </div>
   );
 }
+
+// ... (Other components remain the same: InfoCard, ModuleTTC, ModuleTTV, ModuleSounds, ModuleFanclub, ModuleSettings, AuthCard) ...
+// (I will include them so the copy paste works perfectly)
 
 function InfoCard({ label, value, color = "text-white" }: any) {
   return (
