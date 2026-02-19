@@ -36,7 +36,7 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [targetUser, setTargetUser] = useState(""); 
-  const [activeView, setActiveView] = useState("camera"); 
+  const [activeView, setActiveView] = useState("home"); 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTikTokConnected, setIsTikTokConnected] = useState(false);
   const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030157"; 
+  const version = "0.030158"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -343,6 +343,7 @@ function MenuFolder({ label, icon, defaultOpen, children }: any) {
 
 function ModuleComingSoon({ name }: { name: string }) {
     const displayName = name === "entry" ? "Entry Alerts" : name === "gifts" ? "Gift Alerts" : name;
+
     return (
         <div className="h-[70vh] flex flex-col items-center justify-center p-6 md:p-10 text-center space-y-4 italic font-bold uppercase w-full">
             <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center animate-pulse"><Code2 className="text-zinc-600" size={32}/></div>
@@ -402,7 +403,6 @@ function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setA
   );
 }
 
-// --- FILTER VORSCHAU: Bugfix (Kein Auslösen beim Wischen) ---
 function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [startX, setStartX] = useState(0);
@@ -418,7 +418,6 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
             onPointerDown={(e) => { e.stopPropagation(); setStartX(e.clientX); }} 
             onPointerUp={(e) => { 
                 e.stopPropagation(); 
-                // Nur wenn Finger kaum bewegt wurde, als Klick werten!
                 if(Math.abs(e.clientX - startX) < 15) onClick(); 
             }}
             className="relative flex flex-col items-center gap-3 shrink-0 group transition-all duration-300 pointer-events-auto cursor-pointer"
@@ -431,7 +430,6 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
     );
 }
 
-// --- UPDATED CAMERA MODULE (MULTI-TOUCH DRAG & PINCH & RESIZE) ---
 function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -440,7 +438,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user'); 
-  const [mirror, setMirror] = useState(true);
+  const [mirror, setMirror] = useState(true); // Default Frontcam gespiegelt
   
   const [showUI, setShowUI] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
@@ -451,6 +449,9 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const [isClosingFilters, setIsClosingFilters] = useState(false);
   const [activeFilter, setActiveFilter] = useState("");
   
+  // Neu: Kamera Zoom Status
+  const [cameraZoom, setCameraZoom] = useState(1);
+
   const CAMERA_FILTERS = [
       { id: 'normal', name: 'Normal', css: '' },
       { id: 'soft', name: 'Weich', css: 'blur(1px) brightness(110%) contrast(105%) saturate(110%)' },
@@ -461,14 +462,12 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       { id: 'retro', name: 'Retro', css: 'sepia(80%) contrast(120%) brightness(90%)' }
   ];
 
-  // Spotify & Chat Widget States (Position, Size, Scale)
   const [track, setTrack] = useState<any>(null);
   const [spotifyState, setSpotifyState] = useState({ x: 20, y: 120, w: 200, h: 64, scale: spotifyConfig.cameraScale / 100 || 1 });
   const [chatState, setChatState] = useState({ x: 20, y: 400, w: 320, h: 280, scale: 1 });
 
   const [error, setError] = useState("");
 
-  // Initiale Chat-Positionierung ganz unten am Bildschirm
   useEffect(() => {
       setChatState(prev => ({ ...prev, y: window.innerHeight - 350 }));
   }, []);
@@ -479,6 +478,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
       setActiveStream(stream);
       setViewState('fullscreen');
+      setMirror(facingMode === 'user'); // Frontcam=gespiegelt, Rückcam=normal
     } catch (err: any) { setError(`Kamerafehler: ${err.message || 'Zugriff verweigert'}`); }
   };
 
@@ -491,9 +491,9 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const stopStream = () => {
     if (activeStream) { activeStream.getTracks().forEach(track => track.stop()); setActiveStream(null); }
     setViewState('intro');
+    setCameraZoom(1);
   };
 
-  // Chat Auto-Scroll
   useEffect(() => {
       if (chatScrollRef.current) chatScrollRef.current.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
@@ -516,18 +516,15 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
     return () => clearInterval(interval);
   }, [isSpotifyConnected, spotifyConfig.showInCamera, viewState]);
 
-  // Smooth Filter Close
   const closeFiltersMenu = () => {
       setIsClosingFilters(true);
       setTimeout(() => {
           setShowFilters(false);
           setIsClosingFilters(false);
-      }, 300); // Butterweicher 300ms Fadeout
+      }, 300); 
   };
 
-  // -------------------------------------------------------------
-  // MULTI-TOUCH DRAG & PINCH & RESIZE LOGIC
-  // -------------------------------------------------------------
+  // MULTI-TOUCH DRAG & PINCH LOGIC
   const activePointers = useRef(new Map());
   const dragInfo = useRef<any>(null);
   const initialPinchDist = useRef<number | null>(null);
@@ -535,7 +532,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   const initialScale = useRef<number | null>(null);
 
   const handleElementPointerDown = (e: React.PointerEvent, type: string, action: string) => {
-      e.stopPropagation(); // Blockiert das versehentliche Tippen der UI
+      e.stopPropagation(); 
       
       if (action === 'drag' || action === 'resize') {
           dragInfo.current = {
@@ -547,15 +544,33 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
       
       activePointers.current.set(e.pointerId, e);
       
-      // Sobald 2 Finger auf dem Bildschirm sind -> Pinch To Zoom starten
       if (activePointers.current.size === 2) {
-           dragInfo.current = null; // Dragging abbrechen
+           dragInfo.current = null; 
            const pts = Array.from(activePointers.current.values());
            const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
            initialPinchDist.current = dist;
            targetType.current = type;
            initialScale.current = type === 'spotify' ? spotifyState.scale : chatState.scale;
       }
+  };
+
+  const handleRootPointerDown = (e: React.PointerEvent) => { 
+      if (showSettings || showFilters) return; 
+      
+      activePointers.current.set(e.pointerId, e);
+      
+      // NEU: Wenn 2 Finger auf dem HINTERGRUND sind -> Kamera Zoom!
+      if (activePointers.current.size === 2) {
+          if (holdTimer.current) clearTimeout(holdTimer.current);
+          const pts = Array.from(activePointers.current.values());
+          const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
+          initialPinchDist.current = dist;
+          targetType.current = 'camera';
+          initialScale.current = cameraZoom;
+          return; 
+      }
+
+      holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
   };
 
   const handleGlobalPointerMove = (e: React.PointerEvent) => {
@@ -568,10 +583,10 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           const pts = Array.from(activePointers.current.values());
           const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
           const scaleChange = dist / initialPinchDist.current;
-          const newScale = Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3);
           
-          if (targetType.current === 'spotify') setSpotifyState(prev => ({...prev, scale: newScale}));
-          if (targetType.current === 'chat') setChatState(prev => ({...prev, scale: newScale}));
+          if (targetType.current === 'spotify') setSpotifyState(prev => ({...prev, scale: Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3)}));
+          else if (targetType.current === 'chat') setChatState(prev => ({...prev, scale: Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3)}));
+          else if (targetType.current === 'camera') setCameraZoom(Math.min(Math.max(1, (initialScale.current || 1) * scaleChange), 5)); // Kamera bis 5x Zoom
           return;
       }
 
@@ -585,7 +600,6 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
               if(type === 'spotify') setSpotifyState(prev => ({...prev, x: initial.x + dx, y: initial.y + dy}));
               if(type === 'chat') setChatState(prev => ({...prev, x: initial.x + dx, y: initial.y + dy}));
           } else if (action === 'resize') {
-              // Beim Chat kann man an der Ecke ziehen, um die Width/Height zu ändern
               if(type === 'chat') setChatState(prev => ({...prev, w: Math.max(200, initial.w + dx), h: Math.max(150, initial.h + dy)}));
           }
       }
@@ -600,22 +614,16 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           initialPinchDist.current = null;
       }
   };
-  // -------------------------------------------------------------
 
-  const handleRootPointerDown = (e: React.PointerEvent) => { 
-      if (showSettings || showFilters) return; 
-      holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
-  };
-  
   const handleRootPointerUp = (e: React.PointerEvent) => {
-      handleGlobalPointerUp(e); // Wichtig für Pinch/Drag Ende
+      handleGlobalPointerUp(e); 
       if (showSettings || showFilters) {
           if(showSettings) setShowSettings(false);
           if(showFilters && !isClosingFilters) closeFiltersMenu();
           return;
       }
       if (holdTimer.current) clearTimeout(holdTimer.current);
-      if (isHolding) { setIsHolding(false); } else { setShowUI(prev => !prev); }
+      if (isHolding) { setIsHolding(false); } else if (activePointers.current.size === 0) { setShowUI(prev => !prev); }
   };
   
   const handleRootPointerCancel = (e: React.PointerEvent) => {
@@ -646,7 +654,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
           </div>
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
           <div className="space-y-4">
-              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> VORDERKAMERA STARTEN</button>
+              <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> KAMERA STARTEN</button>
               <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[9px] md:text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
           </div>
         </div>
@@ -660,7 +668,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   return (
     <div 
         className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 bg-black overflow-hidden flex items-center justify-center select-none md:flex-1 cursor-pointer"
-        style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' }} // touchAction none blockiert Website-Zoomen
+        style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={handleRootPointerDown}
         onPointerUp={handleRootPointerUp}
@@ -671,8 +679,12 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
         <video 
             ref={videoRef} 
             autoPlay playsInline muted 
-            className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} 
-            style={{ filter: activeFilter || 'none' }} 
+            className="absolute inset-0 w-full h-full object-cover" 
+            style={{ 
+                filter: activeFilter || 'none',
+                // NEU: Inline Transform für echtes Spiegeln + Kamera Zoom
+                transform: `${mirror ? 'scaleX(-1)' : 'scaleX(1)'} scale(${cameraZoom})`
+            }} 
         />
         
         {/* DRAGGABLE & ZOOMABLE SPOTIFY PLAYER */}
@@ -791,15 +803,13 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
             )}
 
             <div className="flex justify-between items-end mb-4 w-full">
-                {/* Spacer links, da der Chat nun frei schwebend ist */}
                 <div className="w-10"></div> 
-                
                 <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding && !showSettings && !showFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button onClick={(e) => { stopEvent(e); setShowFilters(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Wand2 size={24} className={activeFilter ? "text-purple-400" : ""} /></button>
                     <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><Settings size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
-                    <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
+                    <button onClick={(e) => { stopEvent(e); setFacingMode(prev => { const nm = prev === 'user' ? 'environment' : 'user'; setMirror(nm === 'user'); return nm;}); setShowUI(true); }} onPointerDown={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
                 </div>
             </div>
         </div>
@@ -902,15 +912,6 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
             </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function InfoCard({ label, value, color = "text-white" }: any) {
-  return (
-    <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1 flex flex-col justify-center h-full">
-      <p className="text-[9px] text-zinc-600 font-black">{label}</p>
-      <p className={`text-xs font-mono font-bold truncate ${color}`}>{value}</p>
     </div>
   );
 }
