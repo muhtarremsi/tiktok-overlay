@@ -38,7 +38,7 @@ function DashboardContent() {
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
 
-  const version = "0.030137"; 
+  const version = "0.030138"; 
   const expiryDate = "17.02.2025";
 
   useEffect(() => {
@@ -201,17 +201,22 @@ function SidebarItem({ icon, label, active, onClick }: any) {
   );
 }
 
-// --- UPDATED CAMERA MODULE (Mobile Fullscreen, Desktop Embedded, Selection Disabled) ---
+// --- NEW SMART CAMERA MODULE ---
 function ModuleCamera({ targetUser }: { targetUser: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const holdTimer = useRef<NodeJS.Timeout | null>(null);
+  
   const [viewState, setViewState] = useState<'intro' | 'fullscreen'>('intro');
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user'); 
   const [mirror, setMirror] = useState(true);
+  
+  // Smart Toggle States
   const [showUI, setShowUI] = useState(true);
   const [ghostMode, setGhostMode] = useState(false);
   const [isHolding, setIsHolding] = useState(false);
+  
   const [error, setError] = useState("");
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
@@ -289,6 +294,27 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
 
   useEffect(() => { return () => stopStream(); }, []);
 
+  // SMART TAP & HOLD LOGIC
+  const handlePointerDown = (e: React.PointerEvent) => {
+      holdTimer.current = setTimeout(() => {
+          setIsHolding(true);
+      }, 250); // Nach 250ms wird es als "Gedrückt halten" gewertet
+  };
+
+  const handlePointerUp = () => {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+      if (isHolding) {
+          setIsHolding(false); // Losgelassen nach dem Halten -> Chat wieder weg
+      } else {
+          setShowUI(prev => !prev); // Kurzer Tap -> Alles ein/ausblenden
+      }
+  };
+
+  const handlePointerCancel = () => {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+      if (isHolding) setIsHolding(false);
+  };
+
   if (viewState === 'intro') {
     return (
       <div className="p-6 lg:p-10 max-w-2xl mx-auto space-y-8 uppercase italic font-bold flex flex-col items-center justify-center flex-1 w-full">
@@ -299,11 +325,11 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
           <h2 className="text-2xl text-white font-black tracking-tighter">IRL STREAMING MODE</h2>
           
           <div className="text-[11px] text-zinc-400 not-italic font-medium text-left">
-            <p className="mb-4 text-center">Optimiere deinen Mobile Gaming Stream mit versteckten Overlays.</p>
+            <p className="mb-4 text-center">Optimiere deinen Mobile Gaming Stream mit der smarten Steuerung:</p>
             <div className="space-y-4 bg-black/50 p-6 rounded-2xl border border-white/5">
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed">Gib dein Live-Target in die Sidebar ein (aktuell: <strong className="text-white">@{targetUser || 'fehlt'}</strong>).</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed">Starte die Kamera. Nutze den <strong className="text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/20 inline-flex items-center gap-1"><Ghost size={12}/> GHOST MODE</strong> um den Chat für Zuschauer unsichtbar zu machen.</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed">Oder nutze <strong className="text-white bg-white/10 px-1.5 py-0.5 rounded border border-white/20 inline-flex items-center gap-1"><Hand size={12}/> HOLD-TO-PEEK</strong>: Halte den Bildschirm gedrückt, um den Chat kurz einzublenden.</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed"><strong>Einmal tippen:</strong> Blendet das gesamte UI (Chat, Buttons) sofort aus oder wieder ein.</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed"><strong>Gedrückt halten:</strong> Egal ob das UI versteckt ist, solange du drückst, poppt der Chat groß auf (Hold-to-Peek).</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed"><strong>Ghost Mode:</strong> Reduziert die Chat-Sichtbarkeit für Zuschauer durch Kompression.</span></div>
             </div>
           </div>
           
@@ -321,65 +347,69 @@ function ModuleCamera({ targetUser }: { targetUser: string }) {
     );
   }
 
-  const chatOpacityClass = ghostMode && !isHolding ? 'opacity-10' : 'opacity-100';
+  // Calculate chat visibility dynamically
+  let chatOpacityClass = "opacity-0 scale-95 pointer-events-none"; // Standard hidden
+  if (isHolding) {
+      chatOpacityClass = "opacity-100 scale-105 pointer-events-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]"; // Popped out and large
+  } else if (showUI) {
+      chatOpacityClass = ghostMode ? "opacity-10 pointer-events-auto" : "opacity-100 pointer-events-auto";
+  }
 
   return (
-    // FIX: Desktop View Anpassung (md:relative md:inset-auto md:h-full md:rounded-3xl)
-    // FIX: select-none und Inline Styles verhindern das blaue Markieren
     <div 
-        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 bg-black overflow-hidden flex items-center justify-center select-none md:flex-1"
+        className="fixed inset-0 z-[100] md:relative md:inset-auto md:z-10 md:m-6 md:rounded-3xl md:border md:border-zinc-800 bg-black overflow-hidden flex items-center justify-center select-none md:flex-1 cursor-pointer"
         style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', userSelect: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
-        onPointerDown={() => ghostMode && setIsHolding(true)}
-        onPointerUp={() => setIsHolding(false)}
-        onPointerLeave={() => setIsHolding(false)}
-        onTouchStart={(e) => {
-            // Verhindert das Standard-Lupe/Markieren Verhalten auf iOS
-            if (ghostMode) setIsHolding(true);
-        }}
-        onTouchEnd={() => setIsHolding(false)}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerCancel}
+        onPointerCancel={handlePointerCancel}
     >
         <video 
             ref={videoRef} 
             autoPlay 
             playsInline 
             muted 
-            onClick={() => !ghostMode && setShowUI(!showUI)}
             className={`absolute inset-0 w-full h-full object-cover transition-transform duration-300 ${mirror ? 'scale-x-[-1]' : ''}`} 
         />
         
-        <div className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-6 transition-opacity duration-300 ${showUI ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="flex justify-between items-start pointer-events-auto">
-                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg">
+        {/* Absolute Container für die UI Elemente (ignoriert pointer events fürs tippen/halten, außer auf den buttons selbst) */}
+        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6">
+            
+            {/* Header */}
+            <div className={`flex justify-between items-start transition-opacity duration-300 ${showUI && !isHolding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div className="bg-black/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex flex-col shadow-lg pointer-events-auto" onPointerDown={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 text-[10px] text-white font-black tracking-widest uppercase"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE CAM</div>
                     <span className="text-[8px] text-green-400 not-italic uppercase tracking-wider mt-1">{chatStatus}</span>
                 </div>
-                <button onClick={stopStream} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors"><X size={20} /></button>
+                <button onClick={stopStream} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-3 rounded-full border border-white/10 text-white hover:bg-red-500 hover:border-red-500 transition-colors pointer-events-auto"><X size={20} /></button>
             </div>
             
-            <div className="flex justify-between items-end pointer-events-auto mb-4 w-full">
-                <div ref={chatRef} className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-opacity duration-300 ${chatOpacityClass} scrollbar-hide`}>
+            {/* Bottom Row */}
+            <div className="flex justify-between items-end mb-4 w-full">
+                
+                {/* LIVE CHAT BOX */}
+                <div 
+                    ref={chatRef} 
+                    onPointerDown={e => e.stopPropagation()} // Chat markieren blockiert das Halten nicht
+                    className={`w-[65%] md:w-80 max-h-72 overflow-y-auto bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col gap-2 font-sans not-italic text-[12px] transition-all duration-300 scrollbar-hide ${chatOpacityClass} origin-bottom-left`}
+                >
                     {chatMessages.length === 0 ? (<div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div>) : (chatMessages.map(msg => (<div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-1"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>)))}
                 </div>
-                <div className="flex flex-col gap-3">
-                    <button onClick={() => setGhostMode(!ghostMode)} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
-                    <button onClick={() => setMirror(!mirror)} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><FlipHorizontal size={24} /></button>
-                    <button onClick={() => { setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>
+                
+                {/* Camera Controls */}
+                <div className={`flex flex-col gap-3 transition-opacity duration-300 ${showUI && !isHolding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <button onClick={() => setGhostMode(!ghostMode)} onPointerDown={e => e.stopPropagation()} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg pointer-events-auto ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
+                    <button onClick={() => setMirror(!mirror)} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><FlipHorizontal size={24} /></button>
+                    <button onClick={() => { setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setMirror(prev => !prev); }} onPointerDown={e => e.stopPropagation()} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg pointer-events-auto"><RefreshCw size={24} /></button>
                 </div>
+
             </div>
-            
-            {ghostMode && (
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none transition-opacity duration-500 ${isHolding ? 'opacity-0' : 'opacity-70'}`}>
-                    <Hand size={48} className="text-white/50 mx-auto mb-3" />
-                    <span className="bg-black/80 backdrop-blur-md px-5 py-2 rounded-full text-[10px] text-white uppercase tracking-widest font-black border border-white/10 shadow-2xl">Hold screen to peek</span>
-                </div>
-            )}
         </div>
     </div>
   );
 }
 
-// ... rest of the components remain exactly the same
 function InfoCard({ label, value, color = "text-white" }: any) {
   return (
     <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-2xl text-center space-y-1">
