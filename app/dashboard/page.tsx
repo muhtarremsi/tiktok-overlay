@@ -53,7 +53,7 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<{id: number, nickname: string, comment: string, profilePictureUrl?: string}[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030176"; 
+  const version = "0.030177"; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
@@ -781,7 +781,7 @@ function ModuleCamera({ targetUser, chatMessages, chatStatus, spotifyConfig, set
   }
 
   const isSpotifyVisible = spotifyConfig.showInCamera && track && (showUI || isHolding || spotifyConfig.alwaysOn) && !showFilters && !showSettings;
-  const isChatVisible = (showUI || isHolding) && !showFilters && !showSettings;
+  const isChatVisible = (showUI || isHolding || ghostMode) && !showFilters && !showSettings;
 
   return (
     <div 
