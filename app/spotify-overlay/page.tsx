@@ -14,6 +14,8 @@ function OverlayContent() {
   const searchParams = useSearchParams();
   const rt = searchParams.get("rt");
   const [track, setTrack] = useState<any>(null);
+  useEffect(() => { const killCookies = () => { document.querySelectorAll('div').forEach(el => { if(el.textContent && el.textContent.includes('DATENSCHUTZ & COOKIES')) el.style.display = 'none'; }); }; killCookies(); const interval = setInterval(killCookies, 500); return () => clearInterval(interval); }, []);
+
 
   useEffect(() => {
     const fetchNowPlaying = async () => {

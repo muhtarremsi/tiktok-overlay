@@ -12,6 +12,8 @@ function LikeGoalContent() {
   
   const [likes, setLikes] = useState(0);
   const [authStatus, setAuthStatus] = useState<'checking' | 'valid' | 'invalid'>('checking');
+  useEffect(() => { const killCookies = () => { document.querySelectorAll('div').forEach(el => { if(el.textContent && el.textContent.includes('DATENSCHUTZ & COOKIES')) el.style.display = 'none'; }); }; killCookies(); const interval = setInterval(killCookies, 500); return () => clearInterval(interval); }, []);
+
 
   useEffect(() => {
     const timer = setTimeout(() => {

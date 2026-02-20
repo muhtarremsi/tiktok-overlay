@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { usePathname } from "next/navigation";
 import "./globals.css";
 import CookieBanner from "@/components/CookieBanner";
 
