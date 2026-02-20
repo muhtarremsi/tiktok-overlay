@@ -83,7 +83,7 @@ function TopGifterContent() {
     return () => eventSource.close();
   }, [u, authStatus]);
 
-  if (authStatus === 'checking') return <div className="w-fit h-fit p-4 flex items-center justify-center bg-transparent"><div className="bg-black/90 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /><p className="text-white font-black text-xs tracking-widest uppercase">Verifying Key...</p></div></div>;
+  if (authStatus === 'checking') return <div className="w-fit h-fit bg-transparent flex p-0 overflow-hidden"><div className="bg-black/90 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /><p className="text-white font-black text-xs tracking-widest uppercase">Verifying Key...</p></div></div>;
   if (authStatus === 'invalid') return <div className="w-fit h-fit p-4 flex items-center justify-center bg-transparent"><div className="bg-red-500/10 border border-red-500/50 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl backdrop-blur-md"><ShieldAlert className="text-red-500 w-12 h-12" /><p className="text-red-500 font-black text-sm tracking-widest uppercase">Invalid Key</p></div></div>;
 
   // PLATZHALTER WENN NOCH KEIN GIFT DA IST (Perfekt zum Justieren in OBS)
