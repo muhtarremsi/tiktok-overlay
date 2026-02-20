@@ -1,16 +1,29 @@
 "use client";
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Trophy } from "lucide-react";
+import { Trophy, ShieldAlert, Loader2, ShieldCheck } from "lucide-react";
 
 function TopGifterContent() {
   const searchParams = useSearchParams();
   const u = searchParams.get("u");
+  const key = searchParams.get("k");
+  const color = searchParams.get("c") || "#eab308";
+  
   const [topGifter, setTopGifter] = useState<any>(null);
   const [gifters, setGifters] = useState<Record<string, any>>({});
+  const [authStatus, setAuthStatus] = useState<'checking' | 'valid' | 'invalid'>('checking');
 
   useEffect(() => {
-    if (!u) return;
+    // Simuliere einen strengen Lizenz- und Key-Check
+    const timer = setTimeout(() => {
+        if (!key || key.length < 10) setAuthStatus('invalid');
+        else setAuthStatus('valid');
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [key]);
+
+  useEffect(() => {
+    if (authStatus !== 'valid' || !u) return;
     const eventSource = new EventSource(`/api/live-chat?u=${u}`);
     eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -20,36 +33,40 @@ function TopGifterContent() {
                 const newTotal = (prev[data.nickname]?.diamonds || 0) + totalDiamonds;
                 const updated: Record<string, any> = { ...prev, [data.nickname]: { nickname: data.nickname, profilePictureUrl: data.profilePictureUrl, diamonds: newTotal } };
                 let top: any = null;
-                Object.values(updated).forEach((gifter: any) => {
-                    if (!top || gifter.diamonds > top.diamonds) top = gifter;
-                });
+                Object.values(updated).forEach((gifter: any) => { if (!top || gifter.diamonds > top.diamonds) top = gifter; });
                 setTopGifter(top);
                 return updated;
             });
         }
     };
     return () => eventSource.close();
-  }, [u]);
+  }, [u, authStatus]);
+
+  if (authStatus === 'checking') return (
+      <div className="w-screen h-screen flex items-center justify-center bg-transparent"><div className="bg-black/90 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /><p className="text-white font-black text-xs tracking-widest uppercase">Verifying License Key...</p></div></div>
+  );
+
+  if (authStatus === 'invalid') return (
+      <div className="w-screen h-screen flex items-center justify-center bg-transparent"><div className="bg-red-500/10 border border-red-500/50 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl backdrop-blur-md"><ShieldAlert className="text-red-500 w-12 h-12" /><p className="text-red-500 font-black text-sm tracking-widest uppercase">Access Denied: Invalid Key</p></div></div>
+  );
 
   if (!topGifter) return <div className="hidden"></div>;
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-transparent flex items-start justify-start p-4">
-        <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/50 backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 shadow-[0_0_30px_rgba(234,179,8,0.4)] animate-in fade-in zoom-in">
+        <div className="border backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 animate-in fade-in zoom-in shadow-2xl" style={{ borderColor: color, backgroundColor: `${color}20` }}>
             <div className="relative">
-                <img src={topGifter.profilePictureUrl} className="w-12 h-12 rounded-full border-2 border-yellow-500 object-cover shadow-lg" />
-                <div className="absolute -bottom-2 -right-2 bg-yellow-500 rounded-full p-1 shadow-lg"><Trophy size={12} className="text-black"/></div>
+                <img src={topGifter.profilePictureUrl} className="w-12 h-12 rounded-full border-2 object-cover shadow-lg" style={{ borderColor: color }} />
+                <div className="absolute -bottom-2 -right-2 rounded-full p-1 shadow-lg" style={{ backgroundColor: color }}><Trophy size={12} className="text-black"/></div>
             </div>
             <div className="pr-4">
-                <p className="text-[9px] text-yellow-500 font-black uppercase tracking-widest leading-none mb-1">Top Supporter</p>
-                <p className="text-sm text-white font-bold leading-none uppercase italic">{topGifter.nickname}</p>
-                <p className="text-[10px] text-zinc-400 font-bold mt-1">{topGifter.diamonds} Diamonds 💎</p>
+                <p className="text-[9px] font-black uppercase tracking-widest leading-none mb-1" style={{ color: color }}>Top Supporter</p>
+                <p className="text-sm text-white font-bold leading-none uppercase italic drop-shadow-md">{topGifter.nickname}</p>
+                <p className="text-[10px] text-zinc-300 font-bold mt-1">{topGifter.diamonds} Diamonds 💎</p>
             </div>
         </div>
     </div>
   );
 }
 
-export default function TopGifterOverlay() {
-    return <Suspense fallback={null}><TopGifterContent /></Suspense>;
-}
+export default function TopGifterOverlay() { return <Suspense fallback={null}><TopGifterContent /></Suspense>; }

@@ -46,6 +46,8 @@ function DashboardContent() {
   const [soundTriggers, setSoundTriggers] = useState<any[]>([]);
   const [fanclubConfig, setFanclubConfig] = useState({ teamHeart: true, subAlert: true });
   const [spotifyConfig, setSpotifyConfig] = useState({ allowRequests: false, showInCamera: true, cameraScale: 100, alwaysOn: false });
+  const [overlayKey, setOverlayKey] = useState("");
+  const [widgetConfig, setWidgetConfig] = useState({ likeGoal: 10000, likeColor: '#ec4899', gifterColor: '#eab308' });
   const [perfQuality, setPerfQuality] = useState(100); 
   const [baseUrl, setBaseUrl] = useState("");
   const [hasFunctionalConsent, setHasFunctionalConsent] = useState(false);
@@ -82,6 +84,11 @@ function DashboardContent() {
         if (savedTarget) setTargetUser(savedTarget);
         if (savedPerf) setPerfQuality(parseInt(savedPerf));
         if (savedSpotify) setSpotifyConfig(JSON.parse(savedSpotify));
+        const savedKey = localStorage.getItem("seker_overlay_key");
+        const savedWidget = localStorage.getItem("seker_widget_config");
+        if (savedKey) setOverlayKey(savedKey);
+        else { const nk = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2); setOverlayKey(nk); localStorage.setItem("seker_overlay_key", nk); }
+        if (savedWidget) setWidgetConfig(JSON.parse(savedWidget));
     }
     
     setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
@@ -361,9 +368,9 @@ function DashboardContent() {
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
           {activeView === "camera" && <ModuleCamera targetUser={targetUser} chatMessages={chatMessages} likesMap={likesMap} giftsList={giftsList} chatStatus={chatStatus} spotifyConfig={spotifyConfig} setSpotifyConfig={setSpotifyConfig} isSpotifyConnected={isSpotifyConnected} />}
-          {activeView === "likes" && <ModuleLikes targetUser={targetUser} baseUrl={baseUrl} />}
+          {activeView === "likes" && <ModuleLikes targetUser={targetUser} baseUrl={baseUrl} overlayKey={overlayKey} setOverlayKey={setOverlayKey} widgetConfig={widgetConfig} setWidgetConfig={setWidgetConfig} />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
-          {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} />}
+          {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} overlayKey={overlayKey} />}
           {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} isSpotifyConnected={isSpotifyConnected} onSpotifyConnect={handleSpotifyConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
           
           {(activeView === "games" || activeView === "bot" || activeView === "leaderboard" || activeView === "gifts" || activeView === "entry") && <ModuleComingSoon name={activeView} />}
@@ -424,125 +431,108 @@ function InfoCard({ label, value, color = "text-white" }: any) {
 }
 
 
-function ModuleLikes({ targetUser, baseUrl }: any) {
-  const topGifterUrl = `${baseUrl}/obs-widgets/top-gifter?u=${targetUser || 'username'}`;
-  const likeGoalUrl = `${baseUrl}/obs-widgets/like-goal?u=${targetUser || 'username'}&goal=10000`;
+function ModuleLikes({ targetUser, baseUrl, overlayKey, setOverlayKey, widgetConfig, setWidgetConfig }: any) {
+  const [showKey, setShowKey] = useState(false);
+  
+  const generateNewKey = () => {
+      if(confirm("ACHTUNG: Wenn du einen neuen Key generierst, werden alle deine alten OBS Overlays (auch Spotify) sofort schwarz und ungültig! Bist du sicher?")) {
+          setOverlayKey(Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2));
+      }
+  };
+
+  const cLikeGoalUrl = `${baseUrl}/obs-widgets/like-goal?u=${targetUser || 'username'}&k=${overlayKey}&goal=${widgetConfig.likeGoal}&c=${encodeURIComponent(widgetConfig.likeColor)}`;
+  const cTopGifterUrl = `${baseUrl}/obs-widgets/top-gifter?u=${targetUser || 'username'}&k=${overlayKey}&c=${encodeURIComponent(widgetConfig.gifterColor)}`;
 
   return (
-    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-3xl space-y-8 w-full min-w-0 shadow-xl">
-          <div>
-              <h3 className="text-white text-base md:text-lg not-italic flex items-center gap-3 mb-2"><Monitor size={20} className="text-blue-500" /> OBS Live Widgets</h3>
-              <p className="text-[10px] text-zinc-500 not-italic leading-relaxed max-w-2xl">Füge diese transparenten URLs als "Browserquelle" in OBS ein. Die Daten synchronisieren sich vollautomatisch mit deinem TikTok Live-Stream!</p>
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-5xl mx-auto space-y-8 uppercase italic font-bold">
+      
+      {/* 1. SICHERHEIT & STREAM KEY */}
+      <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl w-full flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+          <div className="flex-1 min-w-0">
+              <h3 className="text-red-500 text-sm font-black flex items-center gap-2 mb-1"><ShieldCheck size={18} /> Master Stream Key</h3>
+              <p className="text-[10px] text-zinc-400 not-italic leading-relaxed">Dieser kryptische Schlüssel schützt deine URLs davor, von Fremden in OBS geladen zu werden. Gib ihn niemals weiter!</p>
           </div>
-          <div className="grid grid-cols-1 gap-6">
-              <div className="bg-black/50 border border-white/5 p-5 rounded-2xl flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                      <div className="p-3 bg-yellow-500/10 rounded-xl"><Trophy size={18} className="text-yellow-500" /></div>
-                      <div>
-                          <h4 className="text-white text-xs font-black">Top Gifter Widget</h4>
-                          <p className="text-[9px] text-zinc-500 not-italic mt-0.5">Zeigt das Profilbild und den Namen deines besten Supporters an.</p>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="bg-black border border-red-500/30 px-4 py-3 rounded-xl flex-1 md:w-64 flex items-center justify-between">
+                  <span className="text-xs font-mono text-zinc-300 tracking-widest truncate">{showKey ? overlayKey : "••••••••••••••••"}</span>
+                  <button onClick={() => setShowKey(!showKey)} className="text-zinc-500 hover:text-white ml-2"><Eye size={14}/></button>
+              </div>
+              <button onClick={generateNewKey} className="bg-red-500 text-black px-4 py-3 rounded-xl text-[10px] font-black hover:bg-red-400 transition-colors shrink-0 flex items-center gap-2"><RefreshCw size={14}/> Kill Switch</button>
+          </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* LIKE GOAL WIDGET */}
+          <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl flex flex-col shadow-xl">
+              <h3 className="text-white text-sm flex items-center gap-2 mb-6"><Heart size={16} className="text-pink-500" /> Like Goal Widget</h3>
+              
+              <div className="flex-1 flex flex-col items-center justify-center p-6 bg-black/50 rounded-2xl border border-white/5 mb-6">
+                  <span className="text-[9px] text-zinc-600 mb-4 not-italic font-bold uppercase tracking-widest">Live Vorschau</span>
+                  <div className="bg-black/80 border backdrop-blur-md rounded-2xl p-4 w-full shadow-2xl transition-colors" style={{ borderColor: `${widgetConfig.likeColor}50` }}>
+                      <div className="flex justify-between items-end mb-2">
+                          <div className="flex items-center gap-2">
+                              <Heart size={16} className="animate-pulse" style={{ color: widgetConfig.likeColor, filter: `drop-shadow(0 0 8px ${widgetConfig.likeColor})` }} fill="currentColor" />
+                              <span className="text-[10px] font-black text-white uppercase tracking-widest italic drop-shadow-md">Live Like Goal</span>
+                          </div>
+                          <span className="text-[10px] font-black transition-colors" style={{ color: widgetConfig.likeColor }}>4500 / {widgetConfig.likeGoal}</span>
+                      </div>
+                      <div className="w-full bg-zinc-900 h-3 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                          <div className="h-full transition-all duration-500" style={{ width: `${(4500 / widgetConfig.likeGoal) * 100}%`, backgroundColor: widgetConfig.likeColor, boxShadow: `0 0 10px ${widgetConfig.likeColor}` }}></div>
                       </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                      <div className="flex-1 bg-black p-3 rounded-xl border border-white/10 overflow-x-auto scrollbar-hide"><code className="text-[10px] font-mono text-zinc-400 whitespace-nowrap">{topGifterUrl}</code></div>
-                      <button onClick={() => navigator.clipboard.writeText(topGifterUrl)} className="bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"><Copy size={14}/> Kopieren</button>
-                  </div>
               </div>
-              <div className="bg-black/50 border border-white/5 p-5 rounded-2xl flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                      <div className="p-3 bg-pink-500/10 rounded-xl"><Heart size={18} className="text-pink-500" /></div>
-                      <div>
-                          <h4 className="text-white text-xs font-black">Like Goal Widget</h4>
-                          <p className="text-[9px] text-zinc-500 not-italic mt-0.5">Ein visuelles Fortschrittsbalken-Widget für dein 10.000 Likes Ziel.</p>
-                      </div>
+
+              <div className="space-y-4 not-italic">
+                  <div className="flex justify-between items-center bg-black p-3 rounded-xl border border-white/5">
+                      <span className="text-[10px] text-white font-bold uppercase tracking-wider">Ziel-Anzahl</span>
+                      <input type="number" value={widgetConfig.likeGoal} onChange={e => setWidgetConfig({...widgetConfig, likeGoal: parseInt(e.target.value) || 1000})} className="w-24 bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-center text-white outline-none font-mono text-xs" />
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                      <div className="flex-1 bg-black p-3 rounded-xl border border-white/10 overflow-x-auto scrollbar-hide"><code className="text-[10px] font-mono text-zinc-400 whitespace-nowrap">{likeGoalUrl}</code></div>
-                      <button onClick={() => navigator.clipboard.writeText(likeGoalUrl)} className="bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"><Copy size={14}/> Kopieren</button>
+                  <div className="flex justify-between items-center bg-black p-3 rounded-xl border border-white/5">
+                      <span className="text-[10px] text-white font-bold uppercase tracking-wider">Akzentfarbe</span>
+                      <input type="color" value={widgetConfig.likeColor} onChange={e => setWidgetConfig({...widgetConfig, likeColor: e.target.value})} className="w-8 h-8 rounded cursor-pointer bg-transparent border-none p-0" />
+                  </div>
+                  <div className="pt-2">
+                      <div className="bg-black p-3 rounded-xl border border-white/10 overflow-x-auto scrollbar-hide mb-2"><code className="text-[9px] font-mono text-zinc-400 whitespace-nowrap">{cLikeGoalUrl}</code></div>
+                      <button onClick={() => navigator.clipboard.writeText(cLikeGoalUrl)} className="w-full bg-white text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"><Copy size={14}/> OBS URL Kopieren</button>
                   </div>
               </div>
           </div>
+
+          {/* TOP GIFTER WIDGET */}
+          <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl flex flex-col shadow-xl">
+              <h3 className="text-white text-sm flex items-center gap-2 mb-6"><Trophy size={16} className="text-yellow-500" /> Top Gifter Widget</h3>
+              
+              <div className="flex-1 flex flex-col items-center justify-center p-6 bg-black/50 rounded-2xl border border-white/5 mb-6">
+                  <span className="text-[9px] text-zinc-600 mb-4 not-italic font-bold uppercase tracking-widest">Live Vorschau</span>
+                  <div className="border backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 w-full transition-colors shadow-2xl" style={{ borderColor: widgetConfig.gifterColor, backgroundColor: `${widgetConfig.gifterColor}20` }}>
+                      <div className="relative">
+                          <div className="w-12 h-12 rounded-full border-2 bg-zinc-800" style={{ borderColor: widgetConfig.gifterColor }}></div>
+                          <div className="absolute -bottom-2 -right-2 rounded-full p-1 shadow-lg" style={{ backgroundColor: widgetConfig.gifterColor }}><Trophy size={12} className="text-black"/></div>
+                      </div>
+                      <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest leading-none mb-1 transition-colors" style={{ color: widgetConfig.gifterColor }}>Top Supporter</p>
+                          <p className="text-sm text-white font-bold leading-none uppercase italic drop-shadow-md">Username</p>
+                          <p className="text-[10px] text-zinc-300 font-bold mt-1">999 Diamonds 💎</p>
+                      </div>
+                  </div>
+              </div>
+
+              <div className="space-y-4 not-italic">
+                  <div className="flex justify-between items-center bg-black p-3 rounded-xl border border-white/5">
+                      <span className="text-[10px] text-white font-bold uppercase tracking-wider">Themen-Farbe</span>
+                      <input type="color" value={widgetConfig.gifterColor} onChange={e => setWidgetConfig({...widgetConfig, gifterColor: e.target.value})} className="w-8 h-8 rounded cursor-pointer bg-transparent border-none p-0" />
+                  </div>
+                  <div className="pt-2">
+                      <div className="bg-black p-3 rounded-xl border border-white/10 overflow-x-auto scrollbar-hide mb-2"><code className="text-[9px] font-mono text-zinc-400 whitespace-nowrap">{cTopGifterUrl}</code></div>
+                      <button onClick={() => navigator.clipboard.writeText(cTopGifterUrl)} className="w-full bg-white text-black py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"><Copy size={14}/> OBS URL Kopieren</button>
+                  </div>
+              </div>
+          </div>
+
       </div>
     </div>
   );
-}
-
-function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setActiveView }: any) {
-  return (
-    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-5xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-12 rounded-3xl space-y-4 relative overflow-hidden shadow-2xl w-full">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-50 pointer-events-none"></div>
-        <h2 className="text-2xl md:text-5xl text-white font-black tracking-tighter relative z-10 break-words">WILLKOMMEN ZURÜCK</h2>
-        <p className="text-[10px] md:text-xs text-zinc-400 not-italic font-medium relative z-10 max-w-lg leading-relaxed">
-          Dein zentrales Control Panel für interaktive TikTok Live Streams. Konfiguriere deine Overlays oder starte den Mobile IRL Modus.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 w-full">
-        <InfoCard label="LIVE TARGET" value={targetUser ? `@${targetUser}` : "NICHT GESETZT"} color={targetUser ? "text-green-500" : "text-red-500"} />
-        <InfoCard label="SPOTIFY API" value={isSpotifyConnected ? "VERBUNDEN" : "OFFLINE"} color={isSpotifyConnected ? "text-[#1DB954]" : "text-zinc-500"} />
-        <InfoCard label="VIDEO TRIGGERS" value={ttvCount.toString()} color="text-blue-500" />
-        <InfoCard label="SOUND ALERTS" value={soundCount.toString()} color="text-purple-500" />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
-        <div className="bg-black/50 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 w-full">
-          <h3 className="text-white text-xs md:text-sm font-black flex items-center gap-2"><Zap size={18} className="text-yellow-500 shrink-0" /> QUICK START GUIDE</h3>
-          <div className="space-y-4 text-[10px] md:text-xs text-zinc-400 not-italic font-medium">
-            <div className="flex gap-3"><span className="text-green-500 font-black">1.</span><p>Trage dein <strong>Live Target</strong> oben links in die Seitenleiste ein, damit der Chat gelesen wird.</p></div>
-            <div className="flex gap-3"><span className="text-green-500 font-black">2.</span><p>Erstelle <button onClick={() => setActiveView('ttv')} className="text-white underline hover:text-green-500">Video-Triggers</button> oder <button onClick={() => setActiveView('sounds')} className="text-white underline hover:text-green-500">Sound-Alerts</button>.</p></div>
-            <div className="flex gap-3"><span className="text-green-500 font-black">3.</span><p>Kopiere den generierten <strong>OBS Link</strong> aus den Modulen als Browser-Quelle in dein Stream-Programm.</p></div>
-          </div>
-        </div>
-
-        <div className="bg-black/50 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 w-full">
-          <h3 className="text-white text-xs md:text-sm font-black flex items-center gap-2"><Radio size={18} className="text-blue-500 shrink-0" /> SYSTEM STATUS</h3>
-          <div className="space-y-3">
-             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
-                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">WebSockets (Chat)</span>
-                <span className="text-[10px] md:text-xs text-green-500 font-black flex items-center gap-2">ONLINE <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div></span>
-             </div>
-             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
-                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TTS Engine</span>
-                <span className="text-[10px] md:text-xs text-green-500 font-black">BEREIT</span>
-             </div>
-             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
-                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TikTok API</span>
-                <span className="text-[10px] md:text-xs text-green-500 font-black">VERBUNDEN</span>
-             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [startX, setStartX] = useState(0);
-
-    useEffect(() => {
-        if (videoRef.current && stream) {
-            videoRef.current.srcObject = stream;
-        }
-    }, [stream]);
-
-    return (
-        <div 
-            onPointerDown={(e) => { e.stopPropagation(); setStartX(e.clientX); }} 
-            onPointerUp={(e) => { 
-                e.stopPropagation(); 
-                if(Math.abs(e.clientX - startX) < 15) onClick(); 
-            }}
-            className="relative flex flex-col items-center gap-3 shrink-0 group transition-all duration-300 pointer-events-auto cursor-pointer"
-        >
-            <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${isActive ? 'border-green-500 scale-110 shadow-[0_0_20px_rgba(34,197,94,0.5)]' : 'border-white/10 scale-100 opacity-60 group-hover:opacity-100'}`}>
-                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ filter: filterCss }} />
-            </div>
-            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors drop-shadow-md ${isActive ? 'text-green-500' : 'text-zinc-400 group-hover:text-white'}`}>{name}</span>
-        </div>
-    );
 }
 
 function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
@@ -987,7 +977,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
   );
 }
 
-function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
+function ModuleSpotify({ isConnected, baseUrl, config, setConfig, overlayKey }: any) {
   const [track, setTrack] = useState<any>(null);
   const [loading, setLoading] = useState(isConnected);
   const [rtToken, setRtToken] = useState("");
@@ -999,7 +989,7 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig }: any) {
     }
   }, [isConnected]);
 
-  const overlayLink = rtToken ? `${baseUrl}/spotify-overlay?rt=${rtToken}` : `${baseUrl}/spotify-overlay (Bitte Spotify Re-Connecten!)`;
+  const overlayLink = rtToken ? `${baseUrl}/spotify-overlay?rt=${rtToken}&k=${overlayKey}` : `${baseUrl}/spotify-overlay (Bitte Spotify Re-Connecten!)`;
 
   useEffect(() => {
     if (!isConnected) return;
