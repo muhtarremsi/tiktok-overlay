@@ -535,6 +535,56 @@ function ModuleLikes({ targetUser, baseUrl, overlayKey, setOverlayKey, widgetCon
   );
 }
 
+function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setActiveView }: any) {
+  return (
+    <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-5xl mx-auto space-y-6 md:space-y-8 uppercase italic font-bold">
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-12 rounded-3xl space-y-4 relative overflow-hidden shadow-2xl w-full">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-500/10 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+        <h2 className="text-2xl md:text-5xl text-white font-black tracking-tighter relative z-10 break-words">WILLKOMMEN ZURÜCK</h2>
+        <p className="text-[10px] md:text-xs text-zinc-400 not-italic font-medium relative z-10 max-w-lg leading-relaxed">
+          Dein zentrales Control Panel für interaktive TikTok Live Streams. Konfiguriere deine Overlays oder starte den Mobile IRL Modus.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 w-full">
+        <InfoCard label="LIVE TARGET" value={targetUser ? `@${targetUser}` : "NICHT GESETZT"} color={targetUser ? "text-green-500" : "text-red-500"} />
+        <InfoCard label="SPOTIFY API" value={isSpotifyConnected ? "VERBUNDEN" : "OFFLINE"} color={isSpotifyConnected ? "text-[#1DB954]" : "text-zinc-500"} />
+        <InfoCard label="VIDEO TRIGGERS" value={ttvCount.toString()} color="text-blue-500" />
+        <InfoCard label="SOUND ALERTS" value={soundCount.toString()} color="text-purple-500" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+        <div className="bg-black/50 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 w-full">
+          <h3 className="text-white text-xs md:text-sm font-black flex items-center gap-2"><Zap size={18} className="text-yellow-500 shrink-0" /> QUICK START GUIDE</h3>
+          <div className="space-y-4 text-[10px] md:text-xs text-zinc-400 not-italic font-medium">
+            <div className="flex gap-3"><span className="text-green-500 font-black">1.</span><p>Trage dein <strong>Live Target</strong> oben links in die Seitenleiste ein, damit der Chat gelesen wird.</p></div>
+            <div className="flex gap-3"><span className="text-green-500 font-black">2.</span><p>Erstelle <button onClick={() => setActiveView('ttv')} className="text-white underline hover:text-green-500">Video-Triggers</button> oder <button onClick={() => setActiveView('sounds')} className="text-white underline hover:text-green-500">Sound-Alerts</button>.</p></div>
+            <div className="flex gap-3"><span className="text-green-500 font-black">3.</span><p>Kopiere den generierten <strong>OBS Link</strong> aus den Modulen als Browser-Quelle in dein Stream-Programm.</p></div>
+          </div>
+        </div>
+
+        <div className="bg-black/50 border border-white/5 p-6 md:p-8 rounded-3xl space-y-6 w-full">
+          <h3 className="text-white text-xs md:text-sm font-black flex items-center gap-2"><Radio size={18} className="text-blue-500 shrink-0" /> SYSTEM STATUS</h3>
+          <div className="space-y-3">
+             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
+                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">WebSockets (Chat)</span>
+                <span className="text-[10px] md:text-xs text-green-500 font-black flex items-center gap-2">ONLINE <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div></span>
+             </div>
+             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
+                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TTS Engine</span>
+                <span className="text-[10px] md:text-xs text-green-500 font-black">BEREIT</span>
+             </div>
+             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-[#0c0c0e] p-4 rounded-xl border border-white/5 gap-2">
+                <span className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-widest">TikTok API</span>
+                <span className="text-[10px] md:text-xs text-green-500 font-black">VERBUNDEN</span>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
