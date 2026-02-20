@@ -5,6 +5,17 @@ import { Heart, Loader2, ShieldAlert } from "lucide-react";
 
 function LikeGoalContent() {
 
+  useEffect(() => {
+    // Erzwinge, dass das Dokument nur so groß ist wie der Inhalt
+    document.documentElement.style.width = 'max-content';
+    document.documentElement.style.height = 'max-content';
+    document.body.style.width = 'max-content';
+    document.body.style.height = 'max-content';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+  }, []);
+
+
   // --- OBS ULTIMATE FIX ---
   useEffect(() => {
     // 1. Hintergrund der gesamten Webseite in OBS erzwingen
