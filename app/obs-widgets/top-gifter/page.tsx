@@ -22,7 +22,7 @@ function TopGifterContent() {
                 // Finde den äußeren Container (meistens fixed bottom) und verstecke ihn
                 while (parent && parent.tagName !== 'BODY') {
                     const style = window.getComputedStyle(parent);
-                    if (style.position === 'fixed' || style.bottom === '0px' || style.zIndex > 20) {
+                    if (style.position === 'fixed' || style.bottom === '0px' || parseInt(style.zIndex || '0', 10) > 20) {
                         parent.style.setProperty('display', 'none', 'important');
                         parent.style.setProperty('opacity', '0', 'important');
                     }
