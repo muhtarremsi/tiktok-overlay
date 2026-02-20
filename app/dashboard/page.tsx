@@ -362,7 +362,7 @@ function DashboardContent() {
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
           {activeView === "camera" && <ModuleCamera targetUser={targetUser} chatMessages={chatMessages} likesMap={likesMap} giftsList={giftsList} chatStatus={chatStatus} spotifyConfig={spotifyConfig} setSpotifyConfig={setSpotifyConfig} isSpotifyConnected={isSpotifyConnected} />}
-          {activeView === "likes" && <ModuleLikes />}
+          {activeView === "likes" && <ModuleLikes targetUser={targetUser} baseUrl={baseUrl} />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
           {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} />}
           {activeView === "settings" && <ModuleSettings hasConsent={hasFunctionalConsent} isConnected={isTikTokConnected} onConnect={handleTikTokConnect} isSpotifyConnected={isSpotifyConnected} onSpotifyConnect={handleSpotifyConnect} quality={perfQuality} setQuality={setPerfQuality} version={version} expiry={expiryDate} />}
@@ -425,20 +425,43 @@ function InfoCard({ label, value, color = "text-white" }: any) {
 }
 
 
-function ModuleLikes() {
+function ModuleLikes({ targetUser, baseUrl }: any) {
+  const topGifterUrl = `${baseUrl}/obs-widgets/top-gifter?u=${targetUser || 'username'}`;
+  const likeGoalUrl = `${baseUrl}/obs-widgets/like-goal?u=${targetUser || 'username'}&goal=10000`;
+
   return (
     <div className="p-4 sm:p-6 md:p-10 w-full min-w-0 max-w-4xl mx-auto space-y-8 uppercase italic font-bold">
-      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-2xl space-y-6 w-full min-w-0">
-          <h3 className="text-white text-xs not-italic flex items-center gap-2"><Heart size={14} className="text-pink-500" /> Like & Gift Tracker Settings</h3>
-          <p className="text-[10px] text-zinc-500 not-italic leading-relaxed">Konfiguriere hier, wie Likes und Geschenke im Main-Overlay (OBS) angezeigt werden sollen. Die Live-Erfassung im IRL Kamera-Modul läuft vollautomatisch im Hintergrund!</p>
-          <div className="p-4 bg-black rounded-xl border border-white/5 space-y-4">
-              <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-white">Minimum Likes für Highlight</span>
-                  <input type="number" defaultValue="50" className="w-16 bg-zinc-900 border border-zinc-800 rounded p-1 text-center text-white outline-none" />
+      <div className="bg-[#0c0c0e] border border-zinc-800 p-6 md:p-8 rounded-3xl space-y-8 w-full min-w-0 shadow-xl">
+          <div>
+              <h3 className="text-white text-base md:text-lg not-italic flex items-center gap-3 mb-2"><Monitor size={20} className="text-blue-500" /> OBS Live Widgets</h3>
+              <p className="text-[10px] text-zinc-500 not-italic leading-relaxed max-w-2xl">Füge diese transparenten URLs als "Browserquelle" in OBS ein. Die Daten synchronisieren sich vollautomatisch mit deinem TikTok Live-Stream!</p>
+          </div>
+          <div className="grid grid-cols-1 gap-6">
+              <div className="bg-black/50 border border-white/5 p-5 rounded-2xl flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                      <div className="p-3 bg-yellow-500/10 rounded-xl"><Trophy size={18} className="text-yellow-500" /></div>
+                      <div>
+                          <h4 className="text-white text-xs font-black">Top Gifter Widget</h4>
+                          <p className="text-[9px] text-zinc-500 not-italic mt-0.5">Zeigt das Profilbild und den Namen deines besten Supporters an.</p>
+                      </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1 bg-black p-3 rounded-xl border border-white/10 overflow-x-auto scrollbar-hide"><code className="text-[10px] font-mono text-zinc-400 whitespace-nowrap">{topGifterUrl}</code></div>
+                      <button onClick={() => navigator.clipboard.writeText(topGifterUrl)} className="bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"><Copy size={14}/> Kopieren</button>
+                  </div>
               </div>
-              <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-white">Geschenke Sound-Alerts (Overlay)</span>
-                  <input type="checkbox" defaultChecked className="w-4 h-4 accent-yellow-500 cursor-pointer" />
+              <div className="bg-black/50 border border-white/5 p-5 rounded-2xl flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                      <div className="p-3 bg-pink-500/10 rounded-xl"><Heart size={18} className="text-pink-500" /></div>
+                      <div>
+                          <h4 className="text-white text-xs font-black">Like Goal Widget</h4>
+                          <p className="text-[9px] text-zinc-500 not-italic mt-0.5">Ein visuelles Fortschrittsbalken-Widget für dein 10.000 Likes Ziel.</p>
+                      </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex-1 bg-black p-3 rounded-xl border border-white/10 overflow-x-auto scrollbar-hide"><code className="text-[10px] font-mono text-zinc-400 whitespace-nowrap">{likeGoalUrl}</code></div>
+                      <button onClick={() => navigator.clipboard.writeText(likeGoalUrl)} className="bg-white text-black px-6 py-3 rounded-xl text-[10px] font-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"><Copy size={14}/> Kopieren</button>
+                  </div>
               </div>
           </div>
       </div>
@@ -545,7 +568,6 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
   const [activeFilter, setActiveFilter] = useState("");
   const [cameraZoom, setCameraZoom] = useState(1);
 
-  // NEUE TABS & SCROLL LOGIK
   const [activeTab, setActiveTab] = useState<'chat' | 'likes' | 'gifts'>('chat');
   const [autoScroll, setAutoScroll] = useState(true);
   const [now, setNow] = useState(Date.now());
@@ -564,9 +586,20 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
   const [track, setTrack] = useState<any>(null);
   const [spotifyState, setSpotifyState] = useState({ x: 20, y: 120, w: 200, h: 64, scale: spotifyConfig.cameraScale / 100 || 1 });
   const [chatState, setChatState] = useState({ x: 20, y: 400, w: 320, h: 280, scale: 1 });
-
   const [error, setError] = useState("");
   const [cameraCount, setCameraCount] = useState(0);
+
+  // NEUE FEATURES: TTS Config, Stream Stats Tracker, und Summary Modal
+  const [ttsConfig, setTtsConfig] = useState({ enabled: true, minDiamonds: 50 });
+  const streamStatsRef = useRef({ likes: 0, gifts: 0, topGifter: { name: "", diamonds: 0 } });
+  const [streamSummary, setStreamSummary] = useState<any>(null);
+
+  const resetLayout = () => {
+      setSpotifyState({ x: 20, y: 120, w: 200, h: 64, scale: spotifyConfig.cameraScale / 100 || 1 });
+      let ch = window.innerHeight;
+      if (cameraContainerRef.current) ch = cameraContainerRef.current.clientHeight;
+      setChatState({ x: 20, y: Math.max(20, ch - 280 - 20), w: 320, h: 280, scale: 1 });
+  };
 
   useEffect(() => {
       const getCameraCount = async () => {
@@ -581,19 +614,16 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
   }, []);
 
   useEffect(() => {
-      const setInitialPos = () => {
-          let ch = window.innerHeight;
-          if (cameraContainerRef.current) ch = cameraContainerRef.current.clientHeight;
-          setChatState(prev => ({ ...prev, y: Math.max(20, ch - prev.h - 20) }));
-      };
       if (viewState === 'fullscreen') {
-          setInitialPos();
-          setTimeout(setInitialPos, 200); 
+          resetLayout();
+          setTimeout(resetLayout, 200); 
       }
   }, [viewState]);
 
   const startStream = async () => {
     setError("");
+    setStreamSummary(null); // Reset falls vorheriges PopUp noch da
+    streamStatsRef.current = { likes: 0, gifts: 0, topGifter: { name: "", diamonds: 0 } }; // Reset Stats
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
       setActiveStream(stream);
@@ -613,7 +643,6 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
     setCameraZoom(1);
   };
 
-  // SMARTER AUTO-SCROLL FIX: Erhält Scroll-Position, wenn unsichtbar!
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
       const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
       const isBottom = scrollHeight - scrollTop - clientHeight < 15;
@@ -649,106 +678,83 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
     return () => clearInterval(interval);
   }, [isSpotifyConnected, spotifyConfig.showInCamera, viewState]);
 
-  const closeFiltersMenu = () => {
-      setIsClosingFilters(true);
-      setTimeout(() => {
-          setShowFilters(false);
-          setIsClosingFilters(false);
-      }, 300); 
-  };
+  // DER OFFLINE & STATS TRACKER HOOK
+  useEffect(() => {
+      // Wenn der Status aus DashboardContent auf Offline springt, triggere das Stream Summary!
+      if (chatStatus === 'Stream wurde beendet.') {
+          setStreamSummary({...streamStatsRef.current});
+      }
+      
+      // Lausch auf das allerneueste Gift/Like für die Statistik und das TTS!
+      if (giftsList.length > 0) {
+          const lastGift = giftsList[giftsList.length - 1];
+          // Verhindere doppeltes Zählen (Hack für React Strict Mode)
+          if (Date.now() - (lastGift.id as number) < 1000) {
+              const totalVal = lastGift.diamondCount * (lastGift.amount || 1);
+              streamStatsRef.current.gifts += (lastGift.amount || 1);
+              if (totalVal > streamStatsRef.current.topGifter.diamonds) {
+                  streamStatsRef.current.topGifter = { name: lastGift.nickname, diamonds: totalVal };
+              }
+              // TTS VORLESEN
+              if (ttsConfig.enabled && totalVal >= ttsConfig.minDiamonds) {
+                  window.speechSynthesis.cancel();
+                  const msg = new SpeechSynthesisUtterance(`Danke an ${lastGift.nickname} für das Geschenk!`);
+                  window.speechSynthesis.speak(msg);
+              }
+          }
+      }
+  }, [chatStatus, giftsList]);
 
-  const activePointers = useRef(new Map());
-  const dragInfo = useRef<any>(null);
-  const hasDragged = useRef(false);
-  const initialPinchDist = useRef<number | null>(null);
-  const targetType = useRef<string | null>(null);
-  const initialScale = useRef<number | null>(null);
+  // Likes in Ref speichern
+  useEffect(() => {
+      const vals = Object.values(likesMap);
+      let total = 0;
+      vals.forEach((v:any) => total += v.count);
+      streamStatsRef.current.likes = total;
+  }, [likesMap]);
+
+  const closeFiltersMenu = () => { setIsClosingFilters(true); setTimeout(() => { setShowFilters(false); setIsClosingFilters(false); }, 300); };
+  const activePointers = useRef(new Map()); const dragInfo = useRef<any>(null); const hasDragged = useRef(false);
+  const initialPinchDist = useRef<number | null>(null); const targetType = useRef<string | null>(null); const initialScale = useRef<number | null>(null);
 
   const handleElementPointerDown = (e: React.PointerEvent, type: string, action: string) => {
-      e.stopPropagation(); 
-      hasDragged.current = false;
-      if (action === 'drag' || action === 'resize') {
-          dragInfo.current = {
-              id: e.pointerId, type, action,
-              startX: e.clientX, startY: e.clientY,
-              initial: type === 'spotify' ? spotifyState : chatState
-          };
-      }
+      e.stopPropagation(); hasDragged.current = false;
+      if (action === 'drag' || action === 'resize') dragInfo.current = { id: e.pointerId, type, action, startX: e.clientX, startY: e.clientY, initial: type === 'spotify' ? spotifyState : chatState };
       activePointers.current.set(e.pointerId, e);
-      if (activePointers.current.size === 2) {
-           dragInfo.current = null; 
-           const pts = Array.from(activePointers.current.values());
-           const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
-           initialPinchDist.current = dist;
-           targetType.current = type;
-           initialScale.current = type === 'spotify' ? spotifyState.scale : chatState.scale;
-      }
+      if (activePointers.current.size === 2) { dragInfo.current = null; const pts = Array.from(activePointers.current.values()); const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY); initialPinchDist.current = dist; targetType.current = type; initialScale.current = type === 'spotify' ? spotifyState.scale : chatState.scale; }
   };
 
   const handleRootPointerDown = (e: React.PointerEvent) => { 
-      if (showSettings || showFilters) return; 
-      hasDragged.current = false;
-      activePointers.current.set(e.pointerId, e);
-      if (activePointers.current.size === 2) {
-          if (holdTimer.current) clearTimeout(holdTimer.current);
-          const pts = Array.from(activePointers.current.values());
-          const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
-          initialPinchDist.current = dist;
-          targetType.current = 'camera';
-          initialScale.current = cameraZoom;
-          return; 
-      }
+      if (showSettings || showFilters || streamSummary) return; 
+      hasDragged.current = false; activePointers.current.set(e.pointerId, e);
+      if (activePointers.current.size === 2) { if (holdTimer.current) clearTimeout(holdTimer.current); const pts = Array.from(activePointers.current.values()); const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY); initialPinchDist.current = dist; targetType.current = 'camera'; initialScale.current = cameraZoom; return; }
       holdTimer.current = setTimeout(() => { setIsHolding(true); }, 250); 
   };
 
   const handleGlobalPointerMove = (e: React.PointerEvent) => {
       if (activePointers.current.has(e.pointerId)) activePointers.current.set(e.pointerId, e);
       if (activePointers.current.size === 2 && initialPinchDist.current) {
-          hasDragged.current = true;
-          const pts = Array.from(activePointers.current.values());
-          const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY);
-          const scaleChange = dist / initialPinchDist.current;
+          hasDragged.current = true; const pts = Array.from(activePointers.current.values()); const dist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY); const scaleChange = dist / initialPinchDist.current;
           if (targetType.current === 'spotify') setSpotifyState(prev => ({...prev, scale: Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3)}));
           else if (targetType.current === 'chat') setChatState(prev => ({...prev, scale: Math.min(Math.max(0.4, (initialScale.current || 1) * scaleChange), 3)}));
           else if (targetType.current === 'camera') setCameraZoom(Math.min(Math.max(1, (initialScale.current || 1) * scaleChange), 5)); 
           return;
       }
-
       if (dragInfo.current && dragInfo.current.id === e.pointerId) {
-          const { type, action, startX, startY, initial } = dragInfo.current;
-          const dx = e.clientX - startX;
-          const dy = e.clientY - startY;
+          const { type, action, startX, startY, initial } = dragInfo.current; const dx = e.clientX - startX; const dy = e.clientY - startY;
           if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged.current = true;
-          
           if (action === 'drag') {
-              let cw = window.innerWidth;
-              let ch = window.innerHeight;
-              if (cameraContainerRef.current) {
-                  const rect = cameraContainerRef.current.getBoundingClientRect();
-                  cw = rect.width;
-                  ch = rect.height;
-              }
-              const scale = type === 'spotify' ? spotifyState.scale : chatState.scale;
-              const approxW = (type === 'spotify' ? 200 : chatState.w) * scale;
-              const approxH = (type === 'spotify' ? 64 : chatState.h) * scale;
+              let cw = window.innerWidth; let ch = window.innerHeight;
+              if (cameraContainerRef.current) { const rect = cameraContainerRef.current.getBoundingClientRect(); cw = rect.width; ch = rect.height; }
+              const scale = type === 'spotify' ? spotifyState.scale : chatState.scale; const approxW = (type === 'spotify' ? 200 : chatState.w) * scale; const approxH = (type === 'spotify' ? 64 : chatState.h) * scale;
               let nx = initial.x + dx; let ny = initial.y + dy;
-              
-              if (nx < 20) nx = 20; if (ny < 20) ny = 20;
-              if (nx > cw - approxW - 20) nx = cw - approxW - 20;
-              if (ny > ch - approxH - 20) ny = ch - approxH - 20;
-
-              if(type === 'spotify') setSpotifyState(prev => ({...prev, x: nx, y: ny}));
-              if(type === 'chat') setChatState(prev => ({...prev, x: nx, y: ny}));
+              if (nx < 20) nx = 20; if (ny < 20) ny = 20; if (nx > cw - approxW - 20) nx = cw - approxW - 20; if (ny > ch - approxH - 20) ny = ch - approxH - 20;
+              if(type === 'spotify') setSpotifyState(prev => ({...prev, x: nx, y: ny})); if(type === 'chat') setChatState(prev => ({...prev, x: nx, y: ny}));
           } else if (action === 'resize') {
               let cw = window.innerWidth; let ch = window.innerHeight;
-              if (cameraContainerRef.current) {
-                  const rect = cameraContainerRef.current.getBoundingClientRect();
-                  cw = rect.width; ch = rect.height;
-              }
-              let nw = Math.max(200, initial.w + dx);
-              let nh = Math.max(150, initial.h + dy);
-              if (chatState.x + nw * chatState.scale > cw) nw = (cw - chatState.x) / chatState.scale;
-              if (chatState.y + nh * chatState.scale > ch) nh = (ch - chatState.y) / chatState.scale;
+              if (cameraContainerRef.current) { const rect = cameraContainerRef.current.getBoundingClientRect(); cw = rect.width; ch = rect.height; }
+              let nw = Math.max(200, initial.w + dx); let nh = Math.max(150, initial.h + dy);
+              if (chatState.x + nw * chatState.scale > cw) nw = (cw - chatState.x) / chatState.scale; if (chatState.y + nh * chatState.scale > ch) nh = (ch - chatState.y) / chatState.scale;
               if(type === 'chat') setChatState(prev => ({...prev, w: nw, h: nh}));
           }
       }
@@ -763,7 +769,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
   const handleRootPointerUp = (e: React.PointerEvent) => {
       handleGlobalPointerUp(e); 
       if (hasDragged.current) { hasDragged.current = false; return; }
-      if (showSettings || showFilters) {
+      if (showSettings || showFilters || streamSummary) {
           if(showSettings) setShowSettings(false);
           if(showFilters && !isClosingFilters) closeFiltersMenu();
           return;
@@ -772,26 +778,12 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
       if (isHolding) { setIsHolding(false); } else if (activePointers.current.size === 0) { setShowUI(prev => !prev); }
   };
   
-  const handleRootPointerCancel = (e: React.PointerEvent) => {
-      handleGlobalPointerUp(e);
-      if (holdTimer.current) clearTimeout(holdTimer.current);
-      if (isHolding) setIsHolding(false);
-  };
-
+  const handleRootPointerCancel = (e: React.PointerEvent) => { handleGlobalPointerUp(e); if (holdTimer.current) clearTimeout(holdTimer.current); if (isHolding) setIsHolding(false); };
   const stopEvent = (e: React.SyntheticEvent) => { e.stopPropagation(); };
 
   const filterDrag = useRef({ isDown: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0 });
-  const handleFilterPointerDown = (e: React.PointerEvent) => {
-      e.stopPropagation();
-      filterDrag.current = { isDown: true, startX: e.pageX - (filtersScrollRef.current?.offsetLeft || 0), startY: e.pageY - (filtersScrollRef.current?.offsetTop || 0), scrollLeft: filtersScrollRef.current?.scrollLeft || 0, scrollTop: filtersScrollRef.current?.scrollTop || 0 };
-  };
-  const handleFilterPointerMove = (e: React.PointerEvent) => {
-      if (!filterDrag.current.isDown || !filtersScrollRef.current) return;
-      e.preventDefault();
-      const x = e.pageX - filtersScrollRef.current.offsetLeft; const y = e.pageY - filtersScrollRef.current.offsetTop;
-      filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - ((x - filterDrag.current.startX) * 2);
-      filtersScrollRef.current.scrollTop = filterDrag.current.scrollTop - ((y - filterDrag.current.startY) * 2);
-  };
+  const handleFilterPointerDown = (e: React.PointerEvent) => { e.stopPropagation(); filterDrag.current = { isDown: true, startX: e.pageX - (filtersScrollRef.current?.offsetLeft || 0), startY: e.pageY - (filtersScrollRef.current?.offsetTop || 0), scrollLeft: filtersScrollRef.current?.scrollLeft || 0, scrollTop: filtersScrollRef.current?.scrollTop || 0 }; };
+  const handleFilterPointerMove = (e: React.PointerEvent) => { if (!filterDrag.current.isDown || !filtersScrollRef.current) return; e.preventDefault(); const x = e.pageX - filtersScrollRef.current.offsetLeft; const y = e.pageY - filtersScrollRef.current.offsetTop; filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - ((x - filterDrag.current.startX) * 2); filtersScrollRef.current.scrollTop = filterDrag.current.scrollTop - ((y - filterDrag.current.startY) * 2); };
   const handleFilterPointerUp = (e: React.PointerEvent) => { e.stopPropagation(); filterDrag.current.isDown = false; };
 
   if (viewState === 'intro') {
@@ -804,22 +796,21 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
             <div className="space-y-4 bg-black/50 p-5 md:p-6 rounded-2xl border border-white/5">
                 <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">1.</span><span className="leading-relaxed"><strong>Einmal tippen:</strong> Blendet das gesamte UI sofort aus/ein.</span></div>
                 <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">2.</span><span className="leading-relaxed"><strong>Gedrückt halten:</strong> Chat poppt groß auf (Hold-to-Peek).</span></div>
-                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed"><strong>Gestik (Neu):</strong> 2-Finger Zoom und frei verschieben von Elementen!</span></div>
+                <div className="flex items-start gap-3"><span className="text-green-500 font-black mt-0.5 shrink-0">3.</span><span className="leading-relaxed"><strong>Gestik:</strong> 2-Finger Zoom und frei verschieben von Elementen!</span></div>
             </div>
           </div>
           {error && <div className="text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
           <div className="space-y-4">
               <button onClick={startStream} className="w-full bg-green-500 text-black py-4 rounded-2xl text-[11px] md:text-[12px] font-black hover:bg-green-400 transition-all shadow-[0_0_30px_rgba(34,197,94,0.2)] hover:scale-105 flex items-center justify-center gap-2"><Play size={16} fill="currentColor" /> KAMERA STARTEN</button>
-              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[9px] md:text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Ausführliche Anleitung lesen</Link>
+              <Link href="/irl-guide" className="flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-[9px] md:text-[10px] font-bold uppercase tracking-widest pt-2"><HelpCircle size={14} /> Anleitung lesen</Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // FIX: isSpotifyVisible ist entkoppelt von isHolding (Peek)! Es verschwindet im Peek-Modus!
-  const isSpotifyVisible = spotifyConfig.showInCamera && track && (showUI || spotifyConfig.alwaysOn) && !showFilters && !showSettings;
-  const isChatVisible = (showUI || isHolding || ghostMode) && !showFilters && !showSettings;
+  const isSpotifyVisible = spotifyConfig.showInCamera && track && (showUI || spotifyConfig.alwaysOn) && !showFilters && !showSettings && !streamSummary;
+  const isChatVisible = (showUI || isHolding || ghostMode) && !showFilters && !showSettings && !streamSummary;
 
   return (
     <div 
@@ -837,11 +828,43 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
             ref={videoRef} 
             autoPlay playsInline muted 
             className="absolute top-0 left-0 w-full h-full object-cover outline-none border-none" 
-            style={{ 
-                filter: activeFilter || 'none',
-                transform: `scaleX(${mirror ? '-1' : '1'}) scale(${cameraZoom})`
-            }} 
+            style={{ filter: activeFilter || 'none', transform: `scaleX(${mirror ? '-1' : '1'}) scale(${cameraZoom})` }} 
         />
+
+        {/* STREAM ENDE MODAL */}
+        {streamSummary && (
+            <div className="absolute inset-0 z-[200] bg-black/80 flex flex-col items-center justify-center p-6 backdrop-blur-md pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent}>
+                <div className="bg-[#0c0c0e] border border-zinc-800 p-8 rounded-3xl text-center space-y-6 max-w-sm w-full animate-in zoom-in-95 shadow-2xl">
+                    <div className="w-20 h-20 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-2"><Radio size={32} className="text-green-500" /></div>
+                    <div>
+                        <h2 className="text-2xl font-black text-white italic tracking-tighter">STREAM BEENDET</h2>
+                        <p className="text-[10px] text-zinc-500 mt-2 not-italic">Großartige Leistung! Hier ist deine Zusammenfassung:</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-black border border-white/5 p-4 rounded-2xl shadow-inner">
+                            <Heart size={20} className="text-pink-500 mx-auto mb-2" fill="currentColor" />
+                            <p className="text-xl font-black text-white not-italic">{streamSummary.likes}</p>
+                            <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Likes</p>
+                        </div>
+                        <div className="bg-black border border-white/5 p-4 rounded-2xl shadow-inner">
+                            <Gift size={20} className="text-yellow-500 mx-auto mb-2" fill="currentColor" />
+                            <p className="text-xl font-black text-white not-italic">{streamSummary.gifts}</p>
+                            <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Gifts</p>
+                        </div>
+                    </div>
+                    {streamSummary.topGifter.diamonds > 0 && (
+                        <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 p-4 rounded-2xl flex items-center justify-between">
+                            <div className="text-left min-w-0 flex-1">
+                                <p className="text-[8px] text-yellow-500 font-black uppercase tracking-widest flex items-center gap-1"><Trophy size={10}/> Top Supporter</p>
+                                <p className="text-sm font-bold text-white truncate not-italic">{streamSummary.topGifter.name}</p>
+                            </div>
+                            <span className="text-xs font-black text-yellow-500 bg-black/50 px-3 py-1 rounded-lg shrink-0 border border-yellow-500/20 shadow-md">{streamSummary.topGifter.diamonds} 💎</span>
+                        </div>
+                    )}
+                    <button onClick={() => setStreamSummary(null)} className="w-full bg-white text-black py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors">Schließen</button>
+                </div>
+            </div>
+        )}
         
         {isSpotifyVisible && (
             <div 
@@ -857,15 +880,9 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
             </div>
         )}
 
-        {/* NEUER CHAT MIT TABS: Container immer im DOM, nur Transparenz ändert sich. Behält Scroll-Pos bei! */}
         <div 
             className={`absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-all duration-300 origin-top-left ${isChatVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
-            style={{ 
-                left: chatState.x, top: chatState.y, 
-                width: chatState.w, height: chatState.h, 
-                transform: `scale(${chatState.scale})`,
-                opacity: isChatVisible ? ((ghostMode && !isHolding && !showUI) ? 0.3 : 1) : 0
-            }}
+            style={{ left: chatState.x, top: chatState.y, width: chatState.w, height: chatState.h, transform: `scale(${chatState.scale})`, opacity: isChatVisible ? ((ghostMode && !isHolding && !showUI) ? 0.3 : 1) : 0 }}
             onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'drag')}
         >
             <div className="bg-white/5 border-b border-white/5 p-2 px-3 flex items-center justify-between pointer-events-none rounded-t-2xl shrink-0">
@@ -879,73 +896,37 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
                 <button onClick={() => setActiveTab('gifts')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'gifts' ? 'text-yellow-500 border-b-2 border-yellow-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Gifts</button>
             </div>
             
-            <div 
-                className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" 
-                onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}
-            >
+            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}>
                 {activeTab === 'chat' && (
-                    <>
-                        {chatMessages.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div> : 
-                        chatMessages.map((msg: any) => (
+                    <>{chatMessages.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div> : chatMessages.map((msg: any) => (
                             <div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-2 flex gap-2 items-start">
                                 {msg.profilePictureUrl && <img src={msg.profilePictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 mt-0.5 shadow-md border border-white/10" />}
-                                <div className="flex-1 min-w-0">
-                                    <span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span>
-                                    <span className="font-medium drop-shadow-md">{msg.comment}</span>
-                                </div>
+                                <div className="flex-1 min-w-0"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>
                             </div>
                         ))}
                     </>
                 )}
-
                 {activeTab === 'likes' && (
-                    <div className="space-y-2">
-                        {sortedLikes.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Likes...</div> : 
-                        sortedLikes.map((like: any, i: number) => (
+                    <div className="space-y-2">{sortedLikes.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Likes...</div> : sortedLikes.map((like: any, i: number) => (
                             <div key={like.nickname} className="flex items-center justify-between border-b border-white/5 pb-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-zinc-500 font-black text-[10px] w-4 shrink-0">#{i+1}</span>
-                                    {like.profilePictureUrl && <img src={like.profilePictureUrl} className="w-5 h-5 rounded-full object-cover shrink-0" />}
-                                    <span className="font-bold text-white text-[11px] truncate">{like.nickname}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                                    <span className="font-black text-pink-400 text-[10px]">{like.count}</span>
-                                    <Heart size={12} fill="currentColor" className={now - like.lastLikeTime < 4000 ? "text-pink-500 animate-pulse drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" : "text-zinc-700"} />
-                                </div>
+                                <div className="flex items-center gap-2 min-w-0"><span className="text-zinc-500 font-black text-[10px] w-4 shrink-0">#{i+1}</span>{like.profilePictureUrl && <img src={like.profilePictureUrl} className="w-5 h-5 rounded-full object-cover shrink-0" />}<span className="font-bold text-white text-[11px] truncate">{like.nickname}</span></div>
+                                <div className="flex items-center gap-1.5 shrink-0 pl-2"><span className="font-black text-pink-400 text-[10px]">{like.count}</span><Heart size={12} fill="currentColor" className={now - like.lastLikeTime < 4000 ? "text-pink-500 animate-pulse drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" : "text-zinc-700"} /></div>
                             </div>
                         ))}
                     </div>
                 )}
-
                 {activeTab === 'gifts' && (
-                    <div className="space-y-2">
-                        {giftsList.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Geschenke...</div> : 
-                        giftsList.map((gift: any) => (
+                    <div className="space-y-2">{giftsList.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Geschenke...</div> : giftsList.map((gift: any) => (
                             <div key={gift.id} className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/20 p-2 rounded-lg">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    {gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="font-bold text-white text-[10px] truncate">{gift.nickname}</span>
-                                        <span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0 pl-2">
-                                    {gift.giftPictureUrl && <img src={gift.giftPictureUrl} className="w-6 h-6 object-contain drop-shadow-md" />}
-                                    <span className="font-black text-yellow-500 text-[10px]">x{gift.amount}</span>
-                                </div>
+                                <div className="flex items-center gap-2 min-w-0">{gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}<div className="flex flex-col min-w-0"><span className="font-bold text-white text-[10px] truncate">{gift.nickname}</span><span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span></div></div>
+                                <div className="flex items-center gap-1 shrink-0 pl-2">{gift.giftPictureUrl && <img src={gift.giftPictureUrl} className="w-6 h-6 object-contain drop-shadow-md" />}<span className="font-black text-yellow-500 text-[10px]">x{gift.amount}</span></div>
                             </div>
                         ))}
                     </div>
                 )}
                 <div ref={chatScrollRef} />
             </div>
-
-            <div 
-                className="absolute bottom-0 right-0 w-8 h-8 cursor-nwse-resize flex items-end justify-end p-2 opacity-30 hover:opacity-100 z-30"
-                onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'resize')}
-            >
-                <div className="w-3 h-3 border-r-2 border-b-2 border-white/50 rounded-br-sm pointer-events-none" />
-            </div>
+            <div className="absolute bottom-0 right-0 w-8 h-8 cursor-nwse-resize flex items-end justify-end p-2 opacity-30 hover:opacity-100 z-30" onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'resize')}><div className="w-3 h-3 border-r-2 border-b-2 border-white/50 rounded-br-sm pointer-events-none" /></div>
         </div>
 
         {showFilters && (
@@ -954,18 +935,8 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
                 <div className="w-full pb-8 md:pb-0 md:w-auto md:h-full flex justify-center md:items-center md:pr-6 pointer-events-auto" onPointerDown={stopEvent}>
                     <div className="flex flex-col md:flex-row items-center gap-6 w-full max-w-sm md:max-w-none md:h-full md:max-h-[80vh]">
                         <button onClick={(e) => { stopEvent(e); closeFiltersMenu(); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-white/10 backdrop-blur-md p-4 rounded-full border border-white/20 text-white hover:bg-white/30 transition-all shadow-xl hover:scale-110 shrink-0 order-last md:order-first"><X size={20}/></button>
-                        <div 
-                            ref={filtersScrollRef}
-                            onPointerDown={handleFilterPointerDown}
-                            onPointerMove={handleFilterPointerMove}
-                            onPointerUp={handleFilterPointerUp}
-                            onPointerLeave={handleFilterPointerUp}
-                            onWheel={(e) => { if (filtersScrollRef.current) { filtersScrollRef.current.scrollTop += e.deltaY; filtersScrollRef.current.scrollLeft += e.deltaY; } }}
-                            className="flex flex-row md:flex-col gap-6 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto w-full md:w-auto md:h-full px-10 py-4 md:px-4 md:py-10 snap-x md:snap-y snap-mandatory scrollbar-hide items-center justify-start cursor-grab active:cursor-grabbing filter-mask" 
-                        >
-                            {CAMERA_FILTERS.map(f => (
-                                <LiveFilterPreview key={f.id} stream={activeStream} filterCss={f.css} isActive={activeFilter === f.css} onClick={() => { setActiveFilter(f.css); }} name={f.name} />
-                            ))}
+                        <div ref={filtersScrollRef} onPointerDown={handleFilterPointerDown} onPointerMove={handleFilterPointerMove} onPointerUp={handleFilterPointerUp} onPointerLeave={handleFilterPointerUp} onWheel={(e) => { if (filtersScrollRef.current) { filtersScrollRef.current.scrollTop += e.deltaY; filtersScrollRef.current.scrollLeft += e.deltaY; } }} className="flex flex-row md:flex-col gap-6 overflow-x-auto md:overflow-x-hidden md:overflow-y-auto w-full md:w-auto md:h-full px-10 py-4 md:px-4 md:py-10 snap-x md:snap-y snap-mandatory scrollbar-hide items-center justify-start cursor-grab active:cursor-grabbing filter-mask" >
+                            {CAMERA_FILTERS.map(f => (<LiveFilterPreview key={f.id} stream={activeStream} filterCss={f.css} isActive={activeFilter === f.css} onClick={() => { setActiveFilter(f.css); }} name={f.name} />))}
                         </div>
                     </div>
                 </div>
@@ -982,11 +953,21 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
             
             {showSettings && (
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 flex items-center justify-center pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent}>
-                    <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl w-80 space-y-6 shadow-2xl">
-                        <div className="flex justify-between items-center"><h3 className="text-white text-xs font-black flex items-center gap-2"><Settings size={16}/> IRL Einstellungen</h3><button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white"><X size={20}/></button></div>
+                    <div className="bg-[#0c0c0e] border border-zinc-800 p-6 rounded-3xl w-80 shadow-2xl">
+                        <div className="flex justify-between items-center mb-6"><h3 className="text-white text-xs font-black flex items-center gap-2"><Settings size={16}/> IRL Einstellungen</h3><button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white"><X size={20}/></button></div>
+                        
                         <div className="space-y-4 not-italic">
                             <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5"><span className="text-[10px] text-white font-bold flex items-center gap-2 uppercase tracking-wider"><SpotifyLogo className="w-4 h-4 text-[#1DB954]"/> Player zeigen</span><input type="checkbox" checked={spotifyConfig.showInCamera} onChange={e => setSpotifyConfig({...spotifyConfig, showInCamera: e.target.checked})} className="w-4 h-4 accent-[#1DB954]" /></div>
                             <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5"><div className="space-y-1"><span className="text-[10px] text-white font-bold block uppercase tracking-wider">Immer sichtbar</span><span className="text-[8px] text-zinc-500 font-bold block">Auch wenn UI versteckt</span></div><input type="checkbox" checked={spotifyConfig.alwaysOn} onChange={e => setSpotifyConfig({...spotifyConfig, alwaysOn: e.target.checked})} className="w-4 h-4 accent-[#1DB954]" /></div>
+                            
+                            {/* TTS & RESET EINSTELLUNGEN */}
+                            <div className="pt-2 mt-2 border-t border-white/5 space-y-4">
+                                <div className="flex items-center justify-between bg-black/50 p-4 rounded-xl border border-white/5">
+                                    <div className="space-y-1"><span className="text-[10px] text-white font-bold block uppercase tracking-wider">Auto-TTS Gifts</span><span className="text-[8px] text-yellow-500 font-bold block uppercase">Ab {ttsConfig.minDiamonds} Münzen</span></div>
+                                    <input type="checkbox" checked={ttsConfig.enabled} onChange={e => setTtsConfig({...ttsConfig, enabled: e.target.checked})} className="w-4 h-4 accent-yellow-500" />
+                                </div>
+                                <button onClick={(e) => { stopEvent(e); resetLayout(); setShowSettings(false); }} className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"><RefreshCw size={14}/> Layout Zurücksetzen</button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.030188";
-export const APP_VERSION_LABEL = "Version Controller";
+export const APP_VERSION = "0.030189";
+export const APP_VERSION_LABEL = "Pro Streamer Update";
