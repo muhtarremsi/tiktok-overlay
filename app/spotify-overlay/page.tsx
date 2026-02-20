@@ -11,10 +11,46 @@ export default function SpotifyOverlay() {
 }
 
 function OverlayContent() {
+
+  // --- OBS ULTIMATE FIX ---
+  useEffect(() => {
+    // 1. Hintergrund der gesamten Webseite in OBS erzwingen
+    document.documentElement.style.setProperty('background', 'transparent', 'important');
+    document.documentElement.style.setProperty('background-color', 'transparent', 'important');
+    document.body.style.setProperty('background', 'transparent', 'important');
+    document.body.style.setProperty('background-color', 'transparent', 'important');
+
+    // 2. Cookie Banner zerstören (Aggressiv)
+    const nukeCookies = () => {
+        const divs = document.getElementsByTagName('div');
+        for (let i = 0; i < divs.length; i++) {
+            if (divs[i].innerText && (divs[i].innerText.includes('DATENSCHUTZ & COOKIES') || divs[i].innerText.includes('ALLE AKZEPTIEREN'))) {
+                let parent = divs[i];
+                // Finde den äußeren Container (meistens fixed bottom) und verstecke ihn
+                while (parent && parent.tagName !== 'BODY') {
+                    const style = window.getComputedStyle(parent);
+                    if (style.position === 'fixed' || style.bottom === '0px' || style.zIndex > 20) {
+                        parent.style.setProperty('display', 'none', 'important');
+                        parent.style.setProperty('opacity', '0', 'important');
+                    }
+                    parent = parent.parentElement;
+                }
+                divs[i].style.setProperty('display', 'none', 'important');
+            }
+        }
+    };
+    nukeCookies();
+    // Ein Wächter, der den Banner sofort löscht, falls er verzögert geladen wird
+    const obs = new MutationObserver(nukeCookies);
+    obs.observe(document.body, { childList: true, subtree: true });
+    return () => obs.disconnect();
+  }, []);
+  // --- END OBS FIX ---
+
   const searchParams = useSearchParams();
   const rt = searchParams.get("rt");
   const [track, setTrack] = useState<any>(null);
-  useEffect(() => { const killCookies = () => { document.querySelectorAll('div').forEach(el => { if(el.textContent && el.textContent.includes('DATENSCHUTZ & COOKIES')) el.style.display = 'none'; }); }; killCookies(); const interval = setInterval(killCookies, 500); return () => clearInterval(interval); }, []);
+  
 
 
   useEffect(() => {
