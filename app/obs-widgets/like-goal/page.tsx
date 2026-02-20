@@ -42,8 +42,8 @@ function LikeGoalContent() {
   const percentage = Math.min((likes / goal) * 100, 100);
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-transparent flex items-start justify-start p-4">
-        <div className="bg-black/80 border backdrop-blur-md rounded-2xl p-4 w-80 shadow-2xl animate-in fade-in zoom-in" style={{ borderColor: `${color}50` }}>
+    <div className="w-fit h-fit overflow-hidden bg-transparent flex items-start justify-start p-2">
+        <div className="bg-black/60 border backdrop-blur-md rounded-2xl p-4 w-80 shadow-2xl animate-in fade-in zoom-in" style={{ borderColor: `${color}50` }}>
             <div className="flex justify-between items-end mb-2">
                 <div className="flex items-center gap-2">
                     <Heart size={16} className="animate-pulse" style={{ color: color, filter: `drop-shadow(0 0 8px ${color})` }} fill="currentColor" />

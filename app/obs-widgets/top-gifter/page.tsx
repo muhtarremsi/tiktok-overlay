@@ -53,8 +53,8 @@ function TopGifterContent() {
   if (!topGifter) return <div className="hidden"></div>;
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-transparent flex items-start justify-start p-4">
-        <div className="border backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 animate-in fade-in zoom-in shadow-2xl" style={{ borderColor: color, backgroundColor: `${color}20` }}>
+    <div className="w-fit h-fit overflow-hidden bg-transparent flex items-start justify-start p-2">
+        <div className="border backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 animate-in fade-in zoom-in shadow-2xl" style={{ borderColor: color, backgroundColor: `rgba(0,0,0,0.6)` }}>
             <div className="relative">
                 <img src={topGifter.profilePictureUrl} className="w-12 h-12 rounded-full border-2 object-cover shadow-lg" style={{ borderColor: color }} />
                 <div className="absolute -bottom-2 -right-2 rounded-full p-1 shadow-lg" style={{ backgroundColor: color }}><Trophy size={12} className="text-black"/></div>
