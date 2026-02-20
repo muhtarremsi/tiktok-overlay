@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { APP_VERSION } from "@/app/config";
 import { useSearchParams, useRouter } from "next/navigation";

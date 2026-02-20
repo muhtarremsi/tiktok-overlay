@@ -1,6 +1,5 @@
-import { APP_VERSION, APP_VERSION_LABEL } from "@/app/config";
 "use client";
-
+import { APP_VERSION, APP_VERSION_LABEL } from "@/app/config";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
