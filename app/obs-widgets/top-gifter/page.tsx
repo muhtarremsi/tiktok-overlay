@@ -18,7 +18,7 @@ function TopGifterContent() {
         const divs = document.getElementsByTagName('div');
         for (let i = 0; i < divs.length; i++) {
             if (divs[i].innerText && (divs[i].innerText.includes('DATENSCHUTZ & COOKIES') || divs[i].innerText.includes('ALLE AKZEPTIEREN'))) {
-                let parent = divs[i];
+                let parent: HTMLElement | null = divs[i];
                 // Finde den äußeren Container (meistens fixed bottom) und verstecke ihn
                 while (parent && parent.tagName !== 'BODY') {
                     const style = window.getComputedStyle(parent);
