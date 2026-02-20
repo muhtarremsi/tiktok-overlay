@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.030197";
-export const APP_VERSION_LABEL = "OBS Widgets Auto-Reset";
+export const APP_VERSION = "0.030198";
+export const APP_VERSION_LABEL = "Final Cookie Fix";
