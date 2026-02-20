@@ -31,7 +31,8 @@ function TopGifterContent() {
     const eventSource = new EventSource(`/api/live-chat?u=${u}`);
     eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === 'gift') {
+        if (data.type === 'offline') { setTopGifter(null); setGifters({}); }
+        else if (data.type === 'gift') {
             setGifters(prev => {
                 const totalDiamonds = data.diamondCount * (data.amount || 1);
                 const newTotal = (prev[data.nickname]?.diamonds || 0) + totalDiamonds;

@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.030196";
-export const APP_VERSION_LABEL = "OBS Placeholder & Clean UI";
+export const APP_VERSION = "0.030197";
+export const APP_VERSION_LABEL = "OBS Widgets Auto-Reset";

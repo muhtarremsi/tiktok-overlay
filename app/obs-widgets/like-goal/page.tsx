@@ -29,6 +29,7 @@ function LikeGoalContent() {
     eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.type === 'like') setLikes(prev => prev + data.likeCount);
+        else if (data.type === 'offline') setLikes(0);
     };
     return () => eventSource.close();
   }, [u, authStatus]);
