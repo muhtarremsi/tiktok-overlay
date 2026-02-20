@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.030203";
-export const APP_VERSION_LABEL = "Widget Shrink & Video Fix";
+export const APP_VERSION = "0.030204";
+export const APP_VERSION_LABEL = "Pixel Perfect Bounding Box";

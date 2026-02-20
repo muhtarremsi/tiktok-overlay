@@ -70,7 +70,7 @@ function OverlayContent() {
   if (!track) return <div className="hidden"></div>;
 
   return (
-    <div className="w-fit h-fit bg-transparent flex p-0 overflow-hidden">
+    <div className="inline-block m-0 p-0 leading-none">
       <div className="bg-black/80 border border-white/10 p-4 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl inline-flex max-w-fit">
         <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Cover" className="w-16 h-16 rounded-xl shadow-lg object-cover shrink-0" />
         <div className="pr-4 shrink-0 min-w-[150px]">

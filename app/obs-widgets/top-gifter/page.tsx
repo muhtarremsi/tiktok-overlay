@@ -83,12 +83,12 @@ function TopGifterContent() {
     return () => eventSource.close();
   }, [u, authStatus]);
 
-  if (authStatus === 'checking') return <div className="w-fit h-fit bg-transparent flex p-0 overflow-hidden"><div className="bg-black/90 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /><p className="text-white font-black text-xs tracking-widest uppercase">Verifying Key...</p></div></div>;
-  if (authStatus === 'invalid') return <div className="w-fit h-fit p-4 flex items-center justify-center bg-transparent"><div className="bg-red-500/10 border border-red-500/50 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl backdrop-blur-md"><ShieldAlert className="text-red-500 w-12 h-12" /><p className="text-red-500 font-black text-sm tracking-widest uppercase">Invalid Key</p></div></div>;
+  if (authStatus === 'checking') return <div className="inline-block m-0 p-0 leading-none"><div className="bg-black/90 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /><p className="text-white font-black text-xs tracking-widest uppercase">Verifying Key...</p></div></div>;
+  if (authStatus === 'invalid') return <div className="inline-block m-0 p-0 leading-none"><div className="bg-red-500/10 border border-red-500/50 p-6 rounded-2xl flex flex-col items-center gap-4 shadow-2xl backdrop-blur-md"><ShieldAlert className="text-red-500 w-12 h-12" /><p className="text-red-500 font-black text-sm tracking-widest uppercase">Invalid Key</p></div></div>;
 
   // PLATZHALTER WENN NOCH KEIN GIFT DA IST (Perfekt zum Justieren in OBS)
   if (!topGifter) return (
-    <div className="w-fit h-fit overflow-hidden bg-transparent flex items-start justify-start p-2">
+    <div className="inline-block m-0 p-0 leading-none">
         <div className="border backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 shadow-2xl opacity-70" style={{ borderColor: color, backgroundColor: `rgba(0,0,0,0.6)` }}>
             <div className="relative">
                 <div className="w-12 h-12 rounded-full border-2 bg-zinc-800 flex items-center justify-center" style={{ borderColor: color }}><Trophy size={20} className="text-zinc-600"/></div>
@@ -104,7 +104,7 @@ function TopGifterContent() {
   );
 
   return (
-    <div className="w-fit h-fit overflow-hidden bg-transparent flex items-start justify-start p-2">
+    <div className="inline-block m-0 p-0 leading-none">
         <div className="border backdrop-blur-md rounded-2xl p-3 flex items-center gap-4 animate-in fade-in zoom-in shadow-2xl" style={{ borderColor: color, backgroundColor: `rgba(0,0,0,0.6)` }}>
             <div className="relative">
                 <img src={topGifter.profilePictureUrl} className="w-12 h-12 rounded-full border-2 object-cover shadow-lg" style={{ borderColor: color }} />

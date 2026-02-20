@@ -32,5 +32,5 @@ export default function ObsLayout({ children }: { children: React.ReactNode }) {
         return () => obs.disconnect();
     }, []);
 
-    return <div className="bg-transparent">{children}</div>;
+    return <div className="bg-transparent m-0 p-0 overflow-hidden w-fit h-fit">{children}</div>;
 }
