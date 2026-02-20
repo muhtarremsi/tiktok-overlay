@@ -585,6 +585,33 @@ function ModuleHome({ targetUser, isSpotifyConnected, ttvCount, soundCount, setA
   );
 }
 
+function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [startX, setStartX] = useState(0);
+
+  useEffect(() => {
+      if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+      }
+  }, [stream]);
+
+  return (
+      <div 
+          onPointerDown={(e) => { e.stopPropagation(); setStartX(e.clientX); }} 
+          onPointerUp={(e) => { 
+              e.stopPropagation(); 
+              if(Math.abs(e.clientX - startX) < 15) onClick(); 
+          }}
+          className="relative flex flex-col items-center gap-3 shrink-0 group transition-all duration-300 pointer-events-auto cursor-pointer"
+      >
+          <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${isActive ? 'border-green-500 scale-110 shadow-[0_0_20px_rgba(34,197,94,0.5)]' : 'border-white/10 scale-100 opacity-60 group-hover:opacity-100'}`}>
+              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ filter: filterCss }} />
+          </div>
+          <span className={`text-[9px] font-black uppercase tracking-widest transition-colors drop-shadow-md ${isActive ? 'text-green-500' : 'text-zinc-400 group-hover:text-white'}`}>{name}</span>
+      </div>
+  );
+}
+
 function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
