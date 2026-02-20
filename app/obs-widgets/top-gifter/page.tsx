@@ -18,9 +18,11 @@ function TopGifterContent() {
             setGifters(prev => {
                 const totalDiamonds = data.diamondCount * (data.amount || 1);
                 const newTotal = (prev[data.nickname]?.diamonds || 0) + totalDiamonds;
-                const updated = { ...prev, [data.nickname]: { nickname: data.nickname, profilePictureUrl: data.profilePictureUrl, diamonds: newTotal } };
-                let top = null;
-                for (const key in updated) { if (!top || updated[key].diamonds > top.diamonds) top = updated[key]; }
+                const updated: Record<string, any> = { ...prev, [data.nickname]: { nickname: data.nickname, profilePictureUrl: data.profilePictureUrl, diamonds: newTotal } };
+                let top: any = null;
+                Object.values(updated).forEach((gifter: any) => {
+                    if (!top || gifter.diamonds > top.diamonds) top = gifter;
+                });
                 setTopGifter(top);
                 return updated;
             });
