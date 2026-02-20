@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
+import { APP_VERSION } from "@/app/config";
 import { useSearchParams, useRouter } from "next/navigation";
 import { logout, checkSession } from "@/app/actions/auth";
 import Link from "next/link";
@@ -55,7 +56,7 @@ function DashboardContent() {
   const [giftsList, setGiftsList] = useState<any[]>([]);
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
-  const version = "0.030187"; 
+  const version = APP_VERSION; 
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
