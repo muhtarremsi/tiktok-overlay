@@ -372,7 +372,7 @@ function ModuleLikes({ targetUser, baseUrl, overlayKey, setOverlayKey, widgetCon
       
       {/* 1. SICHERHEIT & STREAM KEY */}
       <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl w-full flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 normal-case tracking-normal">
               <h3 className="text-red-500 text-sm font-black flex items-center gap-2 mb-1"><ShieldCheck size={18} /> Master Stream Key</h3>
               <p className="text-[10px] text-zinc-400 not-italic leading-relaxed">Dieser kryptische Schlüssel schützt deine URLs davor, von Fremden in OBS geladen zu werden. Gib ihn niemals weiter!</p>
           </div>
@@ -774,7 +774,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   const handleRootPointerCancel = (e: React.PointerEvent) => { handleGlobalPointerUp(e); if (holdTimer.current) clearTimeout(holdTimer.current); if (isHolding) setIsHolding(false); };
   const stopEvent = (e: React.SyntheticEvent) => { e.stopPropagation(); };
 
-  const swipeRef = useRef({ x: 0, y: 0 });
+  const swipeRef = useRef({ x: 0, y: 0, time: 0 });
   const filterDrag = useRef({ isDown: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0 });
   const handleFilterPointerDown = (e: React.PointerEvent) => { e.stopPropagation(); filterDrag.current = { isDown: true, startX: e.pageX - (filtersScrollRef.current?.offsetLeft || 0), startY: e.pageY - (filtersScrollRef.current?.offsetTop || 0), scrollLeft: filtersScrollRef.current?.scrollLeft || 0, scrollTop: filtersScrollRef.current?.scrollTop || 0 }; };
   const handleFilterPointerMove = (e: React.PointerEvent) => { if (!filterDrag.current.isDown || !filtersScrollRef.current) return; e.preventDefault(); const x = e.pageX - filtersScrollRef.current.offsetLeft; const y = e.pageY - filtersScrollRef.current.offsetTop; filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - ((x - filterDrag.current.startX) * 2); filtersScrollRef.current.scrollTop = filterDrag.current.scrollTop - ((y - filterDrag.current.startY) * 2); };
@@ -898,12 +898,12 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 <button onClick={() => setActiveTab('gifts')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'gifts' ? 'text-yellow-500 border-b-2 border-yellow-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Gifts</button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}>
+            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide touch-pan-y [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}>
                 {activeTab === 'chat' && (
                     <>{chatMessages.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div> : chatMessages.map((msg: any) => (
                             <div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-2 flex gap-2 items-start">
                                 {msg.profilePictureUrl && <img src={msg.profilePictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 mt-0.5 shadow-md border border-white/10" />}
-                                <div className="flex-1 min-w-0"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>
+                                <div className="flex-1 min-w-0 normal-case tracking-normal"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>
                             </div>
                         ))}
                     </>
@@ -911,7 +911,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 {activeTab === 'likes' && (
                     <div className="space-y-2">{sortedLikes.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Likes...</div> : sortedLikes.map((like: any, i: number) => (
                             <div key={like.nickname} className="flex items-center justify-between border-b border-white/5 pb-2">
-                                <div className="flex items-center gap-2 min-w-0"><span className="text-zinc-500 font-black text-[10px] w-4 shrink-0">#{i+1}</span>{like.profilePictureUrl && <img src={like.profilePictureUrl} className="w-5 h-5 rounded-full object-cover shrink-0" />}<span className="font-bold text-white text-[11px] truncate">{like.nickname}</span></div>
+                                <div className="flex items-center gap-2 min-w-0"><span className="text-zinc-500 font-black text-[10px] w-4 shrink-0">#{i+1}</span>{like.profilePictureUrl && <img src={like.profilePictureUrl} className="w-5 h-5 rounded-full object-cover shrink-0" />}<span className="font-bold text-white text-[11px] truncate normal-case tracking-normal">{like.nickname}</span></div>
                                 <div className="flex items-center gap-1.5 shrink-0 pl-2"><span className="font-black text-pink-400 text-[10px]">{like.count}</span><Heart size={12} fill="currentColor" className={now - like.lastLikeTime < 4000 ? "text-pink-500 animate-pulse drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" : "text-zinc-700"} /></div>
                             </div>
                         ))}
@@ -920,7 +920,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 {activeTab === 'gifts' && (
                     <div className="space-y-2">{giftsList.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Geschenke...</div> : giftsList.map((gift: any) => (
                             <div key={gift.id} className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/20 p-2 rounded-lg">
-                                <div className="flex items-center gap-2 min-w-0">{gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}<div className="flex flex-col min-w-0"><span className="font-bold text-white text-[10px] truncate">{gift.nickname}</span><span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span></div></div>
+                                <div className="flex items-center gap-2 min-w-0">{gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}<div className="flex flex-col min-w-0 normal-case tracking-normal"><span className="font-bold text-white text-[10px] truncate">{gift.nickname}</span><span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span></div></div>
                                 <div className="flex items-center gap-1 shrink-0 pl-2">{gift.giftPictureUrl && <img src={gift.giftPictureUrl} className="w-6 h-6 object-contain drop-shadow-md" />}<span className="font-black text-yellow-500 text-[10px]">x{gift.amount}</span></div>
                             </div>
                         ))}
@@ -933,7 +933,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                             <div key={member.id} className="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg">
                                 <div className="flex items-center gap-2 min-w-0">
                                     {member.profilePictureUrl ? <img src={member.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" /> : <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"><Users size={12} className="text-blue-500"/></div>}
-                                    <div className="flex flex-col min-w-0">
+                                    <div className="flex flex-col min-w-0 normal-case tracking-normal">
                                         <span className="font-bold text-white text-[10px] truncate">{member.nickname}</span>
                                         <span className="text-[8px] text-blue-400 uppercase font-black truncate">Ist beigetreten 👋</span>
                                     </div>
@@ -1080,7 +1080,7 @@ function ModuleSpotify({ isConnected, baseUrl, config, setConfig, overlayKey }: 
 
         <div className="flex flex-col gap-4 relative z-10 w-full">
             <div className="flex flex-row items-center justify-between p-4 bg-black/60 rounded-xl border border-white/5 gap-3 w-full">
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 normal-case tracking-normal">
                     <span className="text-[10px] font-black text-white uppercase tracking-wider block">Zuschauer Song-Requests</span>
                     <span className="text-[8px] sm:text-[9px] text-zinc-500 not-italic block mt-1 break-words whitespace-normal leading-snug">
                         Erlaubt den Befehl !play [liedname] und !skip im TikTok Chat.

@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.030222";
+export const APP_VERSION = "0.030223";
 export const APP_VERSION_LABEL = "Dynamic Content Resizing";
