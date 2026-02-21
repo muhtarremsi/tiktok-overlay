@@ -126,27 +126,26 @@ function DashboardContent() {
     }
 
     const checkUser = async (userToCheck: string) => {
-      if (!userToCheck || userToCheck.length < 3) return;
-      try {
-        const res = await fetch(`/api/status?u=${userToCheck}`);
-        if (res.ok) {
-            setStatus('online');
-            if (hasFunctionalConsent) localStorage.setItem("seker_target", userToCheck);
-        } else {
-            setStatus('offline');
-            // Kein automatisches Löschen mehr beim Tab-Wechsel!
-        }
-      } catch (e) {
-          setStatus('offline');
-          // Kein automatisches Löschen mehr beim Tab-Wechsel!
-      }
-    };
+  if (!userToCheck || userToCheck.length < 3) return;
+  try {
+    const res = await fetch(`/api/status?u=${userToCheck}`);
+    if (res.ok) {
+        setStatus('online');
+        if (hasFunctionalConsent) localStorage.setItem("seker_target", userToCheck);
+    } else {
+        // FIX: Wenn wir schon 'online' sind, ignorieren wir den Ping-Fehler beim Raustabben!
+        setStatus(prev => prev === 'online' ? 'online' : 'offline');
+    }
+  } catch (e) {
+      setStatus(prev => prev === 'online' ? 'online' : 'offline');
+  }
+};
 
     const debounceTimer = setTimeout(() => {
       if (!targetUser || targetUser.length < 3) return;
       setStatus('checking');
       checkUser(targetUser).then(() => {
-        pollTimer = setInterval(() => checkUser(targetUser), 15000);
+        pollTimer = setInterval(() => checkUser(targetUser), 30000);
       });
     }, 1000);
 
@@ -850,6 +849,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   const handleRootPointerCancel = (e: React.PointerEvent) => { handleGlobalPointerUp(e); if (holdTimer.current) clearTimeout(holdTimer.current); if (isHolding) setIsHolding(false); };
   const stopEvent = (e: React.SyntheticEvent) => { e.stopPropagation(); };
 
+  const swipeRef = useRef({ x: 0, y: 0 });
   const filterDrag = useRef({ isDown: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0 });
   const handleFilterPointerDown = (e: React.PointerEvent) => { e.stopPropagation(); filterDrag.current = { isDown: true, startX: e.pageX - (filtersScrollRef.current?.offsetLeft || 0), startY: e.pageY - (filtersScrollRef.current?.offsetTop || 0), scrollLeft: filtersScrollRef.current?.scrollLeft || 0, scrollTop: filtersScrollRef.current?.scrollTop || 0 }; };
   const handleFilterPointerMove = (e: React.PointerEvent) => { if (!filterDrag.current.isDown || !filtersScrollRef.current) return; e.preventDefault(); const x = e.pageX - filtersScrollRef.current.offsetLeft; const y = e.pageY - filtersScrollRef.current.offsetTop; filtersScrollRef.current.scrollLeft = filterDrag.current.scrollLeft - ((x - filterDrag.current.startX) * 2); filtersScrollRef.current.scrollTop = filterDrag.current.scrollTop - ((y - filterDrag.current.startY) * 2); };
