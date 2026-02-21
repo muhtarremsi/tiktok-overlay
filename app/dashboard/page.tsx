@@ -863,7 +863,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
         {isSpotifyVisible && (
             <div 
                 className="absolute z-20 bg-black/70 backdrop-blur-xl border border-white/10 rounded-xl p-3 flex items-center gap-3 shadow-2xl transition-opacity duration-300 origin-top-left"
-                style={{ left: spotifyState.x, top: spotifyState.y, transform: `scale(${spotifyState.scale})`, opacity: (ghostMode && !isHolding && !spotifyConfig.alwaysOn) ? 0.2 : 1 }}
+                style={{ left: spotifyState.x, top: spotifyState.y, transform: `scale(${spotifyState.scale})`, opacity: (ghostMode && !isHolding && !spotifyConfig.alwaysOn) ? 0.1 : 1 }}
                 onPointerDown={(e) => handleElementPointerDown(e, 'spotify', 'drag')}
             >
                 <img src={track.albumImageUrl || "/placeholder-cover.jpg"} alt="Cover" className="w-10 h-10 rounded-md shadow-lg object-cover pointer-events-none shrink-0" />
@@ -876,7 +876,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
 
         <div 
             className={`absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-opacity duration-300 origin-top-left ${isChatVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
-            style={{ left: chatState.x, top: chatState.y, width: chatState.w, height: chatState.h, transform: `scale(${chatState.scale})`, opacity: isChatVisible ? ((ghostMode && !isHolding && !showUI) ? 0.3 : 1) : 0 }}
+            style={{ left: chatState.x, top: chatState.y, width: chatState.w, height: chatState.h, transform: `scale(${chatState.scale})`, opacity: isChatVisible ? ((ghostMode && !isHolding) ? 0.1 : 1) : 0 }}
             onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'drag')}
         >
             <div className="bg-white/5 border-b border-white/5 p-2 px-3 flex items-center justify-between pointer-events-none rounded-t-2xl shrink-0">
@@ -1012,7 +1012,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                     <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><Settings size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><FlipHorizontal size={24} /></button>
-                    {cameraCount > 1 && <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>}
+                    {cameraCount > 1 && <button onClick={(e) => { stopEvent(e); setFacingMode(prev => { const next = prev === 'user' ? 'environment' : 'user'; setMirror(next === 'user'); return next; }); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>}
                 </div>
             </div>
         </div>
