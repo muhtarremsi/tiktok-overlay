@@ -177,7 +177,7 @@ function DashboardContent() {
                 setLiveStats(prev => ({ ...prev, followers: prev.followers + 1 }));
                 
             } else if (data.type === 'chat') {
-                setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment, profilePictureUrl: data.profilePictureUrl }]);
+                setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment, profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges }]);
                 if (spotifyConfigRef.current.allowRequests) {
                     const commentLower = data.comment.toLowerCase().trim();
                     if (commentLower.startsWith('!play ')) {
@@ -189,7 +189,7 @@ function DashboardContent() {
                 }
             } else if (data.type === 'member') {
                 setLiveStats(prev => ({ ...prev, views: prev.views + 1 }));
-                setMembersList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, profilePictureUrl: data.profilePictureUrl }]);
+                setMembersList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges }]);
                 
             } else if (data.type === 'like') {
                 setLiveStats(prev => ({ ...prev, likes: data.totalLikeCount || (prev.likes + data.likeCount) }));
@@ -198,13 +198,14 @@ function DashboardContent() {
                     [data.userId || data.nickname]: {
                         nickname: data.nickname,
                         profilePictureUrl: data.profilePictureUrl,
+                        userBadges: data.userBadges,
                         count: (prev[data.userId || data.nickname]?.count || 0) + data.likeCount,
                         lastLikeTime: Date.now()
                     }
                 }));
             } else if (data.type === 'gift') {
                 setLiveStats(prev => ({ ...prev, gifts: prev.gifts + (data.amount || 1) }));
-                setGiftsList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, giftName: data.giftName, giftPictureUrl: data.giftPictureUrl, amount: data.amount, diamondCount: data.diamondCount, profilePictureUrl: data.profilePictureUrl }]);
+                setGiftsList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, giftName: data.giftName, giftPictureUrl: data.giftPictureUrl, amount: data.amount, diamondCount: data.diamondCount, profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges }]);
             } else if (data.type === 'error') {
                 setChatStatus(`Fehler: ${data.message}`);
                 eventSource?.close();
@@ -611,6 +612,36 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
   );
 }
 
+
+function UserBadges({ badges }: { badges?: any[] }) {
+    if (!badges || !Array.isArray(badges)) return null;
+    let gifterLevel = 0;
+    let fcLevel = 0;
+    
+    // Durchsuche die TikTok Badges nach Fanclub ('fc') und Gifter ('pm') Leveln
+    badges.forEach(b => {
+        if (b.type === 'pm' || b.badgeSceneType === 8) gifterLevel = b.level || 0;
+        if (b.type === 'fc' || b.badgeSceneType === 1) fcLevel = b.level || 0;
+    });
+    
+    if (!gifterLevel && !fcLevel) return null;
+    
+    return (
+        <span className="inline-flex items-center gap-1 mr-1 relative -top-[1px]">
+            {gifterLevel > 0 && (
+                <span className="inline-flex items-center justify-center bg-[#7b8df2] text-white text-[9px] font-black px-1 rounded shadow-sm gap-0.5 leading-none h-4">
+                    <span className="text-[7px]">▲</span>{gifterLevel}
+                </span>
+            )}
+            {fcLevel > 0 && (
+                <span className="inline-flex items-center justify-center bg-[#f3885d] text-white text-[9px] font-black px-1 rounded shadow-sm gap-0.5 leading-none h-4">
+                    <Heart size={8} fill="currentColor" />{fcLevel}
+                </span>
+            )}
+        </span>
+    );
+}
+
 function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersList, liveStats, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -974,7 +1005,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                     <>{chatMessages.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div> : chatMessages.map((msg: any) => (
                             <div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-2 flex gap-2 items-start">
                                 {msg.profilePictureUrl && <img src={msg.profilePictureUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0 mt-0.5 shadow-md border border-white/10" />}
-                                <div className="flex-1 min-w-0"><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>
+                                <div className="flex-1 min-w-0 leading-tight"><UserBadges badges={msg.userBadges} /><span className="font-black text-green-400 drop-shadow-md">{msg.nickname}: </span><span className="font-medium drop-shadow-md">{msg.comment}</span></div>
                             </div>
                         ))}
                     </>
@@ -982,7 +1013,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 {activeTab === 'likes' && (
                     <div className="space-y-2">{sortedLikes.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Likes...</div> : sortedLikes.map((like: any, i: number) => (
                             <div key={like.nickname} className="flex items-center justify-between border-b border-white/5 pb-2">
-                                <div className="flex items-center gap-2 min-w-0"><span className="text-zinc-500 font-black text-[10px] w-4 shrink-0">#{i+1}</span>{like.profilePictureUrl && <img src={like.profilePictureUrl} className="w-5 h-5 rounded-full object-cover shrink-0" />}<span className="font-bold text-white text-[11px] truncate">{like.nickname}</span></div>
+                                <div className="flex items-center gap-2 min-w-0"><span className="text-zinc-500 font-black text-[10px] w-4 shrink-0">#{i+1}</span>{like.profilePictureUrl && <img src={like.profilePictureUrl} className="w-5 h-5 rounded-full object-cover shrink-0" />}<span className="font-bold text-white text-[11px] truncate flex items-center"><UserBadges badges={like.userBadges} />{like.nickname}</span></div>
                                 <div className="flex items-center gap-1.5 shrink-0 pl-2"><span className="font-black text-pink-400 text-[10px]">{like.count}</span><Heart size={12} fill="currentColor" className={now - like.lastLikeTime < 4000 ? "text-pink-500 animate-pulse drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" : "text-zinc-700"} /></div>
                             </div>
                         ))}
@@ -991,7 +1022,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 {activeTab === 'gifts' && (
                     <div className="space-y-2">{giftsList.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Noch keine Geschenke...</div> : giftsList.map((gift: any) => (
                             <div key={gift.id} className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/20 p-2 rounded-lg">
-                                <div className="flex items-center gap-2 min-w-0">{gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}<div className="flex flex-col min-w-0"><span className="font-bold text-white text-[10px] truncate">{gift.nickname}</span><span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span></div></div>
+                                <div className="flex items-center gap-2 min-w-0">{gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}<div className="flex flex-col min-w-0"><span className="font-bold text-white text-[10px] truncate flex items-center"><UserBadges badges={gift.userBadges} />{gift.nickname}</span><span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span></div></div>
                                 <div className="flex items-center gap-1 shrink-0 pl-2">{gift.giftPictureUrl && <img src={gift.giftPictureUrl} className="w-6 h-6 object-contain drop-shadow-md" />}<span className="font-black text-yellow-500 text-[10px]">x{gift.amount}</span></div>
                             </div>
                         ))}
@@ -1005,7 +1036,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                                 <div className="flex items-center gap-2 min-w-0">
                                     {member.profilePictureUrl ? <img src={member.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" /> : <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"><Users size={12} className="text-blue-500"/></div>}
                                     <div className="flex flex-col min-w-0">
-                                        <span className="font-bold text-white text-[10px] truncate">{member.nickname}</span>
+                                        <span className="font-bold text-white text-[10px] truncate flex items-center"><UserBadges badges={member.userBadges} />{member.nickname}</span>
                                         <span className="text-[8px] text-blue-400 uppercase font-black truncate">Ist beigetreten 👋</span>
                                     </div>
                                 </div>
