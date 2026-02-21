@@ -9,7 +9,7 @@ import {
   Volume2, Globe, LogIn, CheckCircle2, Loader2, AlertCircle, Radio, Music, Info, Heart,
   Zap, ArrowRight, Monitor, Cpu, Gauge, Share2, Code2, LogOut, MessageSquare, Play, StopCircle,
   Camera, RefreshCw, FlipHorizontal, EyeOff, Eye, MessageCircle, ShieldCheck, Key, CalendarDays, Ghost, Hand, Cookie, HelpCircle, Music2, Copy,
-  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video, Gift, Home
+  ChevronDown, ChevronRight, Wand2, Gamepad2, Bot, Trophy, Video, Gift, Home, Users, UserPlus
 } from "lucide-react";
 
 function SpotifyLogo({ className }: { className?: string }) {
@@ -55,6 +55,8 @@ function DashboardContent() {
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [likesMap, setLikesMap] = useState<Record<string, any>>({});
   const [giftsList, setGiftsList] = useState<any[]>([]);
+  const [membersList, setMembersList] = useState<any[]>([]);
+  const [liveStats, setLiveStats] = useState({ likes: 0, gifts: 0, viewers: 0, views: 0, followers: 0 });
   const [chatStatus, setChatStatus] = useState("Warten auf Verbindung...");
 
   const version = APP_VERSION; 
@@ -177,6 +179,11 @@ function DashboardContent() {
             const data = JSON.parse(event.data);
             if (data.type === 'connected') {
                 setChatStatus(`Live verbunden: @${targetUser}`);
+            } else if (data.type === 'roomUser') {
+                setLiveStats(prev => ({ ...prev, viewers: data.viewerCount || 0 }));
+            } else if (data.type === 'follow') {
+                setLiveStats(prev => ({ ...prev, followers: prev.followers + 1 }));
+                setChatMessages(prev => [...prev.slice(-49), { id: Date.now(), nickname: data.nickname, comment: "folgt dir jetzt! 💖", profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'chat') {
                 setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment, profilePictureUrl: data.profilePictureUrl }]);
                 if (spotifyConfigRef.current.allowRequests) {
@@ -189,8 +196,11 @@ function DashboardContent() {
                     }
                 }
             } else if (data.type === 'member') {
-                setChatMessages(prev => [...prev.slice(-49), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten ��", profilePictureUrl: data.profilePictureUrl }]);
+                setLiveStats(prev => ({ ...prev, views: prev.views + 1 }));
+                setMembersList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, profilePictureUrl: data.profilePictureUrl }]);
+                setChatMessages(prev => [...prev.slice(-49), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋", profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'like') {
+                setLiveStats(prev => ({ ...prev, likes: prev.likes + data.likeCount }));
                 setLikesMap(prev => ({
                     ...prev,
                     [data.userId || data.nickname]: {
@@ -201,6 +211,7 @@ function DashboardContent() {
                     }
                 }));
             } else if (data.type === 'gift') {
+                setLiveStats(prev => ({ ...prev, gifts: prev.gifts + (data.amount || 1) }));
                 setGiftsList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, giftName: data.giftName, giftPictureUrl: data.giftPictureUrl, amount: data.amount, diamondCount: data.diamondCount, profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'error') {
                 setChatStatus(`Fehler: ${data.message}`);
@@ -367,7 +378,7 @@ function DashboardContent() {
           {activeView === "ttv" && <ModuleTTV username={targetUser} baseUrl={baseUrl} triggers={ttvTriggers} setTriggers={setTtvTriggers} />}
           {activeView === "sounds" && <ModuleSounds username={targetUser} baseUrl={baseUrl} triggers={soundTriggers} setTriggers={setSoundTriggers} />}
           {activeView === "ttc" && <ModuleTTC />}
-          {activeView === "camera" && <ModuleCamera targetUser={targetUser} chatMessages={chatMessages} likesMap={likesMap} giftsList={giftsList} chatStatus={chatStatus} spotifyConfig={spotifyConfig} setSpotifyConfig={setSpotifyConfig} isSpotifyConnected={isSpotifyConnected} />}
+          {activeView === "camera" && <ModuleCamera targetUser={targetUser} chatMessages={chatMessages} likesMap={likesMap} giftsList={giftsList} membersList={membersList} liveStats={liveStats} chatStatus={chatStatus} spotifyConfig={spotifyConfig} setSpotifyConfig={setSpotifyConfig} isSpotifyConnected={isSpotifyConnected} />}
           {activeView === "likes" && <ModuleLikes targetUser={targetUser} baseUrl={baseUrl} overlayKey={overlayKey} setOverlayKey={setOverlayKey} widgetConfig={widgetConfig} setWidgetConfig={setWidgetConfig} />}
           {activeView === "fanclub" && <ModuleFanclub isConnected={isTikTokConnected} config={fanclubConfig} setConfig={setFanclubConfig} />}
           {activeView === "spotify" && <ModuleSpotify isConnected={isSpotifyConnected} baseUrl={baseUrl} config={spotifyConfig} setConfig={setSpotifyConfig} overlayKey={overlayKey} />}
@@ -612,7 +623,7 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
   );
 }
 
-function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
+function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersList, liveStats, chatStatus, spotifyConfig, setSpotifyConfig, isSpotifyConnected }: any) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
@@ -634,7 +645,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
   const [activeFilter, setActiveFilter] = useState("");
   const [cameraZoom, setCameraZoom] = useState(1);
 
-  const [activeTab, setActiveTab] = useState<'chat' | 'likes' | 'gifts'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'likes' | 'gifts' | 'members'>('chat');
   const [autoScroll, setAutoScroll] = useState(true);
   const [now, setNow] = useState(Date.now());
   const sortedLikes = Object.values(likesMap || {}).sort((a: any, b: any) => b.count - a.count);
@@ -717,7 +728,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
 
   useEffect(() => {
       if (autoScroll && chatScrollRef.current) chatScrollRef.current.scrollIntoView({ behavior: "auto" });
-  }, [chatMessages, giftsList, autoScroll, activeTab]);
+  }, [chatMessages, giftsList, membersList, autoScroll, activeTab]);
 
   useEffect(() => {
       if (activeTab === 'likes') {
@@ -955,9 +966,17 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
                 <span className="text-[9px] font-black text-white flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> LIVE DATA</span>
                 <span className="text-[8px] text-green-400 font-bold uppercase tracking-wider truncate max-w-[150px]">{chatStatus}</span>
             </div>
+            <div className="flex items-center justify-between px-3 py-2 bg-black/40 border-b border-white/5 pointer-events-none shrink-0 w-full overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Users size={12}/> {liveStats?.viewers || 0}</div>
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Eye size={12}/> {liveStats?.views || 0}</div>
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Gift size={12}/> {liveStats?.gifts || 0}</div>
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><UserPlus size={12}/> {liveStats?.followers || 0}</div>
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Heart size={12}/> {(liveStats?.likes || 0) >= 10000 ? ((liveStats.likes)/1000).toFixed(1)+'k' : (liveStats?.likes || 0)}</div>
+            </div>
             
             <div className="flex border-b border-white/5 bg-black/40 shrink-0 pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent}>
                 <button onClick={() => setActiveTab('chat')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'chat' ? 'text-white border-b-2 border-green-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Chat</button>
+                <button onClick={() => setActiveTab('members')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'members' ? 'text-blue-400 border-b-2 border-blue-400 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Beitritt</button>
                 <button onClick={() => setActiveTab('likes')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'likes' ? 'text-pink-500 border-b-2 border-pink-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Likes</button>
                 <button onClick={() => setActiveTab('gifts')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'gifts' ? 'text-yellow-500 border-b-2 border-yellow-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Gifts</button>
             </div>
@@ -986,6 +1005,22 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, chatStatu
                             <div key={gift.id} className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/20 p-2 rounded-lg">
                                 <div className="flex items-center gap-2 min-w-0">{gift.profilePictureUrl && <img src={gift.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" />}<div className="flex flex-col min-w-0"><span className="font-bold text-white text-[10px] truncate">{gift.nickname}</span><span className="text-[8px] text-yellow-400 uppercase font-black truncate">Sent {gift.giftName}</span></div></div>
                                 <div className="flex items-center gap-1 shrink-0 pl-2">{gift.giftPictureUrl && <img src={gift.giftPictureUrl} className="w-6 h-6 object-contain drop-shadow-md" />}<span className="font-black text-yellow-500 text-[10px]">x{gift.amount}</span></div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                                {activeTab === 'members' && (
+                    <div className="space-y-2">
+                        {membersList.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf neue Zuschauer...</div> : 
+                        membersList.map((member: any) => (
+                            <div key={member.id} className="flex items-center justify-between bg-blue-500/10 border border-blue-500/20 p-2 rounded-lg">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    {member.profilePictureUrl ? <img src={member.profilePictureUrl} className="w-6 h-6 rounded-full object-cover shrink-0" /> : <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"><Users size={12} className="text-blue-500"/></div>}
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="font-bold text-white text-[10px] truncate">{member.nickname}</span>
+                                        <span className="text-[8px] text-blue-400 uppercase font-black truncate">Ist beigetreten 👋</span>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>

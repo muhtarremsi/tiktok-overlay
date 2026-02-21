@@ -50,6 +50,18 @@ export async function GET(req: Request) {
         });
       });
 
+            tiktokLiveConnection.on('roomUser', data => {
+        sendEvent({ type: 'roomUser', viewerCount: data.viewerCount });
+      });
+
+      tiktokLiveConnection.on('social', data => {
+        sendEvent({ 
+            type: 'follow', 
+            nickname: data.nickname || data.uniqueId,
+            profilePictureUrl: data.profilePictureUrl
+        });
+      });
+
       // NEU: Likes abfangen
       tiktokLiveConnection.on('like', data => {
         sendEvent({ 
