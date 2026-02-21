@@ -69,7 +69,8 @@ export async function GET(req: Request) {
             userId: data.userId,
             nickname: data.nickname || data.uniqueId,
             profilePictureUrl: data.profilePictureUrl,
-            likeCount: data.likeCount
+            likeCount: data.likeCount,
+            totalLikeCount: data.totalLikeCount
         });
       });
 

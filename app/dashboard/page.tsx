@@ -134,19 +134,11 @@ function DashboardContent() {
             if (hasFunctionalConsent) localStorage.setItem("seker_target", userToCheck);
         } else {
             setStatus('offline');
-            localStorage.removeItem("seker_target");
-            wipeTimer = setTimeout(() => {
-                setTargetUser("");
-                setStatus('idle');
-            }, 5000);
+            // Kein automatisches Löschen mehr beim Tab-Wechsel!
         }
       } catch (e) {
           setStatus('offline');
-          localStorage.removeItem("seker_target");
-          wipeTimer = setTimeout(() => {
-              setTargetUser("");
-              setStatus('idle');
-          }, 5000);
+          // Kein automatisches Löschen mehr beim Tab-Wechsel!
       }
     };
 
@@ -200,7 +192,7 @@ function DashboardContent() {
                 setMembersList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, profilePictureUrl: data.profilePictureUrl }]);
                 setChatMessages(prev => [...prev.slice(-49), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋", profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'like') {
-                setLiveStats(prev => ({ ...prev, likes: prev.likes + data.likeCount }));
+                setLiveStats(prev => ({ ...prev, likes: data.totalLikeCount || (prev.likes + data.likeCount) }));
                 setLikesMap(prev => ({
                     ...prev,
                     [data.userId || data.nickname]: {
@@ -219,11 +211,7 @@ function DashboardContent() {
             } else if (data.type === 'offline') {
                 setStatus('offline');
                 setChatStatus('Stream wurde beendet.');
-                localStorage.removeItem("seker_target");
-                setTimeout(() => {
-                    setTargetUser("");
-                    setStatus('idle');
-                }, 5000);
+                // Kein automatisches Löschen mehr!
                 eventSource?.close();
             }
         };
@@ -971,7 +959,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Eye size={12}/> {liveStats?.views || 0}</div>
                 <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Gift size={12}/> {liveStats?.gifts || 0}</div>
                 <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><UserPlus size={12}/> {liveStats?.followers || 0}</div>
-                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Heart size={12}/> {(liveStats?.likes || 0) >= 10000 ? ((liveStats.likes)/1000).toFixed(1)+'k' : (liveStats?.likes || 0)}</div>
+                <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Heart size={12}/> {(liveStats?.likes || 0) >= 1000000 ? ((liveStats.likes)/1000000).toFixed(2)+'M' : (liveStats?.likes || 0) >= 10000 ? ((liveStats.likes)/1000).toFixed(1)+'K' : (liveStats?.likes || 0)}</div>
             </div>
             
             <div className="flex border-b border-white/5 bg-black/40 shrink-0 pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent}>
