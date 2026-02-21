@@ -292,7 +292,7 @@ function DashboardContent() {
         </div>
 
         <div 
-            className="flex-1 overflow-y-auto scrollbar-hide px-5" 
+            className="flex-1 overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-5" 
             style={{ 
                 WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)', 
                 maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' 
