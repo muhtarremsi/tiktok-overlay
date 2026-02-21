@@ -529,7 +529,15 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
           className="relative flex flex-col items-center gap-3 shrink-0 group transition-all duration-300 pointer-events-auto cursor-pointer"
       >
           <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${isActive ? 'border-green-500 scale-110 shadow-[0_0_20px_rgba(34,197,94,0.5)]' : 'border-white/10 scale-100 opacity-60 group-hover:opacity-100'}`}>
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ filter: filterCss }} />
+              <style>{`
+        @keyframes wobble-chat {
+            0%, 100% { transform: scale(${chatState.scale}) rotate(0deg); }
+            25% { transform: scale(${chatState.scale}) rotate(-1.5deg); }
+            75% { transform: scale(${chatState.scale}) rotate(1.5deg); }
+        }
+        .wobble-active { animation: wobble-chat 0.25s ease-in-out infinite; }
+    `}</style>
+        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ filter: filterCss }} />
           </div>
           <span className={`text-[9px] font-black uppercase tracking-widest transition-colors drop-shadow-md ${isActive ? 'text-green-500' : 'text-zinc-400 group-hover:text-white'}`}>{name}</span>
       </div>
@@ -581,6 +589,8 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   const [chatState, setChatState] = useState({ x: 20, y: 400, w: 320, h: 280, scale: 1 });
   const [error, setError] = useState("");
   const [cameraCount, setCameraCount] = useState(0);
+  const [isWobbling, setIsWobbling] = useState(false);
+  const chatLongPressTimer = useRef<any>(null);
 
   // NEUE FEATURES: TTS Config, Stream Stats Tracker, und Summary Modal
   const [ttsConfig, setTtsConfig] = useState({ enabled: true, minDiamonds: 50 });
@@ -710,6 +720,24 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   const activePointers = useRef(new Map()); const dragInfo = useRef<any>(null); const hasDragged = useRef(false);
   const initialPinchDist = useRef<number | null>(null); const targetType = useRef<string | null>(null); const initialScale = useRef<number | null>(null);
 
+  const handleChatPointerDown = (e: React.PointerEvent) => {
+      e.stopPropagation();
+      hasDragged.current = false;
+      activePointers.current.set(e.pointerId, e);
+      dragInfo.current = {
+          id: e.pointerId, type: 'chat', action: 'pending_drag',
+          startX: e.clientX, startY: e.clientY, initial: chatState
+      };
+      if (chatLongPressTimer.current) clearTimeout(chatLongPressTimer.current);
+      chatLongPressTimer.current = setTimeout(() => {
+          setIsWobbling(true);
+          setTimeout(() => setIsWobbling(false), 300);
+          if (dragInfo.current && dragInfo.current.id === e.pointerId) {
+              dragInfo.current.action = 'drag';
+          }
+      }, 400);
+  };
+
   const handleElementPointerDown = (e: React.PointerEvent, type: string, action: string) => {
       e.stopPropagation(); hasDragged.current = false;
       if (action === 'drag' || action === 'resize') dragInfo.current = { id: e.pointerId, type, action, startX: e.clientX, startY: e.clientY, initial: type === 'spotify' ? spotifyState : chatState };
@@ -735,6 +763,13 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
       }
       if (dragInfo.current && dragInfo.current.id === e.pointerId) {
           const { type, action, startX, startY, initial } = dragInfo.current; const dx = e.clientX - startX; const dy = e.clientY - startY;
+          if (action === 'pending_drag') {
+              if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+                  if (chatLongPressTimer.current) clearTimeout(chatLongPressTimer.current);
+                  dragInfo.current = null;
+              }
+              return;
+          }
           if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged.current = true;
           if (action === 'drag') {
               let cw = window.innerWidth; let ch = window.innerHeight;
@@ -754,6 +789,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   };
 
   const handleGlobalPointerUp = (e: React.PointerEvent) => {
+      if (chatLongPressTimer.current) clearTimeout(chatLongPressTimer.current);
       activePointers.current.delete(e.pointerId);
       if (dragInfo.current && dragInfo.current.id === e.pointerId) dragInfo.current = null;
       if (activePointers.current.size < 2) initialPinchDist.current = null;
@@ -876,8 +912,10 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
 
         <div 
             className={`absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-opacity duration-300 origin-top-left ${isChatVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
-            style={{ left: chatState.x, top: chatState.y, width: chatState.w, height: chatState.h, transform: `scale(${chatState.scale})`, opacity: isChatVisible ? ((ghostMode && !isHolding) ? 0.1 : 1) : 0 }}
-            onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'drag')}
+            style={{ left: chatState.x, top: chatState.y, width: chatState.w, height: chatState.h, transform: `scale(${chatState.scale})`, opacity: isChatVisible ? ((ghostMode && !isHolding) ? 0.1 : 1) : 0
+            }}
+            onPointerDown={handleChatPointerDown}
+            onPointerUp={(e) => { e.stopPropagation(); handleGlobalPointerUp(e); }}
         >
             <div className="bg-white/5 border-b border-white/5 p-2 px-3 flex items-center justify-between pointer-events-none rounded-t-2xl shrink-0">
                 <span className="text-[9px] font-black text-white flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> LIVE DATA</span>
@@ -891,7 +929,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 <div className="flex items-center gap-1.5 text-zinc-300 text-[10px] font-black shrink-0"><Heart size={12}/> {(liveStats?.likes || 0) >= 1000000 ? ((liveStats.likes)/1000000).toFixed(2)+'M' : (liveStats?.likes || 0) >= 10000 ? ((liveStats.likes)/1000).toFixed(1)+'K' : (liveStats?.likes || 0)}</div>
             </div>
             
-            <div className="flex border-b border-white/5 bg-black/40 shrink-0 pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent}>
+            <div className="flex border-b border-white/5 bg-black/40 shrink-0 pointer-events-auto" onClick={stopEvent}>
                 <button onClick={() => setActiveTab('chat')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'chat' ? 'text-white border-b-2 border-green-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Chat</button>
                 <button onClick={() => setActiveTab('members')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'members' ? 'text-blue-400 border-b-2 border-blue-400 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Beitritt</button>
                 <button onClick={() => setActiveTab('likes')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'likes' ? 'text-pink-500 border-b-2 border-pink-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Likes</button>
@@ -899,9 +937,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
             </div>
             
             <div 
-            className="flex-1 overflow-y-auto p-3 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-y flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" 
-            onPointerDown={stopEvent}
-            onPointerUp={stopEvent}
+            className="flex-1 overflow-y-auto p-3 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] touch-pan-y flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto"
             onTouchStart={(e) => { e.stopPropagation(); swipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() }; }}
             onTouchEnd={(e) => { e.stopPropagation(); const dx = e.changedTouches[0].clientX - swipeRef.current.x; const dy = e.changedTouches[0].clientY - swipeRef.current.y; const dt = Date.now() - (swipeRef.current.time || 0); if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy) && dt < 800) { const tabs = ['chat', 'members', 'likes', 'gifts']; const idx = tabs.indexOf(activeTab as any); if (dx < 0 && idx < 3) setActiveTab(tabs[idx + 1] as any); if (dx > 0 && idx > 0) setActiveTab(tabs[idx - 1] as any); } }}
             onWheel={stopEvent} 
