@@ -342,11 +342,11 @@ function DashboardContent() {
         </div>
         
         <div className="p-5 shrink-0 pt-4 space-y-0 border-t border-white/5 not-italic z-10 bg-black">
-           <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
-           <div className="flex items-center justify-between px-3 py-2 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
+           <button onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} className={`w-full flex items-center gap-3 px-3 py-1 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 ${activeView === "settings" ? "bg-[#0c0c0e] text-white border-white/10 shadow-lg" : "border-transparent text-zinc-500 hover:text-white"}`}><Settings size={16} /> SETTINGS</button>
+           <div className="flex items-center justify-between px-3 py-1 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div><span className="font-mono">EN</span>
            </div>
-           <button onClick={async () => { localStorage.clear(); await logout(); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 border-transparent text-red-500 hover:bg-red-500/10 hover:border-red-500/20"><LogOut size={16} /> LOGOUT</button>
+           <button onClick={async () => { localStorage.clear(); await logout(); }} className="w-full flex items-center gap-3 px-3 py-1 rounded-lg text-[11px] uppercase transition-all tracking-widest font-bold border-2 border-transparent text-red-500 hover:bg-red-500/10 hover:border-red-500/20"><LogOut size={16} /> LOGOUT</button>
         </div>
       </aside>
 
