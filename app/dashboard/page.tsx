@@ -950,7 +950,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
         )}
 
         <div 
-            className={`absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-all duration-300 origin-top-left ${isChatVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
+            className={`absolute z-20 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl flex flex-col shadow-2xl transition-opacity duration-300 origin-top-left ${isChatVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
             style={{ left: chatState.x, top: chatState.y, width: chatState.w, height: chatState.h, transform: `scale(${chatState.scale})`, opacity: isChatVisible ? ((ghostMode && !isHolding && !showUI) ? 0.3 : 1) : 0 }}
             onPointerDown={(e) => handleElementPointerDown(e, 'chat', 'drag')}
         >
