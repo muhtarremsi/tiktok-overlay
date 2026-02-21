@@ -341,7 +341,7 @@ function DashboardContent() {
             </nav>
         </div>
         
-        <div className="p-5 shrink-0 pt-4 space-y-2 border-t border-white/5 not-italic z-10 bg-black">
+        <div className="p-5 shrink-0 pt-4 space-y-0 border-t border-white/5 not-italic z-10 bg-black">
            <SidebarItem icon={<Settings size={16} />} label="SETTINGS" active={activeView === "settings"} onClick={() => {setActiveView("settings"); setSidebarOpen(false);}} />
            <div className="flex items-center justify-between px-3 py-2 text-zinc-500 uppercase font-bold tracking-widest text-[10px]">
               <div className="flex items-center gap-3"><Globe size={16} /><span>LANGUAGE</span></div><span className="font-mono">EN</span>
