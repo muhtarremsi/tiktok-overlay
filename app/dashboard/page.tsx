@@ -311,7 +311,7 @@ function DashboardContent() {
                     <div className="text-[9px] font-black text-zinc-600 px-3 py-2 uppercase tracking-[0.2em] not-italic">TIKTOK</div>
                     <div className="space-y-1">
                         <MenuFolder label="TEXT TO" icon={<MessageSquare size={16}/>} defaultOpen={true}>
-                            <SidebarSubItem icon={<Volume2 size={14}/>} label="Voice" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
+                            <SidebarSubItem icon={<Volume2 size={14}/>} label="SPEAK" active={activeView === "ttc"} onClick={() => {setActiveView("ttc"); setSidebarOpen(false);}} />
                             <SidebarSubItem icon={<Video size={14}/>} label="Video" active={activeView === "ttv"} onClick={() => {setActiveView("ttv"); setSidebarOpen(false);}} />
                         </MenuFolder>
                         
