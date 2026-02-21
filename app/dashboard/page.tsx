@@ -645,12 +645,22 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
 
   const startStream = async () => {
     setError("");
-    setStreamSummary(null); // Reset falls vorheriges PopUp noch da
-    streamStatsRef.current = { likes: 0, gifts: 0, topGifter: { name: "", diamonds: 0 } }; // Reset Stats
+    setStreamSummary(null);
+    streamStatsRef.current = { likes: 0, gifts: 0, topGifter: { name: "", diamonds: 0 } };
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
       setActiveStream(stream);
       setViewState('fullscreen');
+      
+      setMirror(facingMode === 'user');
+      
+      const track = stream.getVideoTracks()[0];
+      if (track.getCapabilities) {
+          setHasTorch(!!track.getCapabilities().torch);
+      } else {
+          setHasTorch(false);
+      }
+      setFlashlightOn(false);
     } catch (err: any) { setError(`Kamerafehler: ${err.message || 'Zugriff verweigert'}`); }
   };
 
@@ -660,6 +670,17 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
     }
   }, [viewState, activeStream]);
 
+  
+  const toggleFlashlight = async () => {
+      if (!activeStream) return;
+      const track = activeStream.getVideoTracks()[0];
+      try {
+          await track.applyConstraints({ advanced: [{ torch: !flashlightOn }] });
+          setFlashlightOn(!flashlightOn);
+      } catch (e) {
+          console.error("Blitz-Fehler", e);
+      }
+  };
   const stopStream = () => {
     if (activeStream) { activeStream.getTracks().forEach(track => track.stop()); setActiveStream(null); }
     setViewState('intro');
@@ -1106,7 +1127,10 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                     <button onClick={(e) => { stopEvent(e); setShowSettings(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><Settings size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setGhostMode(!ghostMode); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className={`p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg ${ghostMode ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10"}`}><Ghost size={24} /></button>
                     <button onClick={(e) => { stopEvent(e); setMirror(!mirror); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><FlipHorizontal size={24} /></button>
-                    {cameraCount > 1 && <button onClick={(e) => { stopEvent(e); setFacingMode(prev => { const next = prev === 'user' ? 'environment' : 'user'; setMirror(next === 'user'); return next; }); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>}
+                    {hasTorch && (
+                        <button onClick={(e) => { stopEvent(e); toggleFlashlight(); }} onPointerDown={stopEvent} onPointerUp={stopEvent} onTouchStart={(e)=>{e.stopPropagation()}} className={`md:hidden p-4 rounded-full border transition-all flex items-center justify-center relative shadow-lg ${flashlightOn ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/50" : "bg-black/50 backdrop-blur-md text-white border-white/10 hover:bg-white/20"}`}><Zap size={24} /></button>
+                    )}
+                    {cameraCount > 1 && <button onClick={(e) => { stopEvent(e); setFacingMode(prev => prev === 'user' ? 'environment' : 'user'); setShowUI(true); }} onPointerDown={stopEvent} onPointerUp={stopEvent} className="bg-black/50 backdrop-blur-md p-4 rounded-full border border-white/10 text-white hover:bg-white/20 transition-all shadow-lg"><RefreshCw size={24} /></button>}
                 </div>
             </div>
         </div>
