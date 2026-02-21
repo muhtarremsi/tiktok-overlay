@@ -50,8 +50,15 @@ export async function GET(req: Request) {
         });
       });
 
-            tiktokLiveConnection.on('roomUser', data => {
-        sendEvent({ type: 'roomUser', viewerCount: data.viewerCount });
+            let lastRoomUserTime = 0;
+      tiktokLiveConnection.on('roomUser', data => {
+        const now = Date.now();
+        // SPAM-SCHUTZ: Nur alle 5 Sekunden an den Browser schicken!
+        // Verhindert, dass der Server überlastet wird und die Verbindung kappt.
+        if (now - lastRoomUserTime > 5000) {
+            lastRoomUserTime = now;
+            sendEvent({ type: 'roomUser', viewerCount: data.viewerCount });
+        }
       });
 
       tiktokLiveConnection.on('social', data => {
