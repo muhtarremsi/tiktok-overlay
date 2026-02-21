@@ -537,6 +537,14 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
         }
         .wobble-active { animation: wobble-chat 0.25s ease-in-out infinite; }
     `}</style>
+        <style>{`
+        @keyframes wobble-chat {
+            0%, 100% { transform: scale(${chatState.scale}) rotate(0deg); }
+            25% { transform: scale(${chatState.scale}) rotate(-1.5deg); }
+            75% { transform: scale(${chatState.scale}) rotate(1.5deg); }
+        }
+        .wobble-active { animation: wobble-chat 0.25s ease-in-out infinite; }
+    `}</style>
         <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ filter: filterCss }} />
           </div>
           <span className={`text-[9px] font-black uppercase tracking-widest transition-colors drop-shadow-md ${isActive ? 'text-green-500' : 'text-zinc-400 group-hover:text-white'}`}>{name}</span>
@@ -589,6 +597,8 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   const [chatState, setChatState] = useState({ x: 20, y: 400, w: 320, h: 280, scale: 1 });
   const [error, setError] = useState("");
   const [cameraCount, setCameraCount] = useState(0);
+  const [isWobbling, setIsWobbling] = useState(false);
+  const chatLongPressTimer = useRef<any>(null);
   const [isWobbling, setIsWobbling] = useState(false);
   const chatLongPressTimer = useRef<any>(null);
 
@@ -738,6 +748,24 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
       }, 400);
   };
 
+  const handleChatPointerDown = (e: React.PointerEvent) => {
+      e.stopPropagation();
+      hasDragged.current = false;
+      activePointers.current.set(e.pointerId, e);
+      dragInfo.current = {
+          id: e.pointerId, type: 'chat', action: 'pending_drag',
+          startX: e.clientX, startY: e.clientY, initial: chatState
+      };
+      if (chatLongPressTimer.current) clearTimeout(chatLongPressTimer.current);
+      chatLongPressTimer.current = setTimeout(() => {
+          setIsWobbling(true);
+          setTimeout(() => setIsWobbling(false), 300);
+          if (dragInfo.current && dragInfo.current.id === e.pointerId) {
+              dragInfo.current.action = 'drag';
+          }
+      }, 400);
+  };
+
   const handleElementPointerDown = (e: React.PointerEvent, type: string, action: string) => {
       e.stopPropagation(); hasDragged.current = false;
       if (action === 'drag' || action === 'resize') dragInfo.current = { id: e.pointerId, type, action, startX: e.clientX, startY: e.clientY, initial: type === 'spotify' ? spotifyState : chatState };
@@ -789,6 +817,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
   };
 
   const handleGlobalPointerUp = (e: React.PointerEvent) => {
+      if (chatLongPressTimer.current) clearTimeout(chatLongPressTimer.current);
       if (chatLongPressTimer.current) clearTimeout(chatLongPressTimer.current);
       activePointers.current.delete(e.pointerId);
       if (dragInfo.current && dragInfo.current.id === e.pointerId) dragInfo.current = null;
