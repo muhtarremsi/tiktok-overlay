@@ -38,7 +38,7 @@ export async function GET(req: Request) {
             nickname: data.nickname || data.uniqueId, 
             uniqueId: data.uniqueId,
             comment: data.comment,
-            profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges || data.badges || []
+            profilePictureUrl: data.profilePictureUrl
         });
       });
 
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
         sendEvent({ 
             type: 'member', 
             nickname: data.nickname || data.uniqueId,
-            profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges || data.badges || []
+            profilePictureUrl: data.profilePictureUrl
         });
       });
 
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
         sendEvent({ 
             type: 'follow', 
             nickname: data.nickname || data.uniqueId,
-            profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges || data.badges || []
+            profilePictureUrl: data.profilePictureUrl
         });
       });
 
@@ -68,7 +68,7 @@ export async function GET(req: Request) {
             type: 'like', 
             userId: data.userId,
             nickname: data.nickname || data.uniqueId,
-            profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges || data.badges || [],
+            profilePictureUrl: data.profilePictureUrl,
             likeCount: data.likeCount,
             totalLikeCount: data.totalLikeCount
         });
@@ -79,7 +79,7 @@ export async function GET(req: Request) {
         sendEvent({ 
             type: 'gift', 
             nickname: data.nickname || data.uniqueId,
-            profilePictureUrl: data.profilePictureUrl, userBadges: data.userBadges || data.badges || [],
+            profilePictureUrl: data.profilePictureUrl,
             giftName: data.giftName,
             giftPictureUrl: data.giftPictureUrl,
             diamondCount: data.diamondCount,
