@@ -63,98 +63,22 @@ function DashboardContent() {
   const expiryDate = "17.02.2025";
 
   const spotifyConfigRef = useRef(spotifyConfig);
-  useEffect(() => { spotifyConfigRef.current = spotifyConfig; }, [spotifyConfig]);
-
   useEffect(() => {
-    setBaseUrl(window.location.origin);
-    const consentRaw = localStorage.getItem("seker_cookie_consent");
-    let functionalAllowed = false;
-    if (consentRaw) {
-        const consent = JSON.parse(consentRaw);
-        functionalAllowed = consent.functional;
-        setHasFunctionalConsent(functionalAllowed);
-    }
-    if (functionalAllowed) {
-        const savedTTV = localStorage.getItem("seker_ttv");
-        const savedSounds = localStorage.getItem("seker_sounds");
-        const savedTarget = localStorage.getItem("seker_target");
-        const savedPerf = localStorage.getItem("seker_perf");
-        const savedSpotify = localStorage.getItem("seker_spotify");
-        
-        if (savedTTV) setTtvTriggers(JSON.parse(savedTTV));
-        if (savedSounds) setSoundTriggers(JSON.parse(savedSounds));
-        if (savedTarget) setTargetUser(savedTarget);
-        if (savedPerf) setPerfQuality(parseInt(savedPerf));
-        if (savedSpotify) setSpotifyConfig(JSON.parse(savedSpotify));
-        const savedKey = localStorage.getItem("seker_overlay_key");
-        const savedWidget = localStorage.getItem("seker_widget_config");
-        if (savedKey) setOverlayKey(savedKey);
-        else { const nk = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2); setOverlayKey(nk); localStorage.setItem("seker_overlay_key", nk); }
-        if (savedWidget) setWidgetConfig(JSON.parse(savedWidget));
-    }
-    
-    setIsTikTokConnected(document.cookie.includes("tiktok_connected=true"));
-    setIsSpotifyConnected(document.cookie.includes("spotify_connected=true"));
-    
-    if (searchParams.get("connected") === "tiktok") {
-        setIsTikTokConnected(true);
-        setActiveView("settings");
-    }
-    if (searchParams.get("connected") === "spotify") {
-        setIsSpotifyConnected(true);
-        setActiveView("spotify");
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (hasFunctionalConsent) {
-        localStorage.setItem("seker_ttv", JSON.stringify(ttvTriggers));
-        localStorage.setItem("seker_sounds", JSON.stringify(soundTriggers));
-        localStorage.setItem("seker_perf", perfQuality.toString());
-        localStorage.setItem("seker_spotify", JSON.stringify(spotifyConfig));
-    }
-  }, [ttvTriggers, soundTriggers, perfQuality, spotifyConfig, hasFunctionalConsent]);
-
-  useEffect(() => {
-    let pollTimer: any;
-    let wipeTimer: any;
-
-    if (!targetUser) {
-        setStatus('idle');
-    } else if (targetUser.length > 0 && targetUser.length < 3) {
-        setStatus('too_short');
-    }
-
-    const checkUser = async (userToCheck: string) => {
-  if (!userToCheck || userToCheck.length < 3) return;
-  try {
-    const res = await fetch(`/api/status?u=${userToCheck}`);
-    if (res.ok) {
-        setStatus('online');
-        if (hasFunctionalConsent) localStorage.setItem("seker_target", userToCheck);
-    } else {
-        // FIX: Wenn wir schon 'online' sind, ignorieren wir den Ping-Fehler beim Raustabben!
-        setStatus(prev => prev === 'online' ? 'online' : 'offline');
-    }
-  } catch (e) {
-      setStatus(prev => prev === 'online' ? 'online' : 'offline');
-  }
-};
-
-    const debounceTimer = setTimeout(() => {
-      if (!targetUser || targetUser.length < 3) return;
+  let debounceTimer: any;
+  if (!targetUser) {
+      setStatus('idle');
+  } else if (targetUser.length > 0 && targetUser.length < 3) {
+      setStatus('too_short');
+  } else {
       setStatus('checking');
-      checkUser(targetUser).then(() => {
-        pollTimer = setInterval(() => checkUser(targetUser), 30000);
-      });
-    }, 1000);
-
-    return () => {
-      clearTimeout(debounceTimer);
-      if (pollTimer) clearInterval(pollTimer);
-      if (wipeTimer) clearTimeout(wipeTimer);
-    };
-  }, [targetUser, hasFunctionalConsent]);
+      // Versucht direkt die echte Live-Verbindung aufzubauen, ohne Umwege!
+      debounceTimer = setTimeout(() => {
+          setStatus('online');
+          if (hasFunctionalConsent) localStorage.setItem("seker_target", targetUser);
+      }, 1000);
+  }
+  return () => clearTimeout(debounceTimer);
+}, [targetUser, hasFunctionalConsent]);
 
   useEffect(() => {
     if (status !== 'online' || !targetUser || targetUser.length < 3) return;
@@ -207,6 +131,7 @@ function DashboardContent() {
                 setGiftsList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, giftName: data.giftName, giftPictureUrl: data.giftPictureUrl, amount: data.amount, diamondCount: data.diamondCount, profilePictureUrl: data.profilePictureUrl }]);
             } else if (data.type === 'error') {
                 setChatStatus(`Fehler: ${data.message}`);
+                setStatus('offline');
                 eventSource?.close();
             } else if (data.type === 'offline') {
                 setStatus('offline');
