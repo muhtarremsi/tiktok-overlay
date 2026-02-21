@@ -613,15 +613,24 @@ function LiveFilterPreview({ stream, filterCss, isActive, onClick, name }: any) 
 }
 
 
+
 function UserBadges({ badges }: { badges?: any[] }) {
-    if (!badges || !Array.isArray(badges)) return null;
+    if (!badges || !Array.isArray(badges) || badges.length === 0) return null;
     let gifterLevel = 0;
     let fcLevel = 0;
     
-    // Durchsuche die TikTok Badges nach Fanclub ('fc') und Gifter ('pm') Leveln
     badges.forEach(b => {
-        if (b.type === 'pm' || b.badgeSceneType === 8) gifterLevel = b.level || 0;
-        if (b.type === 'fc' || b.badgeSceneType === 1) fcLevel = b.level || 0;
+        const type = b.type || '';
+        const scene = b.badgeSceneType || 0;
+        let level = b.level || (b.badge && b.badge.level) || 0;
+        
+        if (type === 'fc' || type === 'fanclub' || scene === 1) {
+            if (level > fcLevel) fcLevel = level;
+        }
+        if (type === 'pm' || type === 'gifter' || scene === 8) {
+            if (!level && b.privilegeLogExtra && b.privilegeLogExtra.level) level = parseInt(b.privilegeLogExtra.level);
+            if (level > gifterLevel) gifterLevel = level;
+        }
     });
     
     if (!gifterLevel && !fcLevel) return null;
