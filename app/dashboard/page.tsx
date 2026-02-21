@@ -973,7 +973,7 @@ function ModuleCamera({ targetUser, chatMessages, likesMap, giftsList, membersLi
                 <button onClick={() => setActiveTab('gifts')} className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === 'gifts' ? 'text-yellow-500 border-b-2 border-yellow-500 bg-white/5' : 'text-zinc-500 hover:text-zinc-300'}`}>Gifts</button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}>
+            <div className="flex-1 overflow-y-auto p-3 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] flex flex-col gap-2 font-sans not-italic text-[12px] break-words whitespace-normal pointer-events-auto" onPointerDown={stopEvent} onPointerUp={stopEvent} onClick={stopEvent} onWheel={stopEvent} onScroll={handleScroll}>
                 {activeTab === 'chat' && (
                     <>{chatMessages.length === 0 ? <div className="text-white/50 text-center text-[10px] italic py-4">Warte auf Nachrichten...</div> : chatMessages.map((msg: any) => (
                             <div key={msg.id} className="text-white leading-tight break-words border-b border-white/5 pb-2 flex gap-2 items-start">
