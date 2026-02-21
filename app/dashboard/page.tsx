@@ -175,7 +175,7 @@ function DashboardContent() {
                 setLiveStats(prev => ({ ...prev, viewers: data.viewerCount || 0 }));
             } else if (data.type === 'follow') {
                 setLiveStats(prev => ({ ...prev, followers: prev.followers + 1 }));
-                setChatMessages(prev => [...prev.slice(-49), { id: Date.now(), nickname: data.nickname, comment: "folgt dir jetzt! 💖", profilePictureUrl: data.profilePictureUrl }]);
+                
             } else if (data.type === 'chat') {
                 setChatMessages(prev => [...prev.slice(-29), { id: Date.now(), nickname: data.nickname, comment: data.comment, profilePictureUrl: data.profilePictureUrl }]);
                 if (spotifyConfigRef.current.allowRequests) {
@@ -190,7 +190,7 @@ function DashboardContent() {
             } else if (data.type === 'member') {
                 setLiveStats(prev => ({ ...prev, views: prev.views + 1 }));
                 setMembersList(prev => [...prev.slice(-99), { id: Date.now() + Math.random(), nickname: data.nickname, profilePictureUrl: data.profilePictureUrl }]);
-                setChatMessages(prev => [...prev.slice(-49), { id: Date.now(), nickname: data.nickname, comment: "ist beigetreten 👋", profilePictureUrl: data.profilePictureUrl }]);
+                
             } else if (data.type === 'like') {
                 setLiveStats(prev => ({ ...prev, likes: data.totalLikeCount || (prev.likes + data.likeCount) }));
                 setLikesMap(prev => ({
